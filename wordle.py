@@ -44,19 +44,22 @@ class Game:
         self,
         guess_list,
         target_list,
-        target=None,
+        solution=None,
+        automatic=False,
         initial_guess=None,
         threshold_display=3,
     ):
         self.guess_list = np.array(guess_list)
         self.target_lists = [np.array(target_list)]
-        self.target = target
+        self.solution = solution
+        self.automatic = automatic
         self.n = len(self.guess_list[0])
         self.round = 0
-        self.solution = None
+        self.found_solution = None
         self.initial_guess = initial_guess
         self.best_initial_guess = None
         self.threshold_display = threshold_display
+        self._scores = []
 
     def get_score(self, guess, target):
         if len(guess) != len(target):
@@ -91,6 +94,9 @@ class Game:
         return r[::-1]
 
     def get_score_str(self, score):
+        if isinstance(score, int):
+            score = self.get_score_list(score)
+
         return "".join(SQUARES[s] for s in score)
 
     def score_guess(self, guess):
@@ -139,11 +145,12 @@ class Game:
     def reset(self):
         self.target_lists = [self.target_lists[0]]
         self.round = 0
-        self.solution = None
+        self.found_solution = None
+        self._scores = []
 
     def play_one_round(self):
-        if self.solution is not None:
-            logging.info(f"Already found solution: {self.solution}")
+        if self.found_solution is not None:
+            logging.info(f"Already found solution: {self.found_solution}")
             return False
 
         if self.round == 0 and (
@@ -160,12 +167,15 @@ class Game:
             if self.round == 0:
                 self.best_initial_guess = best_guess
 
-        try:
-            new_suggestion = input(f"Suggested {best_guess}. Score/new guess: ")
-        except EOFError:
-            return GameState.QUIT
+        if not self.automatic:
+            try:
+                new_suggestion = input(f"Suggested {best_guess}. Score/new guess: ")
+            except EOFError:
+                return GameState.QUIT
+            else:
+                new_suggestion = new_suggestion.lower().strip()
         else:
-            new_suggestion = new_suggestion.lower().strip()
+            new_suggestion = ""
 
         if (
             new_suggestion
@@ -176,6 +186,8 @@ class Game:
             best_guess, new_suggestion = new_suggestion, None
 
         state, guess_score = self.get_guess_score(best_guess, new_suggestion)
+        self._scores.append(guess_score)
+        sys.stdout.write("%s\n" % self.get_score_str(guess_score))
 
         if state != GameState.CONTINUE:
             return state
@@ -194,8 +206,9 @@ class Game:
         self.round += 1
         logging.info(f"{len(new_target_list)} words match the pattern")
         if len(new_target_list) == 1:
-            self.solution = new_target_list[0]
-            logging.info(f"SOLVED: {self.solution}")
+            self.found_solution = new_target_list[0]
+            logging.info(f"SOLVED: {self.found_solution}")
+            self.display_scores()
             return GameState.SOLVED
 
         if len(new_target_list) <= self.threshold_display:
@@ -204,9 +217,13 @@ class Game:
         logging.debug(f"Words:\n{new_target_list}")
         return GameState.CONTINUE
 
+    def display_scores(self):
+        for score in self._scores:
+            sys.stdout.write("%s\n" % self.get_score_str(score))
+
     def get_guess_score(self, guess, potential_score=None):
-        if self.target is not None:
-            return self.get_score(guess, self.target)
+        if self.solution is not None:
+            return GameState.CONTINUE, self.get_score(guess, self.solution)
 
         if potential_score:
             try:
@@ -289,6 +306,8 @@ def run(args):
     g = Game(
         guesses,
         targets,
+        solution=args.solution,
+        automatic=args.automatic,
         initial_guess=args.initial_guess,
         threshold_display=args.threshold_display,
     )
@@ -327,6 +346,8 @@ def main():
     parser.add_argument("-t", "--targets", default="target")
     parser.add_argument("-i", "--initial-guess", default=None)
     parser.add_argument("-T", "--threshold-display", default=3)
+    parser.add_argument("-s", "--solution", default=None)
+    parser.add_argument("-a", "--automatic", action="store_true")
 
     args = parser.parse_args()
     setup_logging(args.debug)
