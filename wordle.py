@@ -135,7 +135,9 @@ class Game:
 
             guess = self.guess_list[i]
             if guess in target_list and i:
-                logging.info(f"Using {guess} instead of {best_guess} for better chances")
+                logging.info(
+                    f"Using {guess} instead of {best_guess} for better chances"
+                )
                 best_guess = guess
                 break
 
@@ -207,6 +209,7 @@ class Game:
         logging.info(f"{len(new_target_list)} words match the pattern")
         if len(new_target_list) == 1:
             self.found_solution = new_target_list[0]
+            self._scores.append(self.get_score_num([2] * self.n))
             logging.info(f"SOLVED: {self.found_solution}")
             self.display_scores()
             return GameState.SOLVED
