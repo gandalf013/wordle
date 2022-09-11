@@ -128,18 +128,19 @@ class Game:
         eindices = np.argsort(entropy)[::-1]
         best_entropy = entropy[eindices[0]]
         best_guess = self.guess_list[eindices[0]]
-        for i in eindices[1:]:
-            e = entropy[i]
-            if not math.isclose(e, best_entropy):
-                break
+        if best_guess not in target_list:
+            for i in eindices[1:]:
+                e = entropy[i]
+                if not math.isclose(e, best_entropy):
+                    break
 
-            guess = self.guess_list[i]
-            if guess in target_list and i:
-                logging.info(
-                    f"Using {guess} instead of {best_guess} for better chances"
-                )
-                best_guess = guess
-                break
+                guess = self.guess_list[i]
+                if guess in target_list:
+                    logging.info(
+                        f"Using {guess} instead of {best_guess} for better chances"
+                    )
+                    best_guess = guess
+                    break
 
         logging.info(f"Best guess {best_guess} entropy {best_entropy}")
         return best_guess
