@@ -170,6 +170,7 @@ class Game:
             if self.round == 0:
                 self.best_initial_guess = best_guess
 
+        new_suggestion = ""
         if not self.automatic:
             try:
                 new_suggestion = input(f"Suggested {best_guess}. Score/new guess: ")
@@ -177,8 +178,6 @@ class Game:
                 return GameState.QUIT
             else:
                 new_suggestion = new_suggestion.lower().strip()
-        else:
-            new_suggestion = ""
 
         if (
             new_suggestion
@@ -207,7 +206,6 @@ class Game:
 
         self.target_lists.append(np.array(new_target_list))
         self.round += 1
-        logging.info(f"{len(new_target_list)} words match the pattern")
         if len(new_target_list) == 1:
             self.found_solution = new_target_list[0]
             self._scores.append(self.get_score_num([2] * self.n))
@@ -215,6 +213,7 @@ class Game:
             self.display_scores()
             return GameState.SOLVED
 
+        logging.info(f"{len(new_target_list)} words match the pattern")
         if len(new_target_list) <= self.threshold_display:
             logging.info(f"Matching words: {sorted(new_target_list)}")
 
