@@ -188,8 +188,9 @@ class Game:
             best_guess, new_suggestion = new_suggestion, None
 
         state, guess_score = self.get_guess_score(best_guess, new_suggestion)
-        self._scores.append(guess_score)
-        sys.stdout.write("%s\n" % self.get_score_str(guess_score))
+        if guess_score is not None:
+            self._scores.append(guess_score)
+            sys.stdout.write("%s\n" % self.get_score_str(guess_score))
 
         if state != GameState.CONTINUE:
             return state
@@ -208,7 +209,9 @@ class Game:
         self.round += 1
         if len(new_target_list) == 1:
             self.found_solution = new_target_list[0]
-            self._scores.append(self.get_score_num([2] * self.n))
+            perfect_score = self.get_score_num([2] * self.n)
+            if not (self._scores and self._scores[-1] == perfect_score):
+                self._scores.append(perfect_score)
             logging.info(f"SOLVED: {self.found_solution}")
             self.display_scores()
             return GameState.SOLVED
