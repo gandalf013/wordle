@@ -361,7 +361,7 @@ def main():
     parser.add_argument("-g", "--guesses", default="all")
     parser.add_argument("-t", "--targets", default="target")
     parser.add_argument("-i", "--initial-guess", default=None)
-    parser.add_argument("-T", "--threshold-display", default=3)
+    parser.add_argument("-T", "--threshold-display", default=3, type=int)
     parser.add_argument("-s", "--solution", default=None)
     parser.add_argument("-a", "--automatic", action="store_true")
     parser.add_argument("-n", "--num-top-guesses", default=1, type=int)
