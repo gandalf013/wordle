@@ -48,6 +48,7 @@ class Game:
         automatic=False,
         initial_guess=None,
         threshold_display=3,
+        num_top_guesses=1,
     ):
         self.guess_list = np.array(guess_list)
         self.target_lists = [np.array(target_list)]
@@ -59,6 +60,7 @@ class Game:
         self.initial_guess = initial_guess
         self.best_initial_guess = None
         self.threshold_display = threshold_display
+        self.num_top_guesses = num_top_guesses
         self._scores = []
 
     def get_score(self, guess, target):
@@ -128,6 +130,13 @@ class Game:
         eindices = np.argsort(entropy)[::-1]
         best_entropy = entropy[eindices[0]]
         best_guess = self.guess_list[eindices[0]]
+        if self.num_top_guesses > 1:
+            logging.info(f"Top {self.num_top_guesses} guesses:")
+            guesses = self.guess_list[eindices[:self.num_top_guesses]]
+            entropies = entropy[eindices[:self.num_top_guesses]]
+            for g, e in zip(guesses, entropies):
+                logging.info(f"{g} {e}")
+
         if best_guess not in target_list:
             for i in eindices[1:]:
                 e = entropy[i]
@@ -316,6 +325,7 @@ def run(args):
         automatic=args.automatic,
         initial_guess=args.initial_guess,
         threshold_display=args.threshold_display,
+        num_top_guesses=args.num_top_guesses,
     )
     state = GameState.CONTINUE
     while state == GameState.CONTINUE:
@@ -354,6 +364,7 @@ def main():
     parser.add_argument("-T", "--threshold-display", default=3)
     parser.add_argument("-s", "--solution", default=None)
     parser.add_argument("-a", "--automatic", action="store_true")
+    parser.add_argument("-n", "--num-top-guesses", default=1, type=int)
 
     args = parser.parse_args()
     setup_logging(args.debug)
