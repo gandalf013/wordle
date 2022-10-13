@@ -55,13 +55,16 @@ class Game:
         self.solution = solution
         self.automatic = automatic
         self.n = len(self.guess_list[0])
-        self.round = 0
         self.found_solution = None
         self.initial_guess = initial_guess
         self.best_initial_guess = None
         self.threshold_display = threshold_display
         self.num_top_guesses = num_top_guesses
         self._scores = []
+
+    @property
+    def round(self):
+        return len(self.target_lists) - 1
 
     def get_score(self, guess, target):
         if len(guess) != len(target):
@@ -132,8 +135,8 @@ class Game:
         best_guess = self.guess_list[eindices[0]]
         if self.num_top_guesses > 1:
             logging.info(f"Top {self.num_top_guesses} guesses:")
-            guesses = self.guess_list[eindices[:self.num_top_guesses]]
-            entropies = entropy[eindices[:self.num_top_guesses]]
+            guesses = self.guess_list[eindices[: self.num_top_guesses]]
+            entropies = entropy[eindices[: self.num_top_guesses]]
             for g, e in zip(guesses, entropies):
                 logging.info(f"{g} {e}")
 
@@ -156,7 +159,6 @@ class Game:
 
     def reset(self):
         self.target_lists = [self.target_lists[0]]
-        self.round = 0
         self.found_solution = None
         self._scores = []
 
@@ -198,7 +200,7 @@ class Game:
 
         state, guess_score = self.get_guess_score(best_guess, new_suggestion)
         if guess_score is not None:
-            self._scores.append(guess_score)
+            self._scores.append((best_guess, guess_score))
             sys.stdout.write("%s\n" % self.get_score_str(guess_score))
 
         if state != GameState.CONTINUE:
@@ -215,13 +217,14 @@ class Game:
             return GameState.ERROR
 
         self.target_lists.append(np.array(new_target_list))
-        self.round += 1
         if len(new_target_list) == 1:
             self.found_solution = new_target_list[0]
             perfect_score = self.get_score_num([2] * self.n)
-            if not (self._scores and self._scores[-1] == perfect_score):
-                self._scores.append(perfect_score)
-            logging.info(f"SOLVED: {self.found_solution}")
+            if not (self._scores and self._scores[-1][1] == perfect_score):
+                self._scores.append((self.found_solution, perfect_score))
+            logging.info(
+                f"SOLVED: {self.found_solution} in {len(self._scores)} guesses"
+            )
             self.display_scores()
             return GameState.SOLVED
 
@@ -233,8 +236,8 @@ class Game:
         return GameState.CONTINUE
 
     def display_scores(self):
-        for score in self._scores:
-            sys.stdout.write("%s\n" % self.get_score_str(score))
+        for guess, score in self._scores:
+            sys.stdout.write(f"{guess} {self.get_score_str(score)}\n")
 
     def get_guess_score(self, guess, potential_score=None):
         if self.solution is not None:
