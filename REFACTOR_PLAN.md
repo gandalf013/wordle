@@ -443,10 +443,29 @@ def main(argv: list[str] | None = None) -> None:
    (near-zero weighted entropy); `bb` does the reverse. This is the
    regression test that would catch weighting being silently a no-op. 77
    tests total pass (75 fast, 2 slow).
-4. `strategies.py`, starting with `EntropyStrategy(weighted=False)`
-   wrapping today's behavior exactly (including the tie-break-toward-
-   candidate logic) — prove the seam works with zero behavior change
-   before adding `weighted=True` and the other strategies.
+4. **Done.** `strategies.py`: `Strategy` protocol, `EntropyStrategy`,
+   `ExpectedPoolSizeStrategy`, `MinimaxStrategy`. `EntropyStrategy(
+   weighted=False)` matches `Game.find_best_guess` on every case in
+   `TestFindBestGuess` and the real-word-list round-1 golden value
+   (`tarse`, entropy ≈5.948974509955522). One deliberate, documented
+   non-parity: `Game.find_best_guess` sorts via `np.argsort(entropy)[::-1]`,
+   which (unlike Python's stable `sorted(..., reverse=True)` used here)
+   reverses the relative order of *exactly*-tied entries, not just tie
+   groups; this only changes which guess wins a 3+-way bit-identical
+   entropy tie where the top-sorted entry isn't itself a candidate --
+   verified to actually diverge with a constructed repro
+   (`Game(["az","aa","bb"], ["aa","bb"])` picks `"bb"`;
+   `EntropyStrategy().rank(...)` picks `"aa"`) -- and is judged an
+   accidental artifact of the reversal, not a rule worth replicating.
+   `EntropyStrategy(weighted=True)`'s tie-break-toward-highest-
+   `solution_probability` and `ExpectedPoolSizeStrategy`'s weighted-vs-
+   uniform disagreement are tested against hand-constructed
+   `GuessAnalysis` instances (built directly, not derived from real word
+   scoring) rather than searched-for real words, since exact float ties
+   are impractical to hit reliably via real bucket scoring — confirmed by
+   two failed attempts to hand-derive such examples from real 2-letter
+   word buckets before switching approach. 86 tests total pass (83 fast,
+   3 slow).
 5. Slim `Game` → `SolverEngine`, removing all I/O; `cli.py` gets the loop.
    `SolverEngine` takes `weights` from `WordList.weights` by default.
 6. `display.py` formatting for what `cli.py` currently does via
