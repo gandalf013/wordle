@@ -9,7 +9,8 @@ from enum import IntEnum
 
 import numpy as np
 from scipy.stats import entropy as get_entropy
-from tqdm import tqdm
+
+import fast_scoring
 
 
 class Score(IntEnum):
@@ -104,22 +105,25 @@ class Game:
 
     def score_guess(self, guess):
         target_list = self.target_lists[self.round]
-        return np.array([self.get_score(guess, target) for target in target_list])
+        return fast_scoring.score_matrix([guess], list(target_list))[0]
 
     def get_census(self, scores):
         return np.bincount(scores, minlength=3 ** self.n)
 
     def get_all_censuses(self, limit=None):
-        all_censuses = []
-        if limit is None:
-            limit = len(self.guess_list)
+        guesses = self.guess_list if limit is None else self.guess_list[:limit]
+        targets = list(self.target_lists[self.round])
 
-        for i in tqdm(range(limit)):
-            scores = self.score_guess(self.guess_list[i])
-            census = self.get_census(scores)
-            all_censuses.append(census)
+        if self.round == 0:
+            matrix = fast_scoring.cached_score_matrix(list(guesses), targets)
+        else:
+            matrix = fast_scoring.score_matrix(list(guesses), targets)
 
-        return np.array(all_censuses)
+        G, T = matrix.shape
+        censuses = np.zeros((G, 3 ** self.n), dtype=np.int64)
+        rows = np.repeat(np.arange(G), T)
+        np.add.at(censuses, (rows, matrix.ravel()), 1)
+        return censuses
 
     def get_all_entropy(self, censuses):
         return get_entropy(censuses, axis=1, base=2)

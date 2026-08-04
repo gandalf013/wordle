@@ -24,4 +24,4 @@ dev = [
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
-markers = ["slow: exercises the real word lists (~45s); regression baseline for speed work"]
+markers = ["slow: exercises the real word lists; regression baseline for speed work"]

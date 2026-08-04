@@ -20,9 +20,21 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 
+import fast_scoring
 from wordle import Game, GameState, Score, parse_file
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+
+
+@pytest.fixture(autouse=True)
+def isolated_score_cache(tmp_path, monkeypatch):
+    """Keep Game's round-0 score-matrix caching out of the real
+    .wordle_cache/ dir for every test in this module, so running the suite
+    doesn't litter the project cache with entries for throwaway toy word
+    lists. TestRealWordList overrides this with a no-op, since exercising
+    the real cache is the whole point of that test.
+    """
+    monkeypatch.setattr(fast_scoring, "CACHE_DIR", tmp_path / "wordle_cache")
 
 
 # ---------------------------------------------------------------------------
@@ -356,9 +368,15 @@ def word_data():
 
 @pytest.mark.slow
 class TestRealWordList:
+    @pytest.fixture(autouse=True)
+    def isolated_score_cache(self):
+        # Overrides the module-level isolation fixture with a no-op: this
+        # test's job is to exercise (and warm) the real on-disk cache.
+        yield
+
     def test_round_one_best_guess_is_a_known_golden_value(self, word_data, caplog):
-        # A single find_best_guess() call is the ~45s expensive operation
-        # this test exists to pin down; the entropy value is pulled from its
+        # A single find_best_guess() call is the expensive operation this
+        # test exists to pin down; the entropy value is pulled from its
         # log line rather than recomputed, to avoid paying that cost twice.
         guesses, targets = word_data
         g = Game(guesses, targets)
@@ -369,3 +387,90 @@ class TestRealWordList:
         match = re.search(r"Best guess \S+ entropy (\S+)", caplog.text)
         assert match is not None
         assert float(match.group(1)) == pytest.approx(5.948974509955522)
+
+
+# ---------------------------------------------------------------------------
+# fast_scoring: vectorized score_matrix must agree with Game.get_score
+# exactly, and the on-disk cache must actually short-circuit recomputation.
+# ---------------------------------------------------------------------------
+
+
+class TestScoreMatrixMatchesScalar:
+    @pytest.mark.parametrize(
+        "guess, target",
+        [
+            ("apple", "apple"),
+            ("fjzkx", "mount"),
+            ("bobby", "abbey"),
+            ("erase", "speed"),
+        ],
+    )
+    def test_single_pair(self, guess, target):
+        g = Game([guess], [target])
+        assert fast_scoring.score_matrix([guess], [target])[0, 0] == g.get_score(
+            guess, target
+        )
+
+    def test_cross_check_against_scalar_over_many_pairs(self):
+        # A broad, randomized cross-check over real 5-letter words -- the
+        # hand-picked pairs above cover the known tricky duplicate-letter
+        # cases, but the vectorized algorithm's correctness claim is really
+        # "matches the scalar implementation for every pair", so verify that
+        # directly rather than trusting a handful of examples.
+        with open(REPO_ROOT / "words.wordle.txt") as fp:
+            target, extra, _ = parse_file(fp)
+        words = sorted(set(target) | set(extra))
+
+        import random
+
+        rng = random.Random(0)
+        guesses = rng.sample(words, 20)
+        targets = rng.sample(words, 20)
+
+        g = Game(guesses, targets)
+        matrix = fast_scoring.score_matrix(guesses, targets)
+        for gi, guess in enumerate(guesses):
+            for ti, tgt in enumerate(targets):
+                assert matrix[gi, ti] == g.get_score(guess, tgt), (guess, tgt)
+
+    def test_game_score_guess_matches_scalar_loop(self):
+        g = Game(["bobby"], ["abbey", "speed", "erase", "bobby"])
+        vectorized = g.score_guess("bobby")
+        scalar = [g.get_score("bobby", t) for t in ["abbey", "speed", "erase", "bobby"]]
+        assert list(vectorized) == scalar
+
+
+class TestScoreMatrixCache:
+    def test_cache_hit_skips_recomputation(self, tmp_path):
+        cache_dir = tmp_path / "cache"
+        with patch(
+            "fast_scoring.score_matrix", wraps=fast_scoring.score_matrix
+        ) as spy:
+            first = fast_scoring.cached_score_matrix(
+                ["aa", "ab"], ["aa", "ab", "ba"], cache_dir=cache_dir
+            )
+            second = fast_scoring.cached_score_matrix(
+                ["aa", "ab"], ["aa", "ab", "ba"], cache_dir=cache_dir
+            )
+        spy.assert_called_once()
+        np.testing.assert_array_equal(first, second)
+
+    def test_different_word_lists_produce_different_cache_entries(self, tmp_path):
+        cache_dir = tmp_path / "cache"
+        fast_scoring.cached_score_matrix(["aa"], ["aa", "ab"], cache_dir=cache_dir)
+        fast_scoring.cached_score_matrix(["aa"], ["aa", "bb"], cache_dir=cache_dir)
+        assert len(list(cache_dir.glob("*.npy"))) == 2
+
+    def test_cached_result_matches_uncached(self, tmp_path):
+        cache_dir = tmp_path / "cache"
+        guesses, targets = ["bobby", "abbey"], ["abbey", "speed", "erase"]
+        cached = fast_scoring.cached_score_matrix(guesses, targets, cache_dir=cache_dir)
+        uncached = fast_scoring.score_matrix(guesses, targets)
+        np.testing.assert_array_equal(cached, uncached)
+
+    def test_round_zero_populates_the_cache(self, tmp_path, monkeypatch):
+        cache_dir = tmp_path / "cache"
+        monkeypatch.setattr(fast_scoring, "CACHE_DIR", cache_dir)
+        g = Game(["aa", "ab", "ba", "bb"], ["aa", "ab", "ba", "bb"])
+        g.get_all_censuses()
+        assert len(list(cache_dir.glob("*.npy"))) == 1
