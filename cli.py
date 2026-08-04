@@ -1,33 +1,35 @@
 """cli.py: the interactive REPL and CLI entry point built on SolverEngine.
 The only module in the wordle solver with input()/print()/logging calls --
-scoring, analysis, strategy selection, and now display formatting are all
-pure by this point, so this module's only job is deciding how to surface
-them interactively (calling display.py's formatters, never building
-formatted strings itself).
+scoring, analysis, strategy selection, and display formatting are all pure
+by this point, so this module's only job is deciding how to surface them
+interactively (calling display.py's formatters, never building formatted
+strings itself).
 
-The round-by-round flow here (play_one_round/run_interactive) mirrors the
-old Game.play_one_round/run() exactly, just reading suggestions from
-SolverEngine.suggest() instead of Game.find_best_guess() and committing via
-SolverEngine.apply_score() instead of mutating Game.target_lists directly.
+The REPL grammar (parse_command/Command) replaces the old `.islower()`
+shape-sniffing from before this step: back when the only two things a line
+of input could mean were "a score" or "a guess override", checking
+`len(s) == n and s.islower()` was enough to tell them apart. Once `analyze`/
+`buckets`/`top` needed their own syntax too, shape-sniffing stopped scaling,
+so every command now has an explicit, unambiguous prefix/keyword instead.
 
-One feature was deliberately dropped rather than ported: the old
+One feature from before this step was deliberately never ported: the old
 -n/--num-top-guesses flag, which logged the top N guesses by entropy on
-every round. Reproducing it here would mean duplicating
-SolverEngine.suggest()'s internal branching (initial-guess override, cached
-first-round suggestion) just to peek at the ranked list one level down --
-it's superseded by a proper `top` REPL command in a later step instead of
-being carried forward as a CLI flag.
+every round unconditionally. The `top` REPL command below supersedes it --
+available on demand instead of forced on every round.
 """
 
 import argparse
 import logging
 import sys
+from dataclasses import dataclass
 from enum import Enum, auto
+from typing import Union
 
+import analysis
 import display
 import scoring
 from engine import RoundOutcome, SolverEngine
-from strategies import EntropyStrategy
+from strategies import EntropyStrategy, ExpectedPoolSizeStrategy, MinimaxStrategy, Strategy
 from wordlists import parse_file
 
 
@@ -39,75 +41,111 @@ class LoopState(Enum):
     SOLVED = auto()
 
 
-def resolve_score(engine, guess, potential_score, solution):
-    """Resolve the actual score for `guess` this round: a known solution
-    wins outright, then an already-typed candidate score string, then an
-    explicit prompt loop. Returns (LoopState, score)."""
-    if solution is not None:
-        return LoopState.CONTINUE, scoring.get_score(guess, solution)
+@dataclass(frozen=True)
+class Score_:  # renamed to avoid clashing with scoring.Score
+    value: int
 
-    if potential_score:
-        if len(potential_score) != engine.n:
-            logging.info(
-                f"Score {potential_score!r} is not {engine.n} characters, ignoring."
-            )
-        else:
-            try:
-                potential_score = int(potential_score, 3)
-            except (TypeError, ValueError):
-                logging.info(f"Could not understand {potential_score}, ignoring.")
-            else:
-                return LoopState.CONTINUE, potential_score
 
-    s = ""
-    while len(s) != engine.n:
+@dataclass(frozen=True)
+class OverrideGuess:
+    word: str
+
+
+@dataclass(frozen=True)
+class Analyze:
+    word: str
+
+
+@dataclass(frozen=True)
+class Buckets:
+    word: str | None  # None -> use the current guess
+
+
+@dataclass(frozen=True)
+class Top:
+    n: int
+
+
+@dataclass(frozen=True)
+class Restart:
+    pass
+
+
+@dataclass(frozen=True)
+class Quit:
+    pass
+
+
+Command = Union[Score_, OverrideGuess, Analyze, Buckets, Top, Restart, Quit]
+
+_DEFAULT_TOP_N = 10
+
+
+def parse_command(raw: str, n: int) -> Command | None:
+    """Parse one line of REPL input into a Command, or None if it doesn't
+    match any known form.
+
+    Grammar:
+      '<n digits of 0/1/2>'        -> Score_(value)
+      '!<word>'                    -> OverrideGuess(word)
+      '?<word>' | 'analyze <word>' -> Analyze(word)
+      'buckets [word]'             -> Buckets(word or None)
+      'top [N]'                    -> Top(n=N or default 10)
+      'r' | 'restart'              -> Restart()
+      'q' | 'quit'                 -> Quit()
+
+    A word after `!`/`?`/`analyze` that isn't exactly `n` letters is
+    rejected (returns None) rather than accepted and left to fail later
+    inside scoring -- the same length check the old override-detection
+    logic did before this grammar existed.
+    """
+    s = raw.strip()
+    if not s:
+        return None
+
+    parts = s.split(maxsplit=1)
+    head = parts[0].lower()
+    rest = parts[1].strip().lower() if len(parts) > 1 else None
+
+    if head in ("r", "restart"):
+        return Restart()
+    if head in ("q", "quit"):
+        return Quit()
+
+    if head == "analyze" and rest and len(rest) == n:
+        return Analyze(rest)
+
+    if head == "buckets":
+        if rest is not None and len(rest) != n:
+            return None
+        return Buckets(rest)
+
+    if head == "top":
+        if rest is None:
+            return Top(_DEFAULT_TOP_N)
         try:
-            s = input(f"Enter score for '{guess}': ").strip()
-        except EOFError:
-            logging.info("Quit")
-            return LoopState.QUIT, None
+            return Top(int(rest))
+        except ValueError:
+            return None
 
-        if not s:
-            continue
+    if s.startswith("!"):
+        word = s[1:].strip().lower()
+        return OverrideGuess(word) if word and len(word) == n else None
 
-        if s[0].lower() == "r":
-            logging.info("Restart")
-            return LoopState.RESTART, None
+    if s.startswith("?"):
+        word = s[1:].strip().lower()
+        return Analyze(word) if word and len(word) == n else None
 
-        if s[0].lower() == "q":
-            logging.info("Quit")
-            return LoopState.QUIT, None
+    if len(s) == n and all(c in "012" for c in s):
+        return Score_(int(s, base=3))
 
-    return LoopState.CONTINUE, int(s, base=3)
+    return None
 
 
-def play_one_round(engine, automatic, solution, threshold_display=3):
-    suggestion = engine.suggest()
-    best_guess = suggestion.guess
-    logging.info(f"Best guess {best_guess} entropy {suggestion.entropy}")
+def _commit(engine, guess, score, threshold_display):
+    sys.stdout.write(f"{display.format_score(score, engine.n)}\n")
 
-    new_input = ""
-    if not automatic:
-        try:
-            new_input = input(f"Suggested {best_guess}. Score/new guess: ")
-        except EOFError:
-            return LoopState.QUIT
-        new_input = new_input.lower().strip()
-
-    potential_score = new_input
-    if new_input and len(new_input) == engine.n and new_input.islower():
-        logging.info(f"Using {new_input} instead of {best_guess}")
-        best_guess = new_input
-        potential_score = None
-
-    state, guess_score = resolve_score(engine, best_guess, potential_score, solution)
-    if guess_score is not None:
-        sys.stdout.write(f"{display.format_score(guess_score, engine.n)}\n")
-
-    if state != LoopState.CONTINUE:
-        return state
-
-    result = engine.apply_score(best_guess, guess_score)
+    result = engine.apply_score(guess, score)
     if result.outcome == RoundOutcome.ERROR:
         logging.error("No guess matches the score!")
         return LoopState.ERROR
@@ -123,6 +161,84 @@ def play_one_round(engine, automatic, solution, threshold_display=3):
     logging.debug(f"Words:\n{engine.candidates}")
 
     return LoopState.CONTINUE
+
+
+def play_one_round(engine, automatic, solution, threshold_display=3):
+    suggestion = engine.suggest()
+    current_guess = suggestion.guess
+    logging.info(f"Best guess {current_guess} entropy {suggestion.entropy}")
+
+    if automatic and solution is not None:
+        return _commit(
+            engine, current_guess, scoring.get_score(current_guess, solution), threshold_display
+        )
+
+    weighted = engine.weights is not None
+    while True:
+        try:
+            raw = input(f"Suggested {current_guess}. Command: ")
+        except EOFError:
+            return LoopState.QUIT
+
+        # Convenience for known-solution runs: an empty line just accepts
+        # the current guess and lets the solution resolve its score,
+        # rather than requiring a throwaway Score_ value the solution is
+        # going to override anyway.
+        if not raw.strip() and solution is not None:
+            return _commit(
+                engine,
+                current_guess,
+                scoring.get_score(current_guess, solution),
+                threshold_display,
+            )
+
+        command = parse_command(raw, engine.n)
+        if command is None:
+            logging.info(f"Could not understand {raw!r}, ignoring.")
+            continue
+
+        if isinstance(command, Restart):
+            logging.info("Restart")
+            return LoopState.RESTART
+
+        if isinstance(command, Quit):
+            logging.info("Quit")
+            return LoopState.QUIT
+
+        if isinstance(command, OverrideGuess):
+            current_guess = command.word
+            logging.info(f"Using {current_guess}")
+            continue
+
+        if isinstance(command, Analyze):
+            result = engine.analyze(command.word)
+            sys.stdout.write(display.format_top_guesses([result], weighted=weighted) + "\n")
+            continue
+
+        if isinstance(command, Buckets):
+            result = engine.analyze(command.word or current_guess)
+            sys.stdout.write(display.format_buckets(result, weights=engine.weights) + "\n")
+            continue
+
+        if isinstance(command, Top):
+            use_cache = not engine.history
+            ranked = engine.strategy.rank(
+                analysis.analyze_all(
+                    engine.guess_list,
+                    engine.candidates,
+                    weights=engine.weights,
+                    use_cache=use_cache,
+                )
+            )
+            sys.stdout.write(
+                display.format_top_guesses(ranked, top_n=command.n, weighted=weighted) + "\n"
+            )
+            continue
+
+        # Score_: solution (if known) always overrides a manually typed
+        # value, matching the priority the old get_guess_score gave it.
+        score = scoring.get_score(current_guess, solution) if solution is not None else command.value
+        return _commit(engine, current_guess, score, threshold_display)
 
 
 def run_interactive(engine, automatic, solution, threshold_display=3):
@@ -144,6 +260,22 @@ def run_interactive(engine, automatic, solution, threshold_display=3):
                 state = LoopState.CONTINUE
             else:
                 state = LoopState.QUIT
+
+
+STRATEGIES: dict[str, type[Strategy]] = {
+    "entropy": EntropyStrategy,
+    "expected-pool-size": ExpectedPoolSizeStrategy,
+    "minimax": MinimaxStrategy,
+}
+
+
+def build_strategy(name: str, weighted: bool) -> Strategy:
+    cls = STRATEGIES[name]
+    if cls is MinimaxStrategy:
+        if weighted:
+            logging.warning("minimax has no weighted mode; ignoring --weighted")
+        return MinimaxStrategy()
+    return cls(weighted=weighted)
 
 
 def run(args):
@@ -175,7 +307,7 @@ def run(args):
     engine = SolverEngine(
         guesses,
         targets,
-        EntropyStrategy(),
+        build_strategy(args.strategy, args.weighted),
         weights=word_list.weights,
         initial_guess=args.initial_guess,
     )
@@ -201,6 +333,8 @@ def main(argv=None):
     parser.add_argument("-T", "--threshold-display", default=3, type=int)
     parser.add_argument("-s", "--solution", default=None)
     parser.add_argument("-a", "--automatic", action="store_true")
+    parser.add_argument("--strategy", choices=sorted(STRATEGIES), default="entropy")
+    parser.add_argument("--weighted", action="store_true")
 
     args = parser.parse_args(argv)
     setup_logging(args.debug)

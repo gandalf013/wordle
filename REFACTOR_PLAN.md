@@ -527,8 +527,44 @@ def main(argv: list[str] | None = None) -> None:
    moved out of `test_scoring.py` into it. 102 tests total pass (100 fast,
    2 slow); CLI smoke-tested end-to-end, output byte-identical to before
    the move.
-7. New REPL commands (`analyze`, `buckets`, `top`) and the `--weighted`/
-   `--strategy` CLI flags — additive once the seams above exist.
+7. **Done.** `parse_command`/`Command` (`Score_`, `OverrideGuess`, `Analyze`,
+   `Buckets`, `Top`, `Restart`, `Quit`) replace the old `.islower()`
+   shape-sniffing from step 5 with explicit-prefix parsing, exactly as
+   specced. `play_one_round` became a single unified per-round loop
+   instead of the old two-stage "guess-or-override prompt, then a separate
+   score prompt": it tracks a `current_guess` (updated by `OverrideGuess`),
+   with `Analyze`/`Buckets`/`Top` looping back without touching engine
+   state and `Score_`/`Restart`/`Quit` ending the round. `main()` gained
+   `--strategy {entropy,expected-pool-size,minimax}` and `--weighted`,
+   wired through a small `build_strategy()` that logs a warning and drops
+   `--weighted` for `minimax` (which has no weighted mode by design, see
+   step 4) rather than erroring.
+
+   Two deliberate, documented departures from a literal one-to-one port of
+   the old two-prompt flow, both consequences of unifying to one prompt
+   per round:
+   - When `solution` is known, an **empty** line now accepts the current
+     guess and lets the solution resolve its score, instead of requiring a
+     throwaway `Score_` value the solution was going to override anyway
+     (it still did override manually-typed digits when given, preserving
+     that priority exactly — see `test_solution_overrides_a_manually_typed_score`).
+   - `-a`/`--automatic` now only skips prompting outright when `solution`
+     is also known (the original had the same actual behavior — `-a`
+     without `-s` always fell through to a manual score prompt — this just
+     makes that explicit rather than incidental, since the old
+     two-separate-prompts structure that produced it no longer exists to
+     produce it by accident).
+
+   `-n`/`--num-top-guesses` (dropped in step 5) is now properly superseded:
+   `top [N]` gives the same information on demand instead of forced onto
+   every round. Manual end-to-end smoke tests against the real word list
+   covered all four new/changed pieces: `?word`/`buckets`/`top N` peeking
+   mid-round without committing, `!word` overriding the suggestion,
+   `--strategy expected-pool-size --weighted` picking a different first
+   guess (`roate`) than the default entropy strategy (`tarse`), and the
+   `-a -s` fast-path still working unchanged. 125 tests total pass (123
+   fast, 2 slow) — this was the last step in the migration order; the
+   refactor described in this document is now complete.
 
 ## Explicitly out of scope
 

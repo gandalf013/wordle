@@ -1,24 +1,42 @@
-"""Tests for cli.py: the interactive I/O loop built on SolverEngine.
-Ported from the old Game-based TestGetGuessScore/TestPlayOneRound tests,
-now targeting cli.resolve_score/play_one_round/run_interactive directly
-via mocked input() instead of Game methods.
+"""Tests for cli.py: the REPL grammar (parse_command) and the interactive
+I/O loop built on SolverEngine (play_one_round/run_interactive), plus the
+--strategy/--weighted wiring in build_strategy.
 
-test_already_solved_round_is_a_noop_quit from the old suite isn't ported:
-it exercised Game's own defensive "already solved, don't play again" guard
-(self.found_solution), which was an implementation detail of Game's
-persistent state, not part of the new engine/cli split's contract --
-run_interactive's loop structure never calls play_one_round again after a
-SOLVED/ERROR outcome without going through reset() first, so the scenario
-that guard protected against can't arise here.
+test_already_solved_round_is_a_noop_quit from the pre-refactor Game-based
+suite isn't ported: it exercised Game's own defensive "already solved,
+don't play again" guard (self.found_solution), which was an implementation
+detail of Game's persistent state, not part of the engine/cli split's
+contract -- run_interactive's loop structure never calls play_one_round
+again after a SOLVED/ERROR outcome without going through reset() first, so
+the scenario that guard protected against can't arise here.
 """
 
-import scoring
-from cli import LoopState, play_one_round, resolve_score, run_interactive
-from engine import SolverEngine
-from strategies import EntropyStrategy
 from unittest.mock import patch
 
 import pytest
+
+import scoring
+from cli import (
+    Analyze,
+    Buckets,
+    LoopState,
+    OverrideGuess,
+    Quit,
+    Restart,
+    Score_,
+    Top,
+    build_strategy,
+    main,
+    parse_command,
+    play_one_round,
+    run_interactive,
+)
+from engine import SolverEngine
+from strategies import EntropyStrategy, ExpectedPoolSizeStrategy, MinimaxStrategy
+
+
+def _score_digits(score: int, n: int) -> str:
+    return "".join(str(int(x)) for x in scoring.get_score_list(score, n))
 
 
 @pytest.fixture
@@ -26,51 +44,76 @@ def engine():
     return SolverEngine(["aa"], ["aa", "bb"], EntropyStrategy())
 
 
-class TestResolveScore:
-    def test_known_solution_ignores_potential_score(self, engine):
-        state, score = resolve_score(engine, "aa", "garbage", solution="bb")
-        assert state == LoopState.CONTINUE
-        assert score == scoring.get_score("aa", "bb")
+class TestParseCommand:
+    def test_score_digits(self):
+        assert parse_command("01", 2) == Score_(1)
 
-    def test_potential_score_wrong_length_is_ignored(self, engine):
-        with patch("builtins.input", return_value="01"):
-            state, score = resolve_score(engine, "aa", "1", solution=None)
-        assert state == LoopState.CONTINUE
-        assert score == 1  # int("01", base=3)
+    def test_wrong_length_score_is_none(self):
+        assert parse_command("0", 2) is None
 
-    def test_potential_score_valid_is_used_without_prompting(self, engine):
-        with patch("builtins.input") as mock_input:
-            state, score = resolve_score(engine, "aa", "12", solution=None)
-        mock_input.assert_not_called()
-        assert state == LoopState.CONTINUE
-        assert score == int("12", base=3)
+    def test_non_ternary_digits_are_none(self):
+        assert parse_command("03", 2) is None
 
-    def test_potential_score_invalid_digits_falls_back_to_prompt(self, engine):
-        with patch("builtins.input", return_value="01"):
-            state, score = resolve_score(engine, "aa", "1a", solution=None)
-        assert state == LoopState.CONTINUE
-        assert score == 1
+    def test_override_guess(self):
+        assert parse_command("!bb", 2) == OverrideGuess("bb")
 
-    def test_restart_command(self, engine):
-        with patch("builtins.input", return_value="restart"):
-            state, score = resolve_score(engine, "aa", None, solution=None)
-        assert state == LoopState.RESTART
-        assert score is None
+    def test_override_guess_wrong_length_is_none(self):
+        assert parse_command("!b", 2) is None
 
-    def test_quit_command(self, engine):
-        with patch("builtins.input", return_value="quit"):
-            state, score = resolve_score(engine, "aa", None, solution=None)
-        assert state == LoopState.QUIT
-        assert score is None
+    def test_override_guess_is_lowercased(self):
+        assert parse_command("!BB", 2) == OverrideGuess("bb")
 
-    def test_eof_quits(self, engine):
-        with patch("builtins.input", side_effect=EOFError):
-            state, score = resolve_score(engine, "aa", None, solution=None)
-        assert state == LoopState.QUIT
-        assert score is None
+    def test_analyze_question_mark_form(self):
+        assert parse_command("?bb", 2) == Analyze("bb")
+
+    def test_analyze_word_form(self):
+        assert parse_command("analyze bb", 2) == Analyze("bb")
+
+    def test_analyze_missing_word_is_none(self):
+        assert parse_command("analyze", 2) is None
+
+    def test_analyze_wrong_length_word_is_none(self):
+        assert parse_command("analyze b", 2) is None
+
+    def test_buckets_no_word_uses_none(self):
+        assert parse_command("buckets", 2) == Buckets(None)
+
+    def test_buckets_with_word(self):
+        assert parse_command("buckets bb", 2) == Buckets("bb")
+
+    def test_buckets_wrong_length_word_is_none(self):
+        assert parse_command("buckets b", 2) is None
+
+    def test_top_default_n(self):
+        assert parse_command("top", 2) == Top(10)
+
+    def test_top_with_explicit_n(self):
+        assert parse_command("top 5", 2) == Top(5)
+
+    def test_top_invalid_n_is_none(self):
+        assert parse_command("top abc", 2) is None
+
+    def test_restart_short_and_long_form(self):
+        assert parse_command("r", 2) == Restart()
+        assert parse_command("restart", 2) == Restart()
+
+    def test_quit_short_and_long_form(self):
+        assert parse_command("q", 2) == Quit()
+        assert parse_command("quit", 2) == Quit()
+
+    def test_commands_are_case_insensitive(self):
+        assert parse_command("RESTART", 2) == Restart()
+        assert parse_command("QUIT", 2) == Quit()
+
+    def test_empty_input_is_none(self):
+        assert parse_command("", 2) is None
+        assert parse_command("   ", 2) is None
+
+    def test_unrecognized_input_is_none(self):
+        assert parse_command("xyz", 2) is None
 
 
-class TestPlayOneRound:
+class TestPlayOneRoundAutomatic:
     def test_automatic_solve_deduces_unique_remaining_candidate(self):
         engine = SolverEngine(
             ["aa", "ab", "ba", "bb"],
@@ -95,6 +138,8 @@ class TestPlayOneRound:
         assert state == LoopState.SOLVED
         assert engine.history == [("bb", scoring.get_score_num([scoring.Score.GREEN] * 2))]
 
+
+class TestPlayOneRoundInteractive:
     def test_no_candidates_match_score_is_an_error(self):
         # guess "aa" can only ever score 8 (vs "aa") or 0 (vs "bb"); "01"
         # (1) is a well-formed but unachievable score for this pool.
@@ -103,26 +148,78 @@ class TestPlayOneRound:
             state = play_one_round(engine, automatic=False, solution=None)
         assert state == LoopState.ERROR
 
-    def test_interactive_guess_override_replaces_suggestion(self):
-        engine = SolverEngine(
-            ["aa", "bb"], ["aa", "bb"], EntropyStrategy(), initial_guess="aa"
-        )
-        with patch("builtins.input", return_value="bb"):
-            state = play_one_round(engine, automatic=False, solution="bb")
-        assert state == LoopState.SOLVED
-        assert engine.history == [("bb", scoring.get_score_num([scoring.Score.GREEN] * 2))]
-
     def test_interactive_eof_quits(self):
         engine = SolverEngine(["aa"], ["aa", "bb"], EntropyStrategy(), initial_guess="aa")
         with patch("builtins.input", side_effect=EOFError):
             assert play_one_round(engine, automatic=False, solution=None) == LoopState.QUIT
 
+    def test_unparseable_input_reprompts_instead_of_crashing(self):
+        engine = SolverEngine(["aa"], ["aa", "bb"], EntropyStrategy())
+        with patch("builtins.input", side_effect=["xyz", "01"]):
+            state = play_one_round(engine, automatic=False, solution=None)
+        # "xyz" is silently ignored (reprompted); "01" (score 1) is then
+        # read as a real Score_, which "aa" can't achieve against this pool.
+        assert state == LoopState.ERROR
+
+    def test_override_guess_then_score_commits_with_the_overridden_guess(self):
+        engine = SolverEngine(["aa", "bb"], ["aa", "bb"], EntropyStrategy())
+        target_score = scoring.get_score("bb", "aa")
+        with patch("builtins.input", side_effect=["!bb", _score_digits(target_score, 2)]):
+            state = play_one_round(engine, automatic=False, solution=None)
+        # Only "aa" matches that score against "bb", so the 2-word pool is
+        # immediately solved -- one real guess ("bb") plus the synthesized
+        # perfect-score entry for the deduced answer.
+        assert state == LoopState.SOLVED
+        assert engine.history == [
+            ("bb", target_score),
+            ("aa", scoring.get_score_num([scoring.Score.GREEN] * 2)),
+        ]
+
+    def test_override_guess_then_empty_input_commits_via_solution(self):
+        engine = SolverEngine(
+            ["aa", "bb"], ["aa", "bb"], EntropyStrategy(), initial_guess="aa"
+        )
+        with patch("builtins.input", side_effect=["!bb", ""]):
+            state = play_one_round(engine, automatic=False, solution="bb")
+        assert state == LoopState.SOLVED
+        assert engine.history == [("bb", scoring.get_score_num([scoring.Score.GREEN] * 2))]
+
+    def test_solution_overrides_a_manually_typed_score(self):
+        # With a known solution, whatever digits the user types are
+        # discarded in favor of the solution-derived score -- matching the
+        # priority the old get_guess_score gave a known solution.
+        engine = SolverEngine(
+            ["aa", "bb"], ["aa", "bb"], EntropyStrategy(), initial_guess="aa"
+        )
+        with patch("builtins.input", return_value="00"):
+            state = play_one_round(engine, automatic=False, solution="bb")
+        assert state == LoopState.SOLVED
+        # Only "bb" matches "aa"'s score against the solution, so the
+        # 2-word pool is immediately solved -- the real guess ("aa") plus
+        # the synthesized perfect-score entry for the deduced answer.
+        assert engine.history == [
+            ("aa", scoring.get_score("aa", "bb")),
+            ("bb", scoring.get_score_num([scoring.Score.GREEN] * 2)),
+        ]
+
+    def test_analyze_buckets_and_top_do_not_commit(self, capsys):
+        engine = SolverEngine(["aa", "bb"], ["aa", "bb"], EntropyStrategy())
+        with patch(
+            "builtins.input", side_effect=["?bb", "buckets", "top", "restart"]
+        ):
+            state = play_one_round(engine, automatic=False, solution=None)
+        assert state == LoopState.RESTART
+        assert engine.history == []
+        assert engine.candidates == ["aa", "bb"]
+        out = capsys.readouterr().out
+        assert "guess" in out  # format_top_guesses header, from ?bb and top
+
 
 class TestRunInteractive:
     def test_restart_resets_the_engine_and_continues(self):
         engine = SolverEngine(["aa", "bb"], ["aa", "bb"], EntropyStrategy())
-        # "" at the guess prompt (no override), "restart" at the score
-        # prompt, then EOF on the next round's guess prompt to end the loop.
+        # unparseable "" reprompts, "restart" ends the round, then EOF on
+        # the next round's prompt ends the loop.
         with patch("builtins.input", side_effect=["", "restart", EOFError]):
             run_interactive(engine, automatic=False, solution=None)
         assert engine.candidates == ["aa", "bb"]
@@ -137,3 +234,45 @@ class TestRunInteractive:
         with patch("builtins.input", side_effect=["y", ""]):
             run_interactive(engine, automatic=True, solution="bb")
         assert engine.history == [("bb", scoring.get_score_num([scoring.Score.GREEN] * 2))]
+
+
+class TestBuildStrategy:
+    def test_entropy_default_is_unweighted(self):
+        strategy = build_strategy("entropy", False)
+        assert isinstance(strategy, EntropyStrategy)
+        assert strategy.weighted is False
+
+    def test_entropy_weighted(self):
+        strategy = build_strategy("entropy", True)
+        assert isinstance(strategy, EntropyStrategy)
+        assert strategy.weighted is True
+
+    def test_expected_pool_size_weighted(self):
+        strategy = build_strategy("expected-pool-size", True)
+        assert isinstance(strategy, ExpectedPoolSizeStrategy)
+        assert strategy.weighted is True
+
+    def test_minimax_ignores_weighted_flag_with_a_warning(self, caplog):
+        with caplog.at_level("WARNING"):
+            strategy = build_strategy("minimax", True)
+        assert isinstance(strategy, MinimaxStrategy)
+        assert "weighted" in caplog.text.lower()
+
+
+class TestMainIntegration:
+    def test_weighted_and_strategy_flags_run_end_to_end(self, tmp_path):
+        wordfile = tmp_path / "words.txt"
+        wordfile.write_text("aa 5\nab 1\nba 1\nbb 1\n")
+
+        with patch("builtins.input", side_effect=EOFError):
+            main(
+                [
+                    str(wordfile),
+                    "-a",
+                    "-s",
+                    "bb",
+                    "--strategy",
+                    "expected-pool-size",
+                    "--weighted",
+                ]
+            )
