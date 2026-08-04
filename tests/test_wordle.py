@@ -21,7 +21,8 @@ import numpy as np
 import pytest
 
 import fast_scoring
-from wordle import Game, GameState, Score, parse_file
+from wordle import Game, GameState, Score
+from wordlists import parse_file
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -321,28 +322,33 @@ class TestPlayOneRound:
 
 class TestParseFile:
     def test_basic_parse(self):
-        target, extra, wordlen = parse_file(io.StringIO("aa\nbb\n\ncc\ndd\n"))
-        assert target == ["aa", "bb"]
-        assert extra == ["cc", "dd"]
-        assert wordlen == 2
+        wl = parse_file(io.StringIO("aa\nbb\n\ncc\ndd\n"))
+        assert wl.target == ["aa", "bb"]
+        assert wl.extra == ["cc", "dd"]
+        assert wl.word_length == 2
 
     def test_no_extra_section(self):
-        target, extra, wordlen = parse_file(io.StringIO("aa\nbb\n"))
-        assert target == ["aa", "bb"]
-        assert extra == []
-        assert wordlen == 2
+        wl = parse_file(io.StringIO("aa\nbb\n"))
+        assert wl.target == ["aa", "bb"]
+        assert wl.extra == []
+        assert wl.word_length == 2
 
-    def test_trailing_weight_column_is_ignored(self):
-        target, extra, wordlen = parse_file(io.StringIO("aa 58\nbb 52.8829\n"))
-        assert target == ["aa", "bb"]
-        assert wordlen == 2
+    def test_words_without_a_weight_column_default_to_uniform_weight(self):
+        wl = parse_file(io.StringIO("aa\nbb\n"))
+        assert wl.weights == {"aa": 1.0, "bb": 1.0}
+
+    def test_trailing_weight_column_is_parsed(self):
+        wl = parse_file(io.StringIO("aa 58\nbb 52.8829\n"))
+        assert wl.target == ["aa", "bb"]
+        assert wl.word_length == 2
+        assert wl.weights == {"aa": 58.0, "bb": 52.8829}
 
     def test_length_check_uses_word_not_full_line(self):
         # "bb 123456789" is a long line, but the word itself is still 2
         # chars -- the weight column must not trip length validation.
-        target, extra, wordlen = parse_file(io.StringIO("aa 58\nbb 123456789\n"))
-        assert target == ["aa", "bb"]
-        assert wordlen == 2
+        wl = parse_file(io.StringIO("aa 58\nbb 123456789\n"))
+        assert wl.target == ["aa", "bb"]
+        assert wl.word_length == 2
 
     def test_overlap_between_target_and_extra_raises(self):
         with pytest.raises(ValueError, match="overlap"):
@@ -358,21 +364,24 @@ class TestParseFile:
 
     def test_real_wordle_wordlist(self):
         with open(REPO_ROOT / "words.wordle.txt") as fp:
-            target, extra, wordlen = parse_file(fp)
-        assert wordlen == 5
-        assert len(target) == 2309
-        assert len(extra) == 12546
-        assert not set(target) & set(extra)
+            wl = parse_file(fp)
+        assert wl.word_length == 5
+        assert len(wl.target) == 2309
+        assert len(wl.extra) == 12546
+        assert not set(wl.target) & set(wl.extra)
+        assert all(w == 1.0 for w in wl.weights.values())
 
     def test_real_weighted_wordlist(self):
         # "word <weight>" per line, no separate extra section -- the same
         # list is meant to serve as both guesses and targets.
         with open(REPO_ROOT / "words.weighted.txt") as fp:
-            target, extra, wordlen = parse_file(fp)
-        assert wordlen == 5
-        assert len(target) == 3209
-        assert extra == []
-        assert all(word.isalpha() and word.islower() for word in target)
+            wl = parse_file(fp)
+        assert wl.word_length == 5
+        assert len(wl.target) == 3209
+        assert wl.extra == []
+        assert all(word.isalpha() and word.islower() for word in wl.target)
+        assert set(wl.weights) == set(wl.target)
+        assert all(isinstance(w, float) for w in wl.weights.values())
 
 
 # ---------------------------------------------------------------------------
@@ -383,9 +392,9 @@ class TestParseFile:
 @pytest.fixture(scope="module")
 def word_data():
     with open(REPO_ROOT / "words.wordle.txt") as fp:
-        target, extra, _ = parse_file(fp)
-    words = sorted(set(target) | set(extra))
-    return words, target
+        wl = parse_file(fp)
+    words = sorted(set(wl.target) | set(wl.extra))
+    return words, wl.target
 
 
 @pytest.mark.slow
@@ -440,8 +449,8 @@ class TestScoreMatrixMatchesScalar:
         # "matches the scalar implementation for every pair", so verify that
         # directly rather than trusting a handful of examples.
         with open(REPO_ROOT / "words.wordle.txt") as fp:
-            target, extra, _ = parse_file(fp)
-        words = sorted(set(target) | set(extra))
+            wl = parse_file(fp)
+        words = sorted(set(wl.target) | set(wl.extra))
 
         import random
 

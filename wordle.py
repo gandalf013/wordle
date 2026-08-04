@@ -11,6 +11,7 @@ import numpy as np
 from scipy.stats import entropy as get_entropy
 
 import fast_scoring
+from wordlists import parse_file
 
 
 class Score(IntEnum):
@@ -280,38 +281,12 @@ class Game:
         return GameState.CONTINUE, int(s, base=3)
 
 
-def parse_file(fp):
-    target = []
-    extra = []
-    r = target
-    wordlen = None
-    for line in fp:
-        data = line.strip()
-        if not data:
-            if extra:
-                raise ValueError("too many blank lines")
-            r = extra
-            continue
-
-        # A line may be just the word, or "word <weight>" (e.g. a relative
-        # frequency); the weight is ignored for now.
-        word = data.split()[0]
-        if wordlen is None:
-            wordlen = len(word)
-        elif len(word) != wordlen:
-            raise ValueError(f"Bad length {len(word)}, expected {wordlen}")
-
-        r.append(word)
-
-    if set(target) & set(extra):
-        raise ValueError("Target and extra words overlap")
-
-    return target, extra, wordlen
-
-
 def run(args):
-    target, extra, wordlen = parse_file(args.infile)
-    logging.info(f"Target {len(target)} extra {len(extra)} wordlen {wordlen}")
+    word_list = parse_file(args.infile)
+    target, extra = word_list.target, word_list.extra
+    logging.info(
+        f"Target {len(target)} extra {len(extra)} wordlen {word_list.word_length}"
+    )
     words = sorted(set(target) | set(extra))
     if args.guesses == "all":
         guesses = words

@@ -1,0 +1,467 @@
+# Wordle Solver Refactor Plan
+
+Status as of 2026-08-04. This is a proposal — nothing in this document is
+implemented yet, except where explicitly marked "already implemented"
+below. It exists so a future session (with or without this conversation's
+history) can pick up the plan without re-deriving it.
+
+## Already implemented (as of this writing)
+
+- `tests/test_wordle.py` — a behavior-pinning regression suite for the
+  current monolithic `Game` class, `parse_file`, and scoring semantics.
+  42-55 tests, runs in a few seconds. This is the safety net the refactor
+  below must keep green throughout.
+- `fast_scoring.py` — a batched NumPy scorer (`score_matrix`) that computes
+  the full (guess × target) packed-score matrix, plus `cached_score_matrix`,
+  which persists it to `.wordle_cache/` (gitignored) keyed by a content
+  hash of the exact word lists. `Game.get_all_censuses`/`score_guess`
+  already delegate to this. This is the performance foundation the
+  refactor's `analysis.py` (below) should be built on top of, not
+  duplicate.
+- `words.weighted.txt` — 3,209 words sourced from WordleTools'
+  weighted-bottles table, one `word <weight>` pair per line, no separate
+  target/extra split (the list serves as both guesses and targets).
+  `parse_file` currently parses the weight column but **discards it** —
+  nothing downstream (`Game`, `run()`) sees it yet. Wiring weights through
+  to the strategy layer is a first-class part of this plan, not an
+  afterthought.
+
+## Features driving this refactor
+
+Things the user wants to add that the current single-`Game`-class design
+makes hard:
+
+1. Pluggable guess-selection heuristics (entropy maximization is the only
+   one today) — e.g. minimize expected remaining pool size, minimax
+   worst-case bucket.
+2. **Weighted frequencies as a first-class input to those heuristics** —
+   `words.weighted.txt` gives a relative likelihood per word; strategies
+   should be able to rank guesses by weighted entropy / weighted expected
+   pool size, not just raw counts over the candidate pool.
+3. "Show me the entropy of `<word>` without committing to that guess."
+4. A nicer display of word/entropy pairs for the top N guesses.
+5. Displaying the "buckets" (score-pattern → matching words) a candidate
+   guess splits the remaining pool into.
+
+## What's wrong with the current structure
+
+Everything lives in one `Game` class (`wordle.py`) that mixes:
+
+- **scoring math** (`get_score`, encode/decode) — pure, stateless
+- **strategy** (`find_best_guess`) — hardcoded to "maximize entropy,
+  tie-break toward possible solutions," no weight awareness
+- **state/rules** (`target_lists`, `reset`, round narrowing)
+- **I/O** (`input()`, `logging.info()`, `sys.stdout.write()`) — interleaved
+  directly into `play_one_round`/`get_guess_score`
+
+The I/O coupling is the real blocker: there's no way to ask "what would the
+entropy of `crane` be right now" without going through the interactive
+prompt machinery. And nothing has a slot for weights to flow into a
+ranking decision — `find_best_guess` only ever sees `Counter`-style bucket
+*counts*, never word-level likelihoods.
+
+## Proposed architecture
+
+```
+wordle/          (or flat modules next to wordle.py -- see "Open question" below)
+  scoring.py      # Score enum, get_score, encode/decode -- pure, unchanged in spirit
+  fast_scoring.py # already implemented -- vectorized matrix + cache, unchanged
+  wordlists.py    # parse_file -- now returns weights too
+  analysis.py     # census/entropy/bucket stats, weight-aware, built on fast_scoring
+  strategies.py   # pluggable ranking, weight-aware
+  engine.py       # SolverEngine: state machine, carries weights, zero I/O
+  display.py      # all formatting, including weighted columns
+  cli.py          # argparse + REPL command loop, the only place with input()/print()
+wordle.py         # thin shim: from wordle.cli import main
+```
+
+### `wordlists.py`
+
+```python
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class WordList:
+    """Parsed word list. `weights` covers every word in target+extra;
+    words with no explicit weight column default to 1.0 (uniform), so
+    words.wordle.txt (no weights) and words.weighted.txt (weighted) are
+    interchangeable inputs downstream -- callers never need to branch on
+    which kind of file they got.
+    """
+    target: list[str]
+    extra: list[str]
+    word_length: int
+    weights: dict[str, float]
+
+
+def parse_file(fp) -> WordList:
+    """Parse target words, a blank line, then extra guess-only words.
+    Each line is 'word' or 'word <weight>'.
+    """
+    ...
+```
+
+This changes `parse_file`'s return type from today's 3-tuple to a
+dataclass — a deliberate breaking change during the refactor (today's
+callers, `run()` and the tests, get updated in the same step).
+
+### `analysis.py`
+
+```python
+from dataclasses import dataclass
+from typing import Sequence
+
+import fast_scoring
+
+
+@dataclass(frozen=True)
+class GuessAnalysis:
+    """Everything derived from scoring one candidate guess against a target
+    pool. Computed once per (guess, pool[, weights]) triple; every strategy
+    and every display view reads off this instead of each recomputing
+    scores independently.
+
+    The weighted_* fields are None when no weights were supplied to
+    analyze() -- callers must not assume they're populated.
+    """
+    guess: str
+    buckets: dict[int, list[str]]         # packed score -> matching words
+    entropy: float                        # bits, uniform over bucket counts
+    worst_case_size: int                  # size of the largest bucket
+    expected_size: float                  # sum(p_i * bucket_size_i), uniform
+    is_possible_solution: bool
+
+    weighted_entropy: float | None = None
+    # bits, computed over each bucket's total weight mass (normalized to a
+    # probability distribution) instead of raw word counts. This is what
+    # stops a guess that only splits low-probability chaff finely from
+    # outranking one that cleanly separates the likely actual answers.
+    weighted_expected_size: float | None = None
+    # weight-mass-weighted expected remaining pool size after this guess.
+    solution_probability: float | None = None
+    # this guess's own relative weight / sum(weights over the pool) --
+    # "how likely is THIS WORD to be the actual answer right now."
+
+
+def analyze(
+    guess: str,
+    target_pool: Sequence[str],
+    weights: dict[str, float] | None = None,
+) -> GuessAnalysis:
+    """Score `guess` against every word in `target_pool` (via
+    fast_scoring.score_matrix, not a fresh Python loop) and summarize the
+    split, including weighted variants if `weights` is given.
+
+    Single entry point used by:
+      - strategies, to rank candidate guesses
+      - the `analyze <word>` REPL command (peek without committing)
+      - the `buckets <word>` REPL command (renders `.buckets` directly)
+    """
+    ...
+
+
+def analyze_all(
+    guess_list: Sequence[str],
+    target_pool: Sequence[str],
+    weights: dict[str, float] | None = None,
+) -> list[GuessAnalysis]:
+    """analyze() for every candidate guess, backed by a single
+    fast_scoring.cached_score_matrix/score_matrix call rather than one
+    matrix build per guess -- this is the direct replacement for today's
+    Game.get_all_censuses, now weight-aware."""
+    ...
+```
+
+Why weights live here and not in `fast_scoring.py`: scoring (which letters
+are green/yellow/gray) never depends on word likelihood, only on the
+letters themselves. Keeping weights out of the cached score matrix means
+the (expensive, rarely-changing) matrix cache stays valid even if
+WordleBot-style weights get retuned later — only this cheap aggregation
+step would need to rerun, not a full matrix rebuild.
+
+### `strategies.py`
+
+```python
+from typing import Protocol
+
+
+class Strategy(Protocol):
+    """Ranks candidate guesses from best to worst, given their analyses.
+    Pure: does no scoring itself (analysis.analyze_all does that) and
+    holds no game state. Swapping heuristics -- or switching a heuristic
+    between weighted and uniform mode -- is a constructor argument, not a
+    code change to the game loop.
+    """
+
+    def rank(self, analyses: list[GuessAnalysis]) -> list[GuessAnalysis]:
+        """Return `analyses` sorted best-first."""
+        ...
+
+
+class EntropyStrategy:
+    """Maximize information gain. If `weighted=True`, ranks by
+    `weighted_entropy` (falling back to uniform `entropy` for any analysis
+    where weights weren't supplied) instead of raw bucket-count entropy.
+    Ties within `tie_tol` are broken toward a guess that is itself a
+    possible solution -- and when weighted, toward the higher
+    `solution_probability` among ties, not an arbitrary one.
+    """
+
+    def __init__(self, tie_tol: float = 1e-9, weighted: bool = False): ...
+
+    def rank(self, analyses: list[GuessAnalysis]) -> list[GuessAnalysis]: ...
+
+
+class ExpectedPoolSizeStrategy:
+    """Minimize the expected number of remaining candidates after this
+    guess -- a 1-step-lookahead proxy for "minimize expected number of
+    guesses". `weighted=True` uses `weighted_expected_size` (expected
+    remaining *probability mass*, not raw count) so a guess that leaves 50
+    near-impossible words as candidates isn't penalized the same as one
+    that leaves 50 equally-plausible ones.
+    """
+
+    def __init__(self, weighted: bool = False): ...
+
+    def rank(self, analyses: list[GuessAnalysis]) -> list[GuessAnalysis]: ...
+
+
+class MinimaxStrategy:
+    """Minimize the worst-case (largest) bucket -- classic Knuth-style
+    solver. Deliberately has no weighted mode: "worst case" is an
+    adversarial guarantee, and weighting it would contradict the point --
+    an implausible-but-possible answer should still be guarded against.
+    """
+
+    def rank(self, analyses: list[GuessAnalysis]) -> list[GuessAnalysis]: ...
+```
+
+### `engine.py`
+
+```python
+from dataclasses import dataclass
+from enum import Enum, auto
+
+
+class RoundOutcome(Enum):
+    CONTINUE = auto()
+    SOLVED = auto()
+    ERROR = auto()
+
+
+@dataclass(frozen=True)
+class RoundResult:
+    outcome: RoundOutcome
+    candidates_remaining: int
+    solution: str | None = None
+
+
+class SolverEngine:
+    """Owns the candidate pool, weights, and guess history for one game.
+    No input()/print()/logging -- callers (cli.py, or a one-off script)
+    decide how to surface suggestions and results.
+
+    `weights` is carried alongside `candidates` (keyed by word, not index,
+    since the candidate pool's *contents* change every round but a word's
+    weight doesn't) and passed through to analysis.analyze/analyze_all on
+    every call -- so switching self.strategy between a weighted and
+    unweighted variant changes ranking behavior without touching engine
+    state at all.
+    """
+
+    guess_list: list[str]
+    candidates: list[str]
+    weights: dict[str, float]
+    history: list[tuple[str, int]]
+    strategy: Strategy
+
+    def __init__(
+        self,
+        guess_list: list[str],
+        target_list: list[str],
+        strategy: Strategy,
+        weights: dict[str, float] | None = None,
+        initial_guess: str | None = None,
+    ): ...
+
+    def suggest(self) -> GuessAnalysis:
+        """Best guess for the current candidate pool, per self.strategy,
+        using self.weights."""
+        ...
+
+    def analyze(self, word: str) -> GuessAnalysis:
+        """Analyze `word` against the current pool (with weights) without
+        committing to it. Does not touch self.candidates or self.history."""
+        ...
+
+    def apply_score(self, guess: str, score: int) -> RoundResult:
+        """Commit to `guess` scoring `score`: narrows candidates, appends
+        history. self.weights is never modified -- narrowing the candidate
+        pool doesn't change any surviving word's weight, just which words
+        survive."""
+        ...
+
+    def reset(self) -> None:
+        """Start a new round against the original target list."""
+        ...
+```
+
+### `display.py`
+
+```python
+def format_score(score: int, n: int) -> str:
+    """Emoji rendering of a packed score, e.g. '⬛🟨🟩⬛🟩'."""
+    ...
+
+
+def format_top_guesses(
+    analyses: list[GuessAnalysis], top_n: int = 10, weighted: bool = False
+) -> str:
+    """Table of the top-n analyses. When weighted=True and the analyses
+    carry weighted fields, adds P(answer) and weighted-entropy columns
+    alongside the uniform ones, so you can see both views at once rather
+    than losing the raw-count numbers.
+    """
+    ...
+
+
+def format_buckets(analysis: GuessAnalysis, limit: int | None = None) -> str:
+    """Score pattern -> bucket size (+ sample words), largest buckets
+    first. If the analysis carries weights, sort/annotate by bucket weight
+    mass instead of raw count."""
+    ...
+
+
+def format_history(history: list[tuple[str, int]], n: int) -> str:
+    """The 'guess EMOJI_ROW' lines shown when a game is solved."""
+    ...
+```
+
+### `cli.py`
+
+```python
+from dataclasses import dataclass
+from typing import Union
+
+
+@dataclass(frozen=True)
+class Score_:          # renamed to avoid clashing with scoring.Score
+    value: int
+
+@dataclass(frozen=True)
+class OverrideGuess:
+    word: str
+
+@dataclass(frozen=True)
+class Analyze:
+    word: str
+
+@dataclass(frozen=True)
+class Buckets:
+    word: str | None   # None -> use the current suggestion
+
+@dataclass(frozen=True)
+class Top:
+    n: int
+
+@dataclass(frozen=True)
+class Restart: ...
+
+@dataclass(frozen=True)
+class Quit: ...
+
+Command = Union[Score_, OverrideGuess, Analyze, Buckets, Top, Restart, Quit]
+
+
+def parse_command(raw: str, n: int) -> Command:
+    """Parse one line of REPL input into a Command.
+
+    Grammar:
+      '<n digits of 0/1/2>'        -> Score_(value)
+      '!<word>'                    -> OverrideGuess(word)
+      '?<word>' | 'analyze <word>' -> Analyze(word)
+      'buckets [word]'             -> Buckets(word or None)
+      'top [N]'                    -> Top(n=N or default 10)
+      'r' | 'restart'              -> Restart()
+      'q' | 'quit'                 -> Quit()
+
+    Replaces the old `.islower()` shape-sniffing (which broke down once
+    weights made "is this a score, a word, or something else" genuinely
+    ambiguous) with explicit prefixes.
+    """
+    ...
+
+
+def run_interactive(engine: SolverEngine, automatic: bool, solution: str | None) -> None:
+    """The REPL: print suggestions, read+dispatch commands, print results.
+    Analyze/Buckets/Top loop back without touching engine state;
+    Score_/OverrideGuess drive engine.apply_score.
+    """
+    ...
+
+
+def main(argv: list[str] | None = None) -> None:
+    """Entry point: argparse (including a --weighted / --strategy flag
+    selecting which Strategy instance to build) + dispatch to
+    run_interactive."""
+    ...
+```
+
+## Migration order (incremental, each step independently shippable)
+
+1. **Done.** `wordlists.py`: extracted `parse_file` as `WordList`, weights
+   included. `wordle.py`'s `run()` and `tests/test_wordle.py` updated to
+   the new return shape; `wordle.py` no longer defines its own
+   `parse_file`, it imports from `wordlists`. Weights are now actually
+   parsed into a `word -> float` dict (defaulting to 1.0 when no weight
+   column is present) instead of being discarded. Full test suite (56
+   tests, including the slow real-word-list golden-value test) passes.
+2. **Done.** `analysis.py`: `GuessAnalysis` + `analyze`/`analyze_all`,
+   implemented on top of the *existing*
+   `fast_scoring.score_matrix`/`cached_score_matrix` (no scoring
+   reimplemented). Uniform fields only so far (`weighted_*` fields exist on
+   `GuessAnalysis` but always come back `None` -- wiring them up is step 3).
+   `analyze_all` takes a `use_cache` flag mirroring `Game.get_all_censuses`'s
+   `self.round == 0` cache guard, left for the caller to set rather than
+   inferred, since this module carries no round state.
+   `tests/test_analysis.py` cross-checks `analyze`/`analyze_all` against
+   `Game.get_score`/`get_all_censuses`/`get_all_entropy`, including a
+   real-word-list parity test that reproduces the round-1 golden value
+   (`tarse`, entropy ≈5.948974509955522). 70 tests total pass (68 fast, 2
+   slow).
+3. Add the `weights` parameter and `weighted_*` fields to `analyze`/
+   `analyze_all`. New tests: weighted entropy on a hand-constructed pool
+   where uniform and weighted rankings disagree (i.e. a case that would
+   catch a bug where weighting was silently a no-op).
+4. `strategies.py`, starting with `EntropyStrategy(weighted=False)`
+   wrapping today's behavior exactly (including the tie-break-toward-
+   candidate logic) — prove the seam works with zero behavior change
+   before adding `weighted=True` and the other strategies.
+5. Slim `Game` → `SolverEngine`, removing all I/O; `cli.py` gets the loop.
+   `SolverEngine` takes `weights` from `WordList.weights` by default.
+6. `display.py` formatting for what `cli.py` currently does via
+   `logging.info`.
+7. New REPL commands (`analyze`, `buckets`, `top`) and the `--weighted`/
+   `--strategy` CLI flags — additive once the seams above exist.
+
+## Explicitly out of scope
+
+- True lookahead-based "expected number of steps" (recursive
+  minimax/expectimax over future rounds) — `ExpectedPoolSizeStrategy` is a
+  1-step proxy, not this. Worth its own design later if it turns out to
+  matter in practice.
+- A WordleBot-style "skill vs. luck" post-game score. The weighted
+  `GuessAnalysis`/`solution_probability` fields above are the building
+  blocks it would need (skill ≈ how close each guess was to the
+  weighted-optimal choice at that step; luck ≈ how improbable the actual
+  answer was under the weights), but assembling that into an actual report
+  is a separate feature on top of this refactor, not part of it.
+- Performance work beyond what `fast_scoring.py` already does.
+
+## Open question (deferred, not blocking)
+
+Flat modules next to `wordle.py` (as sketched above) vs. a `wordle/`
+package directory. Flat is lower-ceremony and matches this repo's current
+style; a package only earns its keep if this becomes pip-installable.
+Default to flat unless that changes.
