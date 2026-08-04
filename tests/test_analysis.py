@@ -67,6 +67,68 @@ class TestAnalyze:
         assert result.solution_probability is None
 
 
+class TestWeightedAnalyze:
+    # A pool of two high-weight "plausible" targets ("aa", "ab") and four
+    # near-zero-weight "chaff" targets. "dc" splits the chaff into distinct
+    # buckets but lumps "aa" and "ab" together (high raw entropy, useless
+    # once weights matter); "bb" does the opposite -- it separates "aa"
+    # from "ab" but lumps the chaff into two buckets (lower raw entropy,
+    # but this is the split that actually matters once weighted).
+    TARGETS = ["aa", "ab", "ca", "cb", "cc", "cd"]
+    WEIGHTS = {
+        "aa": 100.0,
+        "ab": 100.0,
+        "ca": 0.001,
+        "cb": 0.001,
+        "cc": 0.001,
+        "cd": 0.001,
+    }
+
+    def test_uniform_and_weighted_entropy_rank_guesses_differently(self):
+        finely_splits_chaff = analysis.analyze("dc", self.TARGETS, weights=self.WEIGHTS)
+        cleanly_splits_likely_answers = analysis.analyze(
+            "bb", self.TARGETS, weights=self.WEIGHTS
+        )
+
+        # Uniform entropy prefers the guess that finely splits chaff...
+        assert finely_splits_chaff.entropy > cleanly_splits_likely_answers.entropy
+        # ...but weighted entropy prefers the guess that actually separates
+        # the two plausible answers -- the opposite ranking.
+        assert (
+            cleanly_splits_likely_answers.weighted_entropy
+            > finely_splits_chaff.weighted_entropy
+        )
+
+    def test_weighted_entropy_defaults_missing_words_to_uniform_weight(self):
+        # "aa"/"ab" have explicit weights, but the dict doesn't cover the
+        # chaff words at all -- they should default to 1.0, not be dropped
+        # or treated as 0.
+        partial_weights = {"aa": 100.0, "ab": 100.0}
+        result = analysis.analyze("bb", self.TARGETS, weights=partial_weights)
+        assert result.weighted_entropy is not None
+        assert result.weighted_entropy > 0
+
+    def test_solution_probability_is_zero_for_a_guess_outside_the_pool(self):
+        result = analysis.analyze("dc", self.TARGETS, weights=self.WEIGHTS)
+        assert result.is_possible_solution is False
+        assert result.solution_probability == 0.0
+
+    def test_solution_probability_matches_relative_weight_within_pool(self):
+        result = analysis.analyze("ab", self.TARGETS, weights=self.WEIGHTS)
+        total_weight = sum(self.WEIGHTS.values())
+        assert result.solution_probability == pytest.approx(100.0 / total_weight)
+
+    def test_weighted_expected_size_uses_weight_mass_not_raw_count(self):
+        # "bb" splits the pool into a 4-word bucket and a 2-word bucket, but
+        # the weight masses of those buckets are almost equal (~half each)
+        # -- so despite the size asymmetry, weighted_expected_size should
+        # land near 3 (a clean 50/50 split of a 6-word pool), unlike the
+        # uniform expected_size which reflects the raw 4-vs-2 split.
+        result = analysis.analyze("bb", self.TARGETS, weights=self.WEIGHTS)
+        assert result.weighted_expected_size == pytest.approx(3.0, abs=0.01)
+        assert result.expected_size == pytest.approx(10 / 3)
+
+
 class TestAnalyzeAll:
     def test_entropy_matches_game_get_all_censuses(self):
         guesses = ["ax", "aa"]
@@ -96,6 +158,19 @@ class TestAnalyzeAll:
         guesses = ["ax", "aa", "bb"]
         results = analysis.analyze_all(guesses, ["aa", "ab", "ba", "bb"])
         assert [r.guess for r in results] == guesses
+
+    def test_weighted_fields_none_when_no_weights_given(self):
+        results = analysis.analyze_all(["aa", "ab"], ["aa", "ab", "ac"])
+        assert all(r.weighted_entropy is None for r in results)
+
+    def test_weighted_ranking_can_differ_from_uniform_ranking(self):
+        targets = TestWeightedAnalyze.TARGETS
+        weights = TestWeightedAnalyze.WEIGHTS
+        results = analysis.analyze_all(["dc", "bb"], targets, weights=weights)
+        by_guess = {r.guess: r for r in results}
+
+        assert by_guess["dc"].entropy > by_guess["bb"].entropy
+        assert by_guess["bb"].weighted_entropy > by_guess["dc"].weighted_entropy
 
     def test_use_cache_populates_the_score_matrix_cache(self, tmp_path, monkeypatch):
         cache_dir = tmp_path / "cache"

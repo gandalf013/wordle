@@ -49,13 +49,39 @@ def _buckets_from_scores(
 
 
 def _analysis_from_buckets(
-    guess: str, buckets: dict[int, list[str]], target_set: frozenset[str]
+    guess: str,
+    buckets: dict[int, list[str]],
+    target_set: frozenset[str],
+    weights: dict[str, float] | None,
 ) -> GuessAnalysis:
     sizes = np.array([len(words) for words in buckets.values()], dtype=np.int64)
     total = int(sizes.sum())
     entropy = float(get_entropy(sizes, base=2)) if total else 0.0
     worst_case_size = int(sizes.max()) if sizes.size else 0
     expected_size = float((sizes * sizes).sum() / total) if total else 0.0
+    is_possible_solution = guess in target_set
+
+    weighted_entropy = weighted_expected_size = solution_probability = None
+    if weights is not None:
+        # Missing entries default to 1.0 (uniform), matching WordList's own
+        # default -- callers may pass a weights dict that doesn't cover
+        # every word in target_pool (e.g. an "extra" guess-only word).
+        masses = np.array(
+            [sum(weights.get(w, 1.0) for w in words) for words in buckets.values()],
+            dtype=np.float64,
+        )
+        total_mass = float(masses.sum())
+        if total_mass:
+            weighted_entropy = float(get_entropy(masses, base=2))
+            weighted_expected_size = float((masses / total_mass * sizes).sum())
+        else:
+            weighted_entropy = 0.0
+            weighted_expected_size = 0.0
+
+        # A guess that isn't itself a candidate can't be the answer,
+        # regardless of what a weights dict happens to say about it.
+        guess_weight = weights.get(guess, 1.0) if is_possible_solution else 0.0
+        solution_probability = guess_weight / total_mass if total_mass else 0.0
 
     return GuessAnalysis(
         guess=guess,
@@ -63,7 +89,10 @@ def _analysis_from_buckets(
         entropy=entropy,
         worst_case_size=worst_case_size,
         expected_size=expected_size,
-        is_possible_solution=guess in target_set,
+        is_possible_solution=is_possible_solution,
+        weighted_entropy=weighted_entropy,
+        weighted_expected_size=weighted_expected_size,
+        solution_probability=solution_probability,
     )
 
 
@@ -84,7 +113,7 @@ def analyze(
     target_pool = list(target_pool)
     scores = fast_scoring.score_matrix([guess], target_pool)[0]
     buckets = _buckets_from_scores(target_pool, scores)
-    return _analysis_from_buckets(guess, buckets, frozenset(target_pool))
+    return _analysis_from_buckets(guess, buckets, frozenset(target_pool), weights)
 
 
 def analyze_all(
@@ -114,5 +143,5 @@ def analyze_all(
     analyses = []
     for i, guess in enumerate(guess_list):
         buckets = _buckets_from_scores(target_pool, matrix[i])
-        analyses.append(_analysis_from_buckets(guess, buckets, target_set))
+        analyses.append(_analysis_from_buckets(guess, buckets, target_set, weights))
     return analyses

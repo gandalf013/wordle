@@ -430,10 +430,19 @@ def main(argv: list[str] | None = None) -> None:
    real-word-list parity test that reproduces the round-1 golden value
    (`tarse`, entropy ≈5.948974509955522). 70 tests total pass (68 fast, 2
    slow).
-3. Add the `weights` parameter and `weighted_*` fields to `analyze`/
-   `analyze_all`. New tests: weighted entropy on a hand-constructed pool
-   where uniform and weighted rankings disagree (i.e. a case that would
-   catch a bug where weighting was silently a no-op).
+3. **Done.** `weights` parameter and `weighted_*` fields wired through
+   `analyze`/`analyze_all`. Missing entries in `weights` default to 1.0
+   (matching `WordList`'s own default), and `solution_probability` is
+   forced to 0.0 for a guess that isn't itself in `target_pool`, regardless
+   of what the weights dict says about it, since it can't be the answer.
+   `tests/test_analysis.py::TestWeightedAnalyze` has a hand-constructed
+   6-word pool (two high-weight "plausible" targets + four near-zero-weight
+   "chaff" targets) with two guesses, `dc` and `bb`, where uniform entropy
+   and weighted entropy pick opposite winners -- `dc` finely splits the
+   chaff (higher raw entropy) but lumps the two plausible answers together
+   (near-zero weighted entropy); `bb` does the reverse. This is the
+   regression test that would catch weighting being silently a no-op. 77
+   tests total pass (75 fast, 2 slow).
 4. `strategies.py`, starting with `EntropyStrategy(weighted=False)`
    wrapping today's behavior exactly (including the tie-break-toward-
    candidate logic) — prove the seam works with zero behavior change
