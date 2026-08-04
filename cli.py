@@ -284,25 +284,11 @@ def run(args):
     logging.info(
         f"Target {len(target)} extra {len(extra)} wordlen {word_list.word_length}"
     )
-    words = sorted(set(target) | set(extra))
 
-    if args.guesses == "all":
-        guesses = words
-    elif args.guesses == "target":
-        guesses = target
-    elif args.guesses == "extra":
-        guesses = extra
-    else:
-        raise ValueError(f"Unknown 'guesses': {args.guesses}")
-
-    if args.targets == "all":
-        targets = words
-    elif args.targets == "target":
-        targets = target
-    elif args.targets == "extra":
-        targets = extra
-    else:
-        raise ValueError(f"Unknown 'targets': {args.targets}")
+    # Allowed guesses are the full list (target + extra); possible
+    # solutions are restricted to the target list.
+    guesses = sorted(set(target) | set(extra))
+    targets = target
 
     engine = SolverEngine(
         guesses,
@@ -322,19 +308,67 @@ def setup_logging(debug):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-D", "--debug", action="store_true")
-    parser.add_argument(
-        "infile", nargs="?", type=argparse.FileType("r"), default=sys.stdin
+    parser = argparse.ArgumentParser(
+        description="Interactively solve Wordle-style puzzles by suggesting "
+        "high-information guesses and narrowing the candidate pool as you "
+        "report each guess's score.",
     )
-    parser.add_argument("-g", "--guesses", default="all")
-    parser.add_argument("-t", "--targets", default="target")
-    parser.add_argument("-i", "--initial-guess", default=None)
-    parser.add_argument("-T", "--threshold-display", default=3, type=int)
-    parser.add_argument("-s", "--solution", default=None)
-    parser.add_argument("-a", "--automatic", action="store_true")
-    parser.add_argument("--strategy", choices=sorted(STRATEGIES), default="entropy")
-    parser.add_argument("--weighted", action="store_true")
+    parser.add_argument(
+        "infile",
+        nargs="?",
+        type=argparse.FileType("r"),
+        default=sys.stdin,
+        help="word list file to read (see wordlists.py for format); "
+        "defaults to stdin",
+    )
+    parser.add_argument(
+        "-i",
+        "--initial-guess",
+        default=None,
+        help="force this word as the first guess instead of computing one",
+    )
+    parser.add_argument(
+        "-T",
+        "--threshold-display",
+        default=3,
+        type=int,
+        help="print the full list of remaining candidates once the pool "
+        "shrinks to this size or smaller (default: %(default)s)",
+    )
+    parser.add_argument(
+        "-s",
+        "--solution",
+        default=None,
+        help="known solution word; scores are computed automatically "
+        "instead of prompted for",
+    )
+    parser.add_argument(
+        "-a",
+        "--automatic",
+        action="store_true",
+        help="play without prompting, using -s/--solution to score each "
+        "guess (requires --solution)",
+    )
+    parser.add_argument(
+        "-S",
+        "--strategy",
+        choices=sorted(STRATEGIES),
+        default="entropy",
+        help="heuristic used to rank candidate guesses (default: %(default)s)",
+    )
+    parser.add_argument(
+        "-w",
+        "--weighted",
+        action="store_true",
+        help="rank guesses using word-frequency weights from the word "
+        "list, when available (ignored by minimax)",
+    )
+    parser.add_argument(
+        "-D",
+        "--debug",
+        action="store_true",
+        help="enable debug logging",
+    )
 
     args = parser.parse_args(argv)
     setup_logging(args.debug)
