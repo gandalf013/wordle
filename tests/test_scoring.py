@@ -2,13 +2,14 @@
 encode/decode.
 
 Ported from the old Game-based tests (which exercised this exact algorithm
-through Game.get_score/get_score_num/get_score_list/get_score_str) now that
-scoring is a pure module with no Game to attach the tests to.
+through Game.get_score/get_score_num/get_score_list) now that scoring is a
+pure module with no Game to attach the tests to. Emoji rendering
+(Game.get_score_str) now lives in display.py, tested in test_display.py.
 """
 
 import pytest
 
-from scoring import Score, get_score, get_score_list, get_score_num, get_score_str
+from scoring import Score, get_score, get_score_list, get_score_num
 
 
 class TestGetScore:
@@ -66,17 +67,3 @@ class TestScoreEncoding:
     def test_round_trip(self, score_list):
         num = get_score_num(score_list)
         assert get_score_list(num, len(score_list)) == score_list
-
-    def test_score_str_renders_expected_emoji(self):
-        score_list = [Score.GRAY, Score.YELLOW, Score.GREEN, Score.GRAY, Score.GREEN]
-        assert get_score_str(score_list) == "⬛🟨🟩⬛🟩"
-
-    def test_score_str_accepts_packed_int(self):
-        num = get_score_num(
-            [Score.GRAY, Score.YELLOW, Score.GREEN, Score.GRAY, Score.GREEN]
-        )
-        assert get_score_str(num, 5) == "⬛🟨🟩⬛🟩"
-
-    def test_score_str_packed_int_without_n_raises(self):
-        with pytest.raises(ValueError):
-            get_score_str(0)

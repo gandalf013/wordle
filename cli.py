@@ -1,7 +1,9 @@
 """cli.py: the interactive REPL and CLI entry point built on SolverEngine.
 The only module in the wordle solver with input()/print()/logging calls --
-scoring, analysis, and strategy selection are all pure by this point, so
-this module's only job is deciding how to surface them interactively.
+scoring, analysis, strategy selection, and now display formatting are all
+pure by this point, so this module's only job is deciding how to surface
+them interactively (calling display.py's formatters, never building
+formatted strings itself).
 
 The round-by-round flow here (play_one_round/run_interactive) mirrors the
 old Game.play_one_round/run() exactly, just reading suggestions from
@@ -22,6 +24,7 @@ import logging
 import sys
 from enum import Enum, auto
 
+import display
 import scoring
 from engine import RoundOutcome, SolverEngine
 from strategies import EntropyStrategy
@@ -99,7 +102,7 @@ def play_one_round(engine, automatic, solution, threshold_display=3):
 
     state, guess_score = resolve_score(engine, best_guess, potential_score, solution)
     if guess_score is not None:
-        sys.stdout.write(f"{scoring.get_score_str(guess_score, engine.n)}\n")
+        sys.stdout.write(f"{display.format_score(guess_score, engine.n)}\n")
 
     if state != LoopState.CONTINUE:
         return state
@@ -111,8 +114,7 @@ def play_one_round(engine, automatic, solution, threshold_display=3):
 
     if result.outcome == RoundOutcome.SOLVED:
         logging.info(f"SOLVED: {result.solution} in {len(engine.history)} guesses")
-        for guess, score in engine.history:
-            sys.stdout.write(f"{guess} {scoring.get_score_str(score, engine.n)}\n")
+        sys.stdout.write(display.format_history(engine.history, engine.n) + "\n")
         return LoopState.SOLVED
 
     logging.info(f"{result.candidates_remaining} words match the pattern")

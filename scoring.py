@@ -1,12 +1,14 @@
 """Pure Wordle scoring: the scalar (guess, target) -> packed score
-algorithm, plus encode/decode between the packed base-3 int, a per-letter
-Score list, and an emoji string.
+algorithm, plus encode/decode between the packed base-3 int and a
+per-letter Score list.
 
 Split out of the old Game class so nothing that only needs to score a
 single pair (engine.py's candidate narrowing, tests, ad-hoc scripts) has to
 carry Game's I/O and state machinery along with it. fast_scoring.py is the
 vectorized batch version of the same algorithm, used when scoring many
-pairs at once.
+pairs at once. Rendering a score for display (emoji squares) is
+display.py's job, not this module's -- scoring.py only knows about the
+packed int and its decoded Score list.
 """
 
 import collections
@@ -17,13 +19,6 @@ class Score(IntEnum):
     GRAY = 0
     YELLOW = 1
     GREEN = 2
-
-
-SQUARES = {
-    Score.GRAY: "⬛",
-    Score.YELLOW: "🟨",
-    Score.GREEN: "🟩",
-}
 
 
 def get_score(guess: str, target: str) -> int:
@@ -60,14 +55,3 @@ def get_score_list(score: int, n: int) -> list[Score]:
 
     r.extend([Score.GRAY] * (n - len(r)))
     return r[::-1]
-
-
-def get_score_str(score, n: int | None = None) -> str:
-    """Emoji rendering. `score` may be a packed int (n required) or an
-    already-decoded list of Score."""
-    if isinstance(score, int):
-        if n is None:
-            raise ValueError("n is required to render a packed int score")
-        score = get_score_list(score, n)
-
-    return "".join(SQUARES[s] for s in score)

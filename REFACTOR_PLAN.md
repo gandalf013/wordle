@@ -503,8 +503,30 @@ def main(argv: list[str] | None = None) -> None:
    documented in step 4, now observed in the wild rather than only in a
    constructed repro. 92 tests total pass (90 fast, 2 slow); CLI smoke-tested
    end-to-end (automatic+solution, interactive score entry, restart).
-6. `display.py` formatting for what `cli.py` currently does via
-   `logging.info`.
+6. **Done.** `display.py`: `format_score`, `format_history`,
+   `format_top_guesses`, `format_buckets` — all pure str-in/str-out. As
+   part of this, `SQUARES`/`get_score_str` moved out of `scoring.py` (where
+   step 5 had put them as an interim choice) into `display.py`'s
+   `format_score`, matching the plan's original module boundary: `scoring.py`
+   only knows packed ints and their decoded `Score` list, never emoji
+   rendering. `format_score` also drops `get_score_str`'s dual-mode
+   int-or-list input in favor of a single int-only signature (per the
+   plan's `format_score(score: int, n: int)`), since every real caller
+   already had a packed int in hand. `cli.py` now calls
+   `display.format_score`/`format_history` instead of building score
+   strings itself. `format_top_guesses` and `format_buckets` aren't wired
+   into `cli.py` yet — nothing calls them until step 7's `analyze`/
+   `buckets`/`top` REPL commands exist, but they're implemented and tested
+   now (mirroring how step 4 built all three `Strategy` implementations
+   before `engine.py` used more than one). `format_buckets` takes an
+   optional `weights` param not in the plan's literal signature: sorting
+   by bucket weight *mass* needs per-word weights, which aren't stored on
+   `GuessAnalysis` (only the already-aggregated `weighted_*` summary
+   fields are) — a deliberate, documented deviation from the proposal, not
+   an oversight. New `tests/test_display.py`; the `get_score_str` tests
+   moved out of `test_scoring.py` into it. 102 tests total pass (100 fast,
+   2 slow); CLI smoke-tested end-to-end, output byte-identical to before
+   the move.
 7. New REPL commands (`analyze`, `buckets`, `top`) and the `--weighted`/
    `--strategy` CLI flags — additive once the seams above exist.
 
