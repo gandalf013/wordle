@@ -42,7 +42,7 @@ class LoopState(Enum):
 
 
 @dataclass(frozen=True)
-class Score_:  # renamed to avoid clashing with scoring.Score
+class ShowScore:  # renamed to avoid clashing with scoring.Score
     value: int
 
 
@@ -76,9 +76,25 @@ class Quit:
     pass
 
 
-Command = Union[Score_, OverrideGuess, Analyze, Buckets, Top, Restart, Quit]
+@dataclass(frozen=True)
+class Help:
+    pass
+
+
+Command = Union[ShowScore, OverrideGuess, Analyze, Buckets, Top, Restart, Quit, Help]
 
 _DEFAULT_TOP_N = 10
+
+_HELP_TEXT = """\
+Commands:
+  <n digits of 0/1/2> -> record this score for the current guess
+  !<word> -> override the current guess with <word>
+  ?<word> | analyze <word> -> analyze <word> as a candidate guess
+  buckets [word] -> show score-bucket breakdown for [word] (or current guess)
+  top [N] -> show the top N guesses by the active strategy (default 10)
+  r | restart -> restart the round
+  q | quit -> quit
+  ? -> show this help"""
 
 
 def parse_command(raw: str, n: int) -> Command | None:
@@ -86,13 +102,14 @@ def parse_command(raw: str, n: int) -> Command | None:
     match any known form.
 
     Grammar:
-      '<n digits of 0/1/2>'        -> Score_(value)
+      '<n digits of 0/1/2>'        -> ShowScore(value)
       '!<word>'                    -> OverrideGuess(word)
       '?<word>' | 'analyze <word>' -> Analyze(word)
       'buckets [word]'             -> Buckets(word or None)
       'top [N]'                    -> Top(n=N or default 10)
       'r' | 'restart'              -> Restart()
       'q' | 'quit'                 -> Quit()
+      '?'                          -> Help()
 
     A word after `!`/`?`/`analyze` that isn't exactly `n` letters is
     rejected (returns None) rather than accepted and left to fail later
@@ -132,12 +149,15 @@ def parse_command(raw: str, n: int) -> Command | None:
         word = s[1:].strip().lower()
         return OverrideGuess(word) if word and len(word) == n else None
 
+    if s == "?":
+        return Help()
+
     if s.startswith("?"):
         word = s[1:].strip().lower()
         return Analyze(word) if word and len(word) == n else None
 
     if len(s) == n and all(c in "012" for c in s):
-        return Score_(int(s, base=3))
+        return ShowScore(int(s, base=3))
 
     return None
 
@@ -182,7 +202,7 @@ def play_one_round(engine, automatic, solution, threshold_display=3):
 
         # Convenience for known-solution runs: an empty line just accepts
         # the current guess and lets the solution resolve its score,
-        # rather than requiring a throwaway Score_ value the solution is
+        # rather than requiring a throwaway ShowScore value the solution is
         # going to override anyway.
         if not raw.strip() and solution is not None:
             return _commit(
@@ -204,6 +224,10 @@ def play_one_round(engine, automatic, solution, threshold_display=3):
         if isinstance(command, Quit):
             logging.info("Quit")
             return LoopState.QUIT
+
+        if isinstance(command, Help):
+            sys.stdout.write(_HELP_TEXT + "\n")
+            continue
 
         if isinstance(command, OverrideGuess):
             current_guess = command.word
@@ -235,7 +259,7 @@ def play_one_round(engine, automatic, solution, threshold_display=3):
             )
             continue
 
-        # Score_: solution (if known) always overrides a manually typed
+        # ShowScore: solution (if known) always overrides a manually typed
         # value, matching the priority the old get_guess_score gave it.
         score = scoring.get_score(current_guess, solution) if solution is not None else command.value
         return _commit(engine, current_guess, score, threshold_display)

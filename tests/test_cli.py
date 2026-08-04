@@ -19,11 +19,12 @@ import scoring
 from cli import (
     Analyze,
     Buckets,
+    Help,
     LoopState,
     OverrideGuess,
     Quit,
     Restart,
-    Score_,
+    ShowScore,
     Top,
     build_strategy,
     main,
@@ -46,7 +47,7 @@ def engine():
 
 class TestParseCommand:
     def test_score_digits(self):
-        assert parse_command("01", 2) == Score_(1)
+        assert parse_command("01", 2) == ShowScore(1)
 
     def test_wrong_length_score_is_none(self):
         assert parse_command("0", 2) is None
@@ -112,6 +113,9 @@ class TestParseCommand:
     def test_unrecognized_input_is_none(self):
         assert parse_command("xyz", 2) is None
 
+    def test_bare_question_mark_is_help(self):
+        assert parse_command("?", 2) == Help()
+
 
 class TestPlayOneRoundAutomatic:
     def test_automatic_solve_deduces_unique_remaining_candidate(self):
@@ -158,7 +162,7 @@ class TestPlayOneRoundInteractive:
         with patch("builtins.input", side_effect=["xyz", "01"]):
             state = play_one_round(engine, automatic=False, solution=None)
         # "xyz" is silently ignored (reprompted); "01" (score 1) is then
-        # read as a real Score_, which "aa" can't achieve against this pool.
+        # read as a real ShowScore, which "aa" can't achieve against this pool.
         assert state == LoopState.ERROR
 
     def test_override_guess_then_score_commits_with_the_overridden_guess(self):
@@ -213,6 +217,15 @@ class TestPlayOneRoundInteractive:
         assert engine.candidates == ["aa", "bb"]
         out = capsys.readouterr().out
         assert "guess" in out  # format_top_guesses header, from ?bb and top
+
+    def test_bare_question_mark_prints_help_and_does_not_commit(self, capsys):
+        engine = SolverEngine(["aa", "bb"], ["aa", "bb"], EntropyStrategy())
+        with patch("builtins.input", side_effect=["?", "restart"]):
+            state = play_one_round(engine, automatic=False, solution=None)
+        assert state == LoopState.RESTART
+        assert engine.history == []
+        out = capsys.readouterr().out
+        assert "Commands:" in out
 
 
 class TestRunInteractive:
