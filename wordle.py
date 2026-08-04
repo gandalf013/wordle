@@ -293,12 +293,15 @@ def parse_file(fp):
             r = extra
             continue
 
+        # A line may be just the word, or "word <weight>" (e.g. a relative
+        # frequency); the weight is ignored for now.
+        word = data.split()[0]
         if wordlen is None:
-            wordlen = len(data)
-        elif len(data) != wordlen:
-            raise ValueError(f"Bad length {len(data)}, expected {wordlen}")
+            wordlen = len(word)
+        elif len(word) != wordlen:
+            raise ValueError(f"Bad length {len(word)}, expected {wordlen}")
 
-        r.append(data)
+        r.append(word)
 
     if set(target) & set(extra):
         raise ValueError("Target and extra words overlap")

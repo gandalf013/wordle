@@ -332,6 +332,18 @@ class TestParseFile:
         assert extra == []
         assert wordlen == 2
 
+    def test_trailing_weight_column_is_ignored(self):
+        target, extra, wordlen = parse_file(io.StringIO("aa 58\nbb 52.8829\n"))
+        assert target == ["aa", "bb"]
+        assert wordlen == 2
+
+    def test_length_check_uses_word_not_full_line(self):
+        # "bb 123456789" is a long line, but the word itself is still 2
+        # chars -- the weight column must not trip length validation.
+        target, extra, wordlen = parse_file(io.StringIO("aa 58\nbb 123456789\n"))
+        assert target == ["aa", "bb"]
+        assert wordlen == 2
+
     def test_overlap_between_target_and_extra_raises(self):
         with pytest.raises(ValueError, match="overlap"):
             parse_file(io.StringIO("aa\nbb\n\nbb\ncc\n"))
@@ -351,6 +363,16 @@ class TestParseFile:
         assert len(target) == 2309
         assert len(extra) == 12546
         assert not set(target) & set(extra)
+
+    def test_real_weighted_wordlist(self):
+        # "word <weight>" per line, no separate extra section -- the same
+        # list is meant to serve as both guesses and targets.
+        with open(REPO_ROOT / "words.weighted.txt") as fp:
+            target, extra, wordlen = parse_file(fp)
+        assert wordlen == 5
+        assert len(target) == 3209
+        assert extra == []
+        assert all(word.isalpha() and word.islower() for word in target)
 
 
 # ---------------------------------------------------------------------------
