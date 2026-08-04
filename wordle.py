@@ -24,8 +24,6 @@ SQUARES = {
     Score.GREEN: "🟩",
 }
 
-GRAYS = [Score.GRAY for _ in range(5)]
-
 GRAY = Score.GRAY
 YELLOW = Score.YELLOW
 GREEN = Score.GREEN
@@ -73,7 +71,7 @@ class Game:
             raise ValueError(f"Guess {guess}/{len(guess)} not valid: {self.n}")
 
         c = collections.Counter(target)
-        score = GRAYS[:]
+        score = [Score.GRAY] * self.n
         for i, (g, t) in enumerate(zip(guess, target)):
             if g == t:
                 score[i] = Score.GREEN
@@ -165,7 +163,7 @@ class Game:
     def play_one_round(self):
         if self.found_solution is not None:
             logging.info(f"Already found solution: {self.found_solution}")
-            return False
+            return GameState.QUIT
 
         if self.round == 0 and (
             self.best_initial_guess is not None or self.initial_guess is not None
@@ -244,12 +242,17 @@ class Game:
             return GameState.CONTINUE, self.get_score(guess, self.solution)
 
         if potential_score:
-            try:
-                potential_score = int(potential_score, 3)
-            except (TypeError, ValueError):
-                logging.info(f"Could not understand {potential_score}, ignoring.")
+            if len(potential_score) != self.n:
+                logging.info(
+                    f"Score {potential_score!r} is not {self.n} characters, ignoring."
+                )
             else:
-                return GameState.CONTINUE, potential_score
+                try:
+                    potential_score = int(potential_score, 3)
+                except (TypeError, ValueError):
+                    logging.info(f"Could not understand {potential_score}, ignoring.")
+                else:
+                    return GameState.CONTINUE, potential_score
 
         s = ""
         while len(s) != self.n:
@@ -289,7 +292,7 @@ def parse_file(fp):
         if wordlen is None:
             wordlen = len(data)
         elif len(data) != wordlen:
-            raise ValueError("Bad length {len(data)}, expected {wordlen}")
+            raise ValueError(f"Bad length {len(data)}, expected {wordlen}")
 
         r.append(data)
 
