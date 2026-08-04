@@ -1,19 +1,22 @@
 """Tests for analysis.py.
 
-The core correctness claim of this module is "matches Game.get_all_censuses
-and Game.get_all_entropy", since it's meant as a direct (eventually
-weight-aware) replacement for them -- so most tests here cross-check against
-Game rather than re-deriving expected values by hand.
+The core correctness claim of this module is "matches an independent
+census/entropy computation", so several tests here cross-check against a
+census/entropy helper built directly from numpy/scipy (the same primitives
+Game.get_all_censuses/get_all_entropy used before Game was retired in favor
+of engine.SolverEngine) rather than re-deriving expected values by hand.
 """
 
 import math
 from pathlib import Path
 
+import numpy as np
 import pytest
+from scipy.stats import entropy as get_entropy
 
 import analysis
 import fast_scoring
-from wordle import Game
+import scoring
 from wordlists import parse_file
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -24,14 +27,27 @@ def isolated_score_cache(tmp_path, monkeypatch):
     monkeypatch.setattr(fast_scoring, "CACHE_DIR", tmp_path / "wordle_cache")
 
 
+def _reference_entropy(guesses, targets):
+    """Independent (guess -> entropy) computation, bypassing analysis.py
+    entirely: census via bincount over fast_scoring's matrix, then scipy
+    entropy over the census -- what analysis.analyze_all is meant to
+    reproduce, computed a different way."""
+    n = len(targets[0])
+    matrix = fast_scoring.score_matrix(guesses, targets)
+    G, T = matrix.shape
+    censuses = np.zeros((G, 3**n), dtype=np.int64)
+    rows = np.repeat(np.arange(G), T)
+    np.add.at(censuses, (rows, matrix.ravel()), 1)
+    return get_entropy(censuses, axis=1, base=2)
+
+
 class TestAnalyze:
     def test_buckets_group_words_by_score(self):
         result = analysis.analyze("aa", ["aa", "ab", "ac", "ba"])
-        g = Game(["aa"], ["aa"])
         assert result.buckets == {
-            g.get_score("aa", "aa"): ["aa"],
-            g.get_score("aa", "ab"): ["ab", "ac"],
-            g.get_score("aa", "ba"): ["ba"],
+            scoring.get_score("aa", "aa"): ["aa"],
+            scoring.get_score("aa", "ab"): ["ab", "ac"],
+            scoring.get_score("aa", "ba"): ["ba"],
         }
 
     def test_entropy_matches_game_for_perfectly_split_pool(self):
@@ -130,27 +146,24 @@ class TestWeightedAnalyze:
 
 
 class TestAnalyzeAll:
-    def test_entropy_matches_game_get_all_censuses(self):
+    def test_entropy_matches_independent_census_computation(self):
         guesses = ["ax", "aa"]
         targets = ["aa", "ab", "ac"]
-        g = Game(guesses, targets)
-        censuses = g.get_all_censuses()
-        game_entropy = g.get_all_entropy(censuses)
+        expected_entropy = _reference_entropy(guesses, targets)
 
         results = analysis.analyze_all(guesses, targets)
-        for result, expected_entropy in zip(results, game_entropy):
-            assert result.entropy == pytest.approx(expected_entropy)
+        for result, expected in zip(results, expected_entropy):
+            assert result.entropy == pytest.approx(expected)
 
     def test_buckets_match_across_all_guesses(self):
         guesses = ["ax", "aa", "bb"]
         targets = ["aa", "ab", "ac", "ba", "bb"]
-        g = Game(guesses, targets)
 
         results = analysis.analyze_all(guesses, targets)
         for guess, result in zip(guesses, results):
             expected_buckets: dict[int, list[str]] = {}
             for target in targets:
-                score = g.get_score(guess, target)
+                score = scoring.get_score(guess, target)
                 expected_buckets.setdefault(score, []).append(target)
             assert result.buckets == expected_buckets
 
@@ -190,22 +203,20 @@ class TestRealWordList:
     @pytest.fixture(autouse=True)
     def isolated_score_cache(self):
         # Overrides the module-level isolation fixture: this test's job is
-        # to prove parity against Game on the real, full-size word list.
+        # to exercise (and warm) the real on-disk cache.
         yield
 
-    def test_round_one_entropy_matches_game_for_every_guess(self):
+    def test_round_one_entropy_matches_independent_census_computation(self):
         with open(REPO_ROOT / "words.wordle.txt") as fp:
             wl = parse_file(fp)
         guesses = sorted(set(wl.target) | set(wl.extra))
         targets = wl.target
 
-        g = Game(guesses, targets)
-        censuses = g.get_all_censuses()
-        game_entropy = g.get_all_entropy(censuses)
+        expected_entropy = _reference_entropy(guesses, targets)
 
         results = analysis.analyze_all(guesses, targets, use_cache=True)
-        for result, expected_entropy in zip(results, game_entropy):
-            assert result.entropy == pytest.approx(expected_entropy)
+        for result, expected in zip(results, expected_entropy):
+            assert result.entropy == pytest.approx(expected)
 
         best = max(results, key=lambda r: r.entropy)
         assert best.guess == "tarse"

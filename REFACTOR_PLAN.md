@@ -466,8 +466,43 @@ def main(argv: list[str] | None = None) -> None:
    two failed attempts to hand-derive such examples from real 2-letter
    word buckets before switching approach. 86 tests total pass (83 fast,
    3 slow).
-5. Slim `Game` → `SolverEngine`, removing all I/O; `cli.py` gets the loop.
-   `SolverEngine` takes `weights` from `WordList.weights` by default.
+5. **Done.** `Game` retired; `scoring.py` (pure `get_score`/`get_score_num`/
+   `get_score_list`/`get_score_str`, extracted from `Game`'s scalar
+   methods), `engine.py` (`SolverEngine`, `RoundOutcome`, `RoundResult` —
+   zero I/O), and `cli.py` (the interactive loop: `resolve_score`,
+   `play_one_round`, `run_interactive`, `run`, `main`) now do what `Game`
+   used to. `wordle.py` is the thin shim from the proposed architecture
+   (`from cli import main`). `main()` wires `SolverEngine(weights=
+   word_list.weights)` by default, using `EntropyStrategy()` (unweighted,
+   matching prior behavior) since no `--strategy`/`--weighted` flag exists
+   yet (step 7).
+
+   `SolverEngine.suggest()` reproduces `Game`'s `best_initial_guess`
+   caching and `initial_guess` override exactly (both survive `reset()`).
+   Test files were split along the same lines as the modules:
+   `test_scoring.py`, `test_fast_scoring.py`, `test_wordlists.py` (all
+   ported from the old `test_wordle.py`, updated to call functions instead
+   of `Game` methods), `test_engine.py` (new, ports
+   `TestGetGuessScore`/`TestPlayOneRound`'s non-I/O assertions), `test_cli.py`
+   (new, ports the same tests' I/O-mocking assertions). `test_analysis.py`
+   and `test_strategies.py` no longer use `Game` as a live comparison
+   oracle (it's gone) — their parity checks were changed to an independent
+   numpy/scipy census/entropy reimplementation (`test_analysis.py`) or
+   hardcoded assertions carrying forward values already cross-verified
+   against `Game` in earlier steps (`test_strategies.py`).
+
+   One feature was deliberately dropped, not ported: `-n`/
+   `--num-top-guesses`. Reproducing it would mean duplicating
+   `SolverEngine.suggest()`'s internal branching just to peek at the ranked
+   list one level down; it's superseded by a proper `top` REPL command in
+   step 7 instead of carrying forward as a CLI flag. One non-obvious,
+   verified-not-a-bug behavior difference: round-2 in a manual end-to-end
+   run picked `abaci` over `Game`'s `zymic` after guessing `tarse` against
+   `crate` — both have bit-identical entropy (`log2(3)`, neither is a
+   candidate), so this is the same accidental numpy-tie-reversal artifact
+   documented in step 4, now observed in the wild rather than only in a
+   constructed repro. 92 tests total pass (90 fast, 2 slow); CLI smoke-tested
+   end-to-end (automatic+solution, interactive score entry, restart).
 6. `display.py` formatting for what `cli.py` currently does via
    `logging.info`.
 7. New REPL commands (`analyze`, `buckets`, `top`) and the `--weighted`/

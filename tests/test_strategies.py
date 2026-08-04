@@ -1,11 +1,14 @@
 """Tests for strategies.py.
 
-EntropyStrategy(weighted=False)'s core correctness claim is "matches
-Game.find_best_guess", so its tests cross-check against Game the same way
-tests/test_analysis.py does against Game.get_all_censuses/get_all_entropy.
-ExpectedPoolSizeStrategy and MinimaxStrategy have no Game equivalent to
-cross-check against (they're new), so their tests verify the ranking
-directly against hand-computed expectations.
+EntropyStrategy(weighted=False)'s expected winners below (including the
+real-word-list golden value "tarse") were originally cross-checked live
+against the old Game.find_best_guess before Game was retired in favor of
+engine.SolverEngine -- see the "EntropyStrategy(weighted=False) matches
+Game.find_best_guess" note in REFACTOR_PLAN.md's migration log for that
+history. They're asserted directly here now rather than re-deriving them
+from a live comparison each run. ExpectedPoolSizeStrategy and MinimaxStrategy
+have no Game equivalent to cross-check against (they're new), so their
+tests verify the ranking directly against hand-computed expectations.
 """
 
 from pathlib import Path
@@ -15,7 +18,6 @@ import pytest
 import analysis
 from analysis import GuessAnalysis
 from strategies import EntropyStrategy, ExpectedPoolSizeStrategy, MinimaxStrategy
-from wordle import Game
 from wordlists import parse_file
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -51,23 +53,17 @@ def _analysis(
 class TestEntropyStrategyMatchesGame:
     def test_picks_the_higher_entropy_guess(self):
         guesses, targets = ["ax", "aa"], ["aa", "ab", "ac"]
-        g = Game(guesses, targets)
-        expected = g.find_best_guess()
-
         results = analysis.analyze_all(guesses, targets)
         ranked = EntropyStrategy().rank(results)
-        assert ranked[0].guess == expected == "aa"
+        assert ranked[0].guess == "aa"
 
     def test_tie_break_prefers_a_possible_solution(self):
         # "aa" and "bb" have identical entropy against these targets; only
         # "aa" is an actual candidate solution.
         guesses, targets = ["bb", "aa"], ["aa", "ab", "ac"]
-        g = Game(guesses, targets)
-        expected = g.find_best_guess()
-
         results = analysis.analyze_all(guesses, targets)
         ranked = EntropyStrategy().rank(results)
-        assert ranked[0].guess == expected == "aa"
+        assert ranked[0].guess == "aa"
 
     def test_rank_returns_all_analyses_best_first(self):
         guesses, targets = ["ax", "aa", "bb"], ["aa", "ab", "ac"]
@@ -86,12 +82,9 @@ class TestEntropyStrategyRealWordList:
         guesses = sorted(set(wl.target) | set(wl.extra))
         targets = wl.target
 
-        g = Game(guesses, targets)
-        expected = g.find_best_guess()
-
         results = analysis.analyze_all(guesses, targets, use_cache=True)
         ranked = EntropyStrategy().rank(results)
-        assert ranked[0].guess == expected == "tarse"
+        assert ranked[0].guess == "tarse"
         assert ranked[0].entropy == pytest.approx(5.948974509955522)
 
 
