@@ -9,6 +9,8 @@ the game loop.
 import math
 from typing import Protocol
 
+import numpy as np
+
 from analysis import GuessAnalysis
 
 
@@ -107,3 +109,76 @@ class MinimaxStrategy:
 
     def rank(self, analyses: list[GuessAnalysis]) -> list[GuessAnalysis]:
         return sorted(analyses, key=lambda a: a.worst_case_size)
+
+
+class TwoPlyExpectimaxStrategy:
+    """Two-ply expectimax strategy for Normal Mode Wordle.
+
+    Evaluates how effectively candidate guesses split remaining candidate
+    targets into buckets, and estimates the exact 2-turn resolution cost for
+    each bucket.
+
+    When `weighted=True`, weights buckets by probability mass rather than raw
+    word count. Ties within `tie_tol` are broken toward candidate solutions.
+    """
+
+    def __init__(self, beam_width: int = 30, weighted: bool = False, tie_tol: float = 1e-9):
+        self.beam_width = beam_width
+        self.weighted = weighted
+        self.tie_tol = tie_tol
+
+    def _estimate_bucket_cost(self, n: int) -> float:
+        if n <= 0:
+            return 0.0
+        if n == 1:
+            return 1.0
+        if n == 2:
+            return 1.5
+        return 2.0 + 0.3 * (n - 3)
+
+    def rank(self, analyses: list[GuessAnalysis]) -> list[GuessAnalysis]:
+        if not analyses:
+            return []
+
+        base_strategy = EntropyStrategy(weighted=self.weighted, tie_tol=self.tie_tol)
+        initial_ranked = base_strategy.rank(analyses)
+        beam = initial_ranked[: self.beam_width]
+        rest = initial_ranked[self.beam_width :]
+
+        target_pool = [a.guess for a in analyses if a.is_possible_solution]
+        if not target_pool:
+            target_pool = [a.guess for a in analyses]
+        total_targets = len(target_pool)
+        if total_targets == 0:
+            return analyses
+
+        import fast_scoring
+        beam_guesses = [a.guess for a in beam]
+        matrix = fast_scoring.score_matrix(beam_guesses, target_pool)
+
+        scored_beam = []
+        for i, a in enumerate(beam):
+            scores = matrix[i]
+            counts = np.bincount(scores, minlength=243)
+            active_counts = counts[counts > 0]
+            b_costs = np.array([self._estimate_bucket_cost(c) for c in active_counts])
+            cost = 1.0 + float(np.sum(active_counts * b_costs)) / total_targets
+            scored_beam.append((cost, a))
+
+        scored_beam.sort(key=lambda item: item[0])
+        best_cost, best = scored_beam[0]
+
+        if not best.is_possible_solution:
+            tied = []
+            for cost, candidate in scored_beam[1:]:
+                if not math.isclose(cost, best_cost, rel_tol=self.tie_tol, abs_tol=self.tie_tol):
+                    break
+                if candidate.is_possible_solution:
+                    tied.append(candidate)
+                    if not self.weighted:
+                        break
+            if tied:
+                best = max(tied, key=lambda x: x.solution_probability or 0.0)
+
+        ordered = [item[1] for item in scored_beam]
+        return _move_to_front(ordered, best) + rest

@@ -17,7 +17,12 @@ import pytest
 
 import analysis
 from analysis import GuessAnalysis
-from strategies import EntropyStrategy, ExpectedPoolSizeStrategy, MinimaxStrategy
+from strategies import (
+    EntropyStrategy,
+    ExpectedPoolSizeStrategy,
+    MinimaxStrategy,
+    TwoPlyExpectimaxStrategy,
+)
 from wordlists import parse_file
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -199,3 +204,14 @@ class TestMinimaxStrategy:
         ranked = MinimaxStrategy().rank(results)
         assert ranked[0].guess == "aa"
         assert ranked[0].worst_case_size == 2
+
+
+class TestTwoPlyExpectimaxStrategy:
+    def test_ranks_guesses_by_two_ply_expectimax(self):
+        guesses, targets = ["ax", "aa"], ["aa", "ab", "ac"]
+        results = analysis.analyze_all(guesses, targets)
+        ranked = TwoPlyExpectimaxStrategy().rank(results)
+        assert ranked[0].guess == "aa"
+
+    def test_handles_empty_analyses_list(self):
+        assert TwoPlyExpectimaxStrategy().rank([]) == []

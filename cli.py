@@ -29,7 +29,13 @@ import analysis
 import display
 import scoring
 from engine import RoundOutcome, SolverEngine
-from strategies import EntropyStrategy, ExpectedPoolSizeStrategy, MinimaxStrategy, Strategy
+from strategies import (
+    EntropyStrategy,
+    ExpectedPoolSizeStrategy,
+    MinimaxStrategy,
+    Strategy,
+    TwoPlyExpectimaxStrategy,
+)
 from wordlists import parse_file
 
 
@@ -282,6 +288,7 @@ STRATEGIES: dict[str, type[Strategy]] = {
     "entropy": EntropyStrategy,
     "expected-pool-size": ExpectedPoolSizeStrategy,
     "minimax": MinimaxStrategy,
+    "two-ply-expectimax": TwoPlyExpectimaxStrategy,
 }
 
 
