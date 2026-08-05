@@ -56,6 +56,23 @@ class SolverEngine:
         # list, and doesn't change across reset() cycles -- caching it here
         # is the direct replacement for Game's self.best_initial_guess.
         self._cached_initial_suggestion: GuessAnalysis | None = None
+        self._cached_analyses: list[GuessAnalysis] | None = None
+
+    def get_analyses(self) -> list[GuessAnalysis]:
+        """Calculates or returns cached analyses for the current candidate pool."""
+        if self._cached_analyses is None:
+            use_cache = not self.history
+            self._cached_analyses = analysis.analyze_all(
+                self.guess_list,
+                self.candidates,
+                weights=self.weights,
+                use_cache=use_cache,
+            )
+        return self._cached_analyses
+
+    def get_ranked_analyses(self) -> list[GuessAnalysis]:
+        """Return analyses for the current candidate pool ranked by strategy."""
+        return self.strategy.rank(self.get_analyses())
 
     def suggest(self) -> GuessAnalysis:
         """Best guess for the current candidate pool, per self.strategy,
@@ -66,19 +83,10 @@ class SolverEngine:
                     self.initial_guess, self.candidates, weights=self.weights
                 )
             if self._cached_initial_suggestion is None:
-                analyses = analysis.analyze_all(
-                    self.guess_list,
-                    self.candidates,
-                    weights=self.weights,
-                    use_cache=True,
-                )
-                self._cached_initial_suggestion = self.strategy.rank(analyses)[0]
+                self._cached_initial_suggestion = self.get_ranked_analyses()[0]
             return self._cached_initial_suggestion
 
-        analyses = analysis.analyze_all(
-            self.guess_list, self.candidates, weights=self.weights
-        )
-        return self.strategy.rank(analyses)[0]
+        return self.get_ranked_analyses()[0]
 
     def analyze(self, word: str) -> GuessAnalysis:
         """Analyze `word` against the current pool (with weights) without
@@ -90,6 +98,7 @@ class SolverEngine:
         history. self.weights is never modified -- narrowing the candidate
         pool doesn't change any surviving word's weight, just which words
         survive."""
+        self._cached_analyses = None
         self.history.append((guess, score))
 
         new_candidates = [
@@ -118,3 +127,4 @@ class SolverEngine:
         guess_list/target_list/weights/strategy, none of which change."""
         self.candidates = list(self.target_list)
         self.history = []
+        self._cached_analyses = None

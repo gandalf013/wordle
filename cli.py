@@ -245,15 +245,7 @@ def play_one_round(engine, automatic, solution, threshold_display=3):
             continue
 
         if isinstance(command, Top):
-            use_cache = not engine.history
-            ranked = engine.strategy.rank(
-                analysis.analyze_all(
-                    engine.guess_list,
-                    engine.candidates,
-                    weights=engine.weights,
-                    use_cache=use_cache,
-                )
-            )
+            ranked = engine.get_ranked_analyses()
             sys.stdout.write(
                 display.format_top_guesses(ranked, top_n=command.n, weighted=weighted) + "\n"
             )

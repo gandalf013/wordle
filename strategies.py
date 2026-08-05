@@ -58,7 +58,9 @@ class EntropyStrategy:
         if not best.is_possible_solution:
             tied_candidates = []
             for candidate in ordered[1:]:
-                if not math.isclose(self._key(candidate), best_key, rel_tol=self.tie_tol):
+                if not math.isclose(
+                    self._key(candidate), best_key, rel_tol=self.tie_tol, abs_tol=self.tie_tol
+                ):
                     break
                 if candidate.is_possible_solution:
                     tied_candidates.append(candidate)
