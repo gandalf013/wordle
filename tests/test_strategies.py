@@ -73,6 +73,17 @@ class TestEntropyStrategyMatchesGame:
         assert len(ranked) == len(results)
         assert ranked[0].guess == "aa"
 
+    def test_zero_entropy_tie_break_with_abs_tol(self):
+        # Two non-candidate / candidate guesses near 0.0 entropy (e.g. 0.0 and 1e-15).
+        # Ensures math.isclose(..., abs_tol=1e-9) treats them as tied and favors
+        # the possible solution.
+        non_candidate = _analysis("nc", entropy=0.0, is_possible_solution=False)
+        candidate = _analysis(
+            "cs", entropy=1e-15, is_possible_solution=True, solution_probability=0.5
+        )
+        ranked = EntropyStrategy().rank([non_candidate, candidate])
+        assert ranked[0].guess == "cs"
+
 
 @pytest.mark.slow
 class TestEntropyStrategyRealWordList:

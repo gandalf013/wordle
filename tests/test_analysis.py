@@ -197,6 +197,31 @@ class TestAnalyzeAll:
         analysis.analyze_all(["aa", "ab"], ["aa", "ab", "ba", "bb"])
         assert list(cache_dir.glob("*.npy")) == []
 
+    def test_include_buckets_false_matches_stat_fields_of_true(self):
+        targets = TestWeightedAnalyze.TARGETS
+        weights = TestWeightedAnalyze.WEIGHTS
+        with_buckets = analysis.analyze_all(
+            ["dc", "bb"], targets, weights=weights, include_buckets=True
+        )
+        without_buckets = analysis.analyze_all(
+            ["dc", "bb"], targets, weights=weights, include_buckets=False
+        )
+
+        for wb, wob in zip(with_buckets, without_buckets):
+            assert wob.buckets is None
+            assert wb.buckets is not None
+            assert wob.entropy == pytest.approx(wb.entropy)
+            assert wob.worst_case_size == wb.worst_case_size
+            assert wob.expected_size == pytest.approx(wb.expected_size)
+            assert wob.is_possible_solution == wb.is_possible_solution
+            assert wob.weighted_entropy == pytest.approx(wb.weighted_entropy)
+            assert wob.weighted_expected_size == pytest.approx(wb.weighted_expected_size)
+            assert wob.solution_probability == pytest.approx(wb.solution_probability)
+
+    def test_empty_guess_or_target_pool_returns_empty_list(self):
+        assert analysis.analyze_all([], ["aa", "ab"]) == []
+        assert analysis.analyze_all(["aa", "ab"], []) == []
+
 
 @pytest.mark.slow
 class TestRealWordList:

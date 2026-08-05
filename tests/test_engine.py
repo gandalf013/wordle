@@ -48,6 +48,26 @@ class TestSuggest:
         assert engine.suggest() is first
 
 
+class TestAnalysisCache:
+    def test_get_analyses_caches_and_invalidates_on_apply_score(self):
+        engine = SolverEngine(["aa", "ab", "ba"], ["aa", "ab", "ba"], EntropyStrategy())
+        first_analyses = engine.get_analyses()
+        second_analyses = engine.get_analyses()
+        assert first_analyses is second_analyses
+
+        engine.apply_score("aa", scoring.get_score("aa", "ab"))
+        third_analyses = engine.get_analyses()
+        assert third_analyses is not first_analyses
+
+    def test_reset_invalidates_analyses_cache(self):
+        engine = SolverEngine(["aa", "ab", "ba"], ["aa", "ab", "ba"], EntropyStrategy())
+        first_analyses = engine.get_analyses()
+        engine.apply_score("aa", scoring.get_score("aa", "ab"))
+        engine.reset()
+        second_analyses = engine.get_analyses()
+        assert second_analyses is not first_analyses
+
+
 class TestAnalyze:
     def test_does_not_touch_candidates_or_history(self):
         engine = SolverEngine(["ax", "aa"], ["aa", "ab", "ac"], EntropyStrategy())
