@@ -23,16 +23,20 @@ class GuessAnalysis:
     and every display view reads off this instead of each recomputing
     scores independently.
 
+    `buckets` is None when `analyze_all` is called (unless `include_buckets=True`),
+    as strategies only require summary statistics for ranking. Single-guess
+    `analyze` and display helpers populate `buckets`.
+
     The weighted_* fields are None when no weights were supplied to
     analyze()/analyze_all() -- callers must not assume they're populated.
     """
 
     guess: str
-    buckets: dict[int, list[str]]  # packed score -> matching words
     entropy: float  # bits, uniform over bucket counts
     worst_case_size: int  # size of the largest bucket
     expected_size: float  # sum(p_i * bucket_size_i), uniform
     is_possible_solution: bool
+    buckets: dict[int, list[str]] | None = None
 
     weighted_entropy: float | None = None
     weighted_expected_size: float | None = None
@@ -121,27 +125,75 @@ def analyze_all(
     target_pool: Sequence[str],
     weights: dict[str, float] | None = None,
     use_cache: bool = False,
+    include_buckets: bool = False,
 ) -> list[GuessAnalysis]:
-    """analyze() for every candidate guess, backed by a single
-    fast_scoring score_matrix call rather than one matrix build per guess --
-    this is the direct replacement for today's Game.get_all_censuses.
+    """analyze() for every candidate guess, backed by vectorized bincount stats
+    and optional score_matrix caching.
 
-    `use_cache=True` routes through fast_scoring.cached_score_matrix instead
-    of score_matrix -- callers should only set this for the expensive
-    round-1-against-the-full-list case (mirroring Game.get_all_censuses'
-    `self.round == 0` check), since the on-disk cache is keyed on the exact
-    ordered word lists and every narrower round would otherwise mint its own
-    one-off cache entry.
+    By default (`include_buckets=False`), `buckets` is set to None on each
+    `GuessAnalysis` to avoid constructing millions of Python dictionary
+    entries during ranking.
     """
     guess_list = list(guess_list)
     target_pool = list(target_pool)
     target_set = frozenset(target_pool)
+    G = len(guess_list)
+    T = len(target_pool)
+    if not G or not T:
+        return []
 
     scorer = fast_scoring.cached_score_matrix if use_cache else fast_scoring.score_matrix
     matrix = scorer(guess_list, target_pool)
 
+    counts = np.array([np.bincount(row, minlength=243) for row in matrix], dtype=np.float64)
+    probs = counts / T
+    with np.errstate(divide="ignore", invalid="ignore"):
+        log_probs = np.where(probs > 0, np.log2(probs), 0.0)
+        entropy = -np.sum(probs * log_probs, axis=1)
+    worst_case_size = np.max(counts, axis=1).astype(int)
+    expected_size = np.sum(counts * probs, axis=1)
+
+    if weights is not None:
+        target_weights = np.array([weights.get(w, 1.0) for w in target_pool], dtype=np.float64)
+        masses = np.array(
+            [np.bincount(row, weights=target_weights, minlength=243) for row in matrix],
+            dtype=np.float64,
+        )
+        total_masses = np.sum(masses, axis=1)
+        w_probs = np.where(total_masses[:, None] > 0, masses / total_masses[:, None], 0.0)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            w_log_probs = np.where(w_probs > 0, np.log2(w_probs), 0.0)
+            weighted_entropy = -np.sum(w_probs * w_log_probs, axis=1)
+        weighted_expected_size = np.sum(w_probs * counts, axis=1)
+    else:
+        weighted_entropy = None
+        weighted_expected_size = None
+        total_masses = None
+
     analyses = []
     for i, guess in enumerate(guess_list):
-        buckets = _buckets_from_scores(target_pool, matrix[i])
-        analyses.append(_analysis_from_buckets(guess, buckets, target_set, weights))
+        is_possible_solution = guess in target_set
+        w_ent = float(weighted_entropy[i]) if weighted_entropy is not None else None
+        w_exp = float(weighted_expected_size[i]) if weighted_expected_size is not None else None
+        sol_prob = None
+        if weights is not None and total_masses is not None:
+            tm = float(total_masses[i])
+            g_w = weights.get(guess, 1.0) if is_possible_solution else 0.0
+            sol_prob = g_w / tm if tm else 0.0
+
+        buckets = _buckets_from_scores(target_pool, matrix[i]) if include_buckets else None
+
+        analyses.append(
+            GuessAnalysis(
+                guess=guess,
+                buckets=buckets,
+                entropy=float(entropy[i]),
+                worst_case_size=int(worst_case_size[i]),
+                expected_size=float(expected_size[i]),
+                is_possible_solution=is_possible_solution,
+                weighted_entropy=w_ent,
+                weighted_expected_size=w_exp,
+                solution_probability=sol_prob,
+            )
+        )
     return analyses

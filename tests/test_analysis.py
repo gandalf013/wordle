@@ -159,7 +159,7 @@ class TestAnalyzeAll:
         guesses = ["ax", "aa", "bb"]
         targets = ["aa", "ab", "ac", "ba", "bb"]
 
-        results = analysis.analyze_all(guesses, targets)
+        results = analysis.analyze_all(guesses, targets, include_buckets=True)
         for guess, result in zip(guesses, results):
             expected_buckets: dict[int, list[str]] = {}
             for target in targets:
