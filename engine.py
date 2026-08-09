@@ -58,6 +58,7 @@ class SolverEngine:
         # is the direct replacement for Game's self.best_initial_guess.
         self._cached_initial_suggestion: GuessAnalysis | None = None
         self._cached_analyses: list[GuessAnalysis] | None = None
+        self._cached_analyses_by_guess: dict[str, GuessAnalysis] | None = None
 
     def get_analyses(self) -> list[GuessAnalysis]:
         """Calculates or returns cached analyses for the current candidate pool."""
@@ -72,6 +73,9 @@ class SolverEngine:
                     self.strategy, "requires_bucket_stats", False
                 ),
             )
+            self._cached_analyses_by_guess = {
+                a.guess: a for a in self._cached_analyses
+            }
         return self._cached_analyses
 
     def get_ranked_analyses(self) -> list[GuessAnalysis]:
@@ -87,7 +91,7 @@ class SolverEngine:
                     self.initial_guess,
                     self.candidates,
                     weights=self.weights,
-                    use_cache=not self.history,
+                    use_cache=True,
                 )
             if self._cached_initial_suggestion is None:
                 self._cached_initial_suggestion = self.get_ranked_analyses()[0]
@@ -104,10 +108,10 @@ class SolverEngine:
         `analyze <word>` peek doesn't re-score the pool. Buckets (and any
         bucket stats) are never carried on those cached analyses, so the
         `buckets` command (include_buckets=True) always re-analyzes."""
-        if self._cached_analyses is not None and not include_buckets:
-            for a in self._cached_analyses:
-                if a.guess == word:
-                    return a
+        if self._cached_analyses_by_guess is not None and not include_buckets:
+            cached = self._cached_analyses_by_guess.get(word)
+            if cached is not None:
+                return cached
         return analysis.analyze(
             word, self.candidates, weights=self.weights, use_cache=not self.history
         )
@@ -124,6 +128,7 @@ class SolverEngine:
         accounted for by RoundResult.guesses_used, the single source of truth
         for total guesses (callers like cli and the benchmark both read it)."""
         self._cached_analyses = None
+        self._cached_analyses_by_guess = None
         self.history.append((guess, score))
 
         new_candidates = [
@@ -153,3 +158,4 @@ class SolverEngine:
         self.candidates = list(self.target_list)
         self.history = []
         self._cached_analyses = None
+        self._cached_analyses_by_guess = None

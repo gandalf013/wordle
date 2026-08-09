@@ -9,7 +9,7 @@ the game loop.
 import math
 from typing import Protocol
 
-from analysis import GuessAnalysis
+from analysis import GuessAnalysis, bucket_counts_from_buckets
 
 
 class Strategy(Protocol):
@@ -156,7 +156,7 @@ class TwoPlyExpectimaxStrategy:
         if a.bucket_counts is not None:
             return a.bucket_counts
         if a.buckets is not None:
-            return tuple(sorted((int(s), len(ws)) for s, ws in a.buckets.items()))
+            return bucket_counts_from_buckets(a.buckets)
         return None
 
     def rank(
@@ -193,12 +193,15 @@ class TwoPlyExpectimaxStrategy:
         scored_beam = []
         for a in beam:
             counts = self._counts_for(a)
-            if counts is None:
+            if counts is None or (weighted_mode and a.bucket_masses is None):
+                # weighted_mode's denom is a probability-mass total; an entry
+                # without bucket_masses of its own has no mass figures on the
+                # same scale, so it can't be scored against that denom.
                 scored_beam.append((float("inf"), a))
                 continue
-            masses = dict(a.bucket_masses or ())
+            masses = dict(a.bucket_masses) if weighted_mode else None
             cost = 1.0 + sum(
-                (masses.get(s, c) if weighted_mode else c) * self._estimate_bucket_cost(c)
+                (masses[s] if weighted_mode else c) * self._estimate_bucket_cost(c)
                 for s, c in counts
             ) / denom
             scored_beam.append((cost, a))

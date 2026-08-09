@@ -61,6 +61,16 @@ def _buckets_from_scores(
     return buckets
 
 
+def bucket_counts_from_buckets(
+    buckets: dict[int, list[str]],
+) -> tuple[tuple[int, int], ...]:
+    """Compact (score, count) pairs for each non-empty bucket, sorted by
+    score. The single source of truth for deriving GuessAnalysis.bucket_counts
+    from a raw `buckets` dict, used both by `analyze`/`analyze_all` and by
+    strategies that fall back to `.buckets` when `.bucket_counts` isn't set."""
+    return tuple(sorted((int(s), len(words)) for s, words in buckets.items()))
+
+
 def _analysis_from_buckets(
     guess: str,
     buckets: dict[int, list[str]],
@@ -74,7 +84,7 @@ def _analysis_from_buckets(
     expected_size = float((sizes * sizes).sum() / total) if total else 0.0
     is_possible_solution = guess in target_set
 
-    bucket_counts = tuple(sorted((int(s), len(words)) for s, words in buckets.items()))
+    bucket_counts = bucket_counts_from_buckets(buckets)
     bucket_masses = None
     if weights is not None:
         bucket_masses = tuple(
