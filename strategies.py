@@ -183,9 +183,12 @@ class TwoPlyExpectimaxStrategy:
         weighted_mode = self.weighted and target_weights is not None
         denom = total_mass if weighted_mode else total_targets
 
+        counts_matrix, masses_matrix = fast_scoring.bincount_scores(matrix, weights=target_weights)
+
         scored_beam = []
         for i, a in enumerate(beam):
-            counts, masses = fast_scoring.bincount_scores(matrix[i], weights=target_weights)
+            counts = counts_matrix[i]
+            masses = masses_matrix[i]
             active_mask = counts > 0
             active_counts = counts[active_mask]
             weighted_sum = masses[active_mask] if weighted_mode else active_counts
