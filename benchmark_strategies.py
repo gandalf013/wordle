@@ -37,7 +37,7 @@ def play(engine: SolverEngine, solution: str, max_guesses: int = 12) -> int:
 
 
 def run_benchmark(name, strategy, guesses, targets, weights, sample):
-    engine = SolverEngine(guesses, targets, strategy, weights=weights)
+    engine = SolverEngine(guesses, targets, strategy, weights=weights, show_progress=False)
     total_mass = sum(weights.get(w, 1.0) for w in sample)
 
     t0 = time.time()

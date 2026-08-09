@@ -130,6 +130,7 @@ def analyze(
     target_pool: Sequence[str],
     weights: dict[str, float] | None = None,
     use_cache: bool = False,
+    show_progress: bool | None = None,
 ) -> GuessAnalysis:
     """Score `guess` against every word in `target_pool` (via
     fast_scoring.score_matrix, not a fresh Python loop) and summarize the
@@ -147,7 +148,7 @@ def analyze(
     """
     target_pool = list(target_pool)
     scorer = fast_scoring.cached_score_matrix if use_cache else fast_scoring.score_matrix
-    scores = scorer([guess], target_pool)[0]
+    scores = scorer([guess], target_pool, show_progress=show_progress)[0]
     buckets = _buckets_from_scores(target_pool, scores)
     return _analysis_from_buckets(guess, buckets, frozenset(target_pool), weights)
 
@@ -159,6 +160,7 @@ def analyze_all(
     use_cache: bool = False,
     include_buckets: bool = False,
     include_bucket_stats: bool = False,
+    show_progress: bool | None = None,
 ) -> list[GuessAnalysis]:
     """analyze() for every candidate guess, backed by vectorized bincount stats
     and optional score_matrix caching.
@@ -179,7 +181,7 @@ def analyze_all(
         return []
 
     scorer = fast_scoring.cached_score_matrix if use_cache else fast_scoring.score_matrix
-    matrix = scorer(guess_list, target_pool)
+    matrix = scorer(guess_list, target_pool, show_progress=show_progress)
 
     target_weights = None
     if weights is not None:

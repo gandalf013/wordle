@@ -28,9 +28,10 @@ what's left) but batches it:
     once.
 """
 
-from typing import Sequence
 import hashlib
+import sys
 from pathlib import Path
+from typing import Sequence
 
 import numpy as np
 from tqdm import tqdm
@@ -69,7 +70,12 @@ def _score_batch(guess_batch, target_codes, target_counts, place_values, n):
     return (category * place_values[None, None, :]).sum(axis=2, dtype=np.uint8)
 
 
-def score_matrix(guesses: Sequence[str], targets: Sequence[str], batch_size: int = 1000, show_progress: bool = False) -> np.ndarray:
+def score_matrix(
+    guesses: Sequence[str],
+    targets: Sequence[str],
+    batch_size: int = 1000,
+    show_progress: bool | None = None,
+) -> np.ndarray:
     """Packed base-3 score of every guess against every target, as a
     (len(guesses), len(targets)) uint8 array, where matrix[g, t] equals
     Game.get_score(guesses[g], targets[t])."""
@@ -86,7 +92,8 @@ def score_matrix(guesses: Sequence[str], targets: Sequence[str], batch_size: int
 
     out = np.empty((G, T), dtype=np.uint8)
     batches = range(0, G, batch_size)
-    if show_progress and G > batch_size:
+    should_show = sys.stderr.isatty() if show_progress is None else show_progress
+    if should_show and G > batch_size:
         batches = tqdm(batches, total=-(-G // batch_size))
     for start in batches:
         end = start + batch_size
@@ -131,7 +138,13 @@ def cache_key(guesses, targets):
     return h.hexdigest()[:24]
 
 
-def cached_score_matrix(guesses: Sequence[str], targets: Sequence[str], cache_dir=None, batch_size: int = 1000, show_progress: bool = False) -> np.ndarray:
+def cached_score_matrix(
+    guesses: Sequence[str],
+    targets: Sequence[str],
+    cache_dir=None,
+    batch_size: int = 1000,
+    show_progress: bool | None = None,
+) -> np.ndarray:
     """score_matrix(guesses, targets), backed by an on-disk cache keyed on
     the exact ordered word lists (+ CACHE_VERSION). A hit is a single
     np.load; a miss computes and persists the matrix for next time."""
@@ -140,7 +153,9 @@ def cached_score_matrix(guesses: Sequence[str], targets: Sequence[str], cache_di
     if path.exists():
         return np.load(path)
 
-    matrix = score_matrix(guesses, targets, batch_size=batch_size, show_progress=show_progress)
+    matrix = score_matrix(
+        guesses, targets, batch_size=batch_size, show_progress=show_progress
+    )
     cache_dir.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(".tmp.npy")
     np.save(tmp, matrix)
