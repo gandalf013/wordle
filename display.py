@@ -69,17 +69,16 @@ def format_buckets(
     weights dict used to build `analysis` to sort/annotate by bucket weight
     mass instead of raw word count.
     """
-    n = len(analysis.guess)
-
-    def mass(words: list[str]) -> float:
-        return sum(weights.get(w, 1.0) for w in words)
-
     if analysis.buckets is None:
         return "<No bucket details available for this analysis>"
 
+    n = len(analysis.guess)
     items = list(analysis.buckets.items())
+
+    masses: dict[int, float] | None = None
     if weights is not None:
-        items.sort(key=lambda kv: mass(kv[1]), reverse=True)
+        masses = {s: sum(weights.get(w, 1.0) for w in words) for s, words in items}
+        items.sort(key=lambda kv: masses[kv[0]], reverse=True)
     else:
         items.sort(key=lambda kv: len(kv[1]), reverse=True)
 
@@ -92,8 +91,8 @@ def format_buckets(
         if len(words) > 5:
             sample += ", ..."
         count_desc = f"{len(words)} words"
-        if weights is not None:
-            count_desc += f" (mass {mass(words):.3f})"
+        if masses is not None:
+            count_desc += f" (mass {masses[score]:.3f})"
         lines.append(f"{format_score(score, n)}  {count_desc}  {sample}")
 
     return "\n".join(lines)

@@ -48,6 +48,8 @@ def get_score_num(score) -> int:
 
 
 def get_score_list(score: int, n: int) -> list[Score]:
+    if score < 0 or score >= 3**n:
+        raise ValueError(f"Score {score} out of bounds for word length {n}")
     r = []
     while score:
         score, rem = divmod(score, 3)

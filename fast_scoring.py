@@ -28,6 +28,7 @@ what's left) but batches it:
     once.
 """
 
+from typing import Sequence
 import hashlib
 from pathlib import Path
 
@@ -38,7 +39,7 @@ CACHE_DIR = Path(__file__).resolve().parent / ".wordle_cache"
 CACHE_VERSION = 1
 
 
-def words_to_codes(words, n):
+def words_to_codes(words: Sequence[str], n: int) -> np.ndarray:
     """(len(words), n) uint8 array of 0-25 letter codes; every word must be
     lowercase ASCII of length n."""
     arr = np.frombuffer("".join(words).encode("ascii"), dtype=np.uint8)
@@ -68,7 +69,7 @@ def _score_batch(guess_batch, target_codes, target_counts, place_values, n):
     return (category * place_values[None, None, :]).sum(axis=2, dtype=np.uint8)
 
 
-def score_matrix(guesses, targets, batch_size=1000):
+def score_matrix(guesses: Sequence[str], targets: Sequence[str], batch_size: int = 1000, show_progress: bool = False) -> np.ndarray:
     """Packed base-3 score of every guess against every target, as a
     (len(guesses), len(targets)) uint8 array, where matrix[g, t] equals
     Game.get_score(guesses[g], targets[t])."""
@@ -85,7 +86,7 @@ def score_matrix(guesses, targets, batch_size=1000):
 
     out = np.empty((G, T), dtype=np.uint8)
     batches = range(0, G, batch_size)
-    if G > batch_size:
+    if show_progress and G > batch_size:
         batches = tqdm(batches, total=-(-G // batch_size))
     for start in batches:
         end = start + batch_size
@@ -130,7 +131,7 @@ def cache_key(guesses, targets):
     return h.hexdigest()[:24]
 
 
-def cached_score_matrix(guesses, targets, cache_dir=None, batch_size=1000):
+def cached_score_matrix(guesses: Sequence[str], targets: Sequence[str], cache_dir=None, batch_size: int = 1000, show_progress: bool = False) -> np.ndarray:
     """score_matrix(guesses, targets), backed by an on-disk cache keyed on
     the exact ordered word lists (+ CACHE_VERSION). A hit is a single
     np.load; a miss computes and persists the matrix for next time."""
@@ -139,7 +140,7 @@ def cached_score_matrix(guesses, targets, cache_dir=None, batch_size=1000):
     if path.exists():
         return np.load(path)
 
-    matrix = score_matrix(guesses, targets, batch_size=batch_size)
+    matrix = score_matrix(guesses, targets, batch_size=batch_size, show_progress=show_progress)
     cache_dir.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(".tmp.npy")
     np.save(tmp, matrix)

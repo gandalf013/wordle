@@ -25,7 +25,6 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Union
 
-import analysis
 import display
 import scoring
 from engine import RoundOutcome, SolverEngine

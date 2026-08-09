@@ -67,3 +67,9 @@ class TestScoreEncoding:
     def test_round_trip(self, score_list):
         num = get_score_num(score_list)
         assert get_score_list(num, len(score_list)) == score_list
+
+    def test_out_of_bounds_score_raises(self):
+        with pytest.raises(ValueError):
+            get_score_list(-1, 5)
+        with pytest.raises(ValueError):
+            get_score_list(243, 5)

@@ -13,6 +13,8 @@ from analysis import GuessAnalysis, bucket_counts_from_buckets
 
 
 class Strategy(Protocol):
+    requires_bucket_stats: bool = False
+
     def rank(self, analyses: list[GuessAnalysis]) -> list[GuessAnalysis]:
         """Return `analyses` sorted best-first."""
         ...
@@ -40,6 +42,8 @@ class EntropyStrategy:
     isn't itself a candidate solution; this is an accidental artifact of
     the reversal, not a rule worth preserving, so it isn't replicated here.
     """
+
+    requires_bucket_stats = False
 
     def __init__(self, tie_tol: float = 1e-9, weighted: bool = False):
         self.tie_tol = tie_tol
@@ -88,6 +92,8 @@ class ExpectedPoolSizeStrategy:
     that leaves 50 equally-plausible ones.
     """
 
+    requires_bucket_stats = False
+
     def __init__(self, weighted: bool = False):
         self.weighted = weighted
 
@@ -108,6 +114,8 @@ class MinimaxStrategy:
     adversarial guarantee, and weighting it would contradict the point --
     an implausible-but-possible answer should still be guarded against.
     """
+
+    requires_bucket_stats = False
 
     def rank(
         self, analyses: list[GuessAnalysis]
@@ -159,6 +167,24 @@ class TwoPlyExpectimaxStrategy:
             return bucket_counts_from_buckets(a.buckets)
         return None
 
+    def _resolve_denominator(self, beam: list[GuessAnalysis], weighted_mode: bool) -> float:
+        """denom is the pool total -- all targets (unweighted) or the total
+        probability mass (weighted) -- which is the same for every guess,
+        so it can be taken from any analysis that has the relevant stats."""
+        for a in beam:
+            counts = self._counts_for(a)
+            if counts is None:
+                continue
+            if weighted_mode and a.bucket_masses is not None:
+                denom = sum(m for _, m in a.bucket_masses)
+                if denom > 0:
+                    return denom
+            if not weighted_mode:
+                denom = sum(c for _, c in counts)
+                if denom > 0:
+                    return float(denom)
+        return 1.0
+
     def rank(
         self, analyses: list[GuessAnalysis]
     ) -> list[GuessAnalysis]:
@@ -170,25 +196,10 @@ class TwoPlyExpectimaxStrategy:
         beam = initial_ranked[: self.beam_width]
         rest = initial_ranked[self.beam_width :]
 
-        # denom is the pool total -- all targets (unweighted) or the total
-        # probability mass (weighted) -- which is the same for every guess,
-        # so it can be taken from any analysis that has the relevant stats.
         weighted_mode = self.weighted and any(
             a.bucket_masses is not None for a in beam
         )
-        denom = None
-        for a in beam:
-            counts = self._counts_for(a)
-            if counts is None:
-                continue
-            if weighted_mode and a.bucket_masses is not None:
-                denom = sum(m for _, m in a.bucket_masses)
-                break
-            if not weighted_mode:
-                denom = sum(c for _, c in counts)
-                break
-        if denom is None or denom == 0:
-            denom = 1.0
+        denom = self._resolve_denominator(beam, weighted_mode)
 
         scored_beam = []
         for a in beam:
@@ -199,11 +210,17 @@ class TwoPlyExpectimaxStrategy:
                 # same scale, so it can't be scored against that denom.
                 scored_beam.append((float("inf"), a))
                 continue
-            masses = dict(a.bucket_masses) if weighted_mode else None
-            cost = 1.0 + sum(
-                (masses[s] if weighted_mode else c) * self._estimate_bucket_cost(c)
-                for s, c in counts
-            ) / denom
+
+            if weighted_mode and a.bucket_masses is not None:
+                cost = 1.0 + sum(
+                    m * self._estimate_bucket_cost(c)
+                    for (_, c), (_, m) in zip(counts, a.bucket_masses)
+                ) / denom
+            else:
+                cost = 1.0 + sum(
+                    c * self._estimate_bucket_cost(c)
+                    for _, c in counts
+                ) / denom
             scored_beam.append((cost, a))
 
         if not scored_beam or all(cost == float("inf") for cost, _ in scored_beam):

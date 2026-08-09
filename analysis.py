@@ -86,23 +86,17 @@ def _analysis_from_buckets(
 
     bucket_counts = bucket_counts_from_buckets(buckets)
     bucket_masses = None
-    if weights is not None:
-        bucket_masses = tuple(
-            sorted(
-                (int(s), sum(weights.get(w, 1.0) for w in words))
-                for s, words in buckets.items()
-            )
-        )
-
     weighted_entropy = weighted_expected_size = solution_probability = None
+
     if weights is not None:
-        # Missing entries default to 1.0 (uniform), matching WordList's own
-        # default -- callers may pass a weights dict that doesn't cover
-        # every word in target_pool (e.g. an "extra" guess-only word).
-        masses = np.array(
-            [sum(weights.get(w, 1.0) for w in words) for words in buckets.values()],
-            dtype=np.float64,
-        )
+        # Compute bucket masses once to share between bucket_masses tuple and masses array
+        bucket_masses_dict = {
+            int(s): sum(weights.get(w, 1.0) for w in words)
+            for s, words in buckets.items()
+        }
+        bucket_masses = tuple(sorted(bucket_masses_dict.items()))
+
+        masses = np.array(list(bucket_masses_dict.values()), dtype=np.float64)
         total_mass = float(masses.sum())
         if total_mass:
             weighted_entropy = float(get_entropy(masses, base=2))
@@ -197,11 +191,11 @@ def analyze_all(
     if include_bucket_stats:
         for i in range(G):
             nz = np.flatnonzero(counts[i])
-            bucket_counts_list[i] = tuple((int(s), int(counts[i][s])) for s in nz)
+            c_nz = counts[i][nz].tolist()
+            bucket_counts_list[i] = tuple(zip(nz.tolist(), c_nz))
             if weights is not None:
-                bucket_masses_list[i] = tuple(
-                    (int(s), float(masses[i][s])) for s in nz
-                )
+                m_nz = masses[i][nz].tolist()
+                bucket_masses_list[i] = tuple(zip(nz.tolist(), m_nz))
 
     probs = counts / T
     with np.errstate(divide="ignore", invalid="ignore"):
