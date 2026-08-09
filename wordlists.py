@@ -50,6 +50,9 @@ def parse_file(fp) -> WordList:
         r.append(word)
         weights[word] = float(parts[1]) if len(parts) > 1 else 1.0
 
+    if wordlen is None:
+        raise ValueError("Empty word list file")
+
     if set(target) & set(extra):
         raise ValueError("Target and extra words overlap")
 

@@ -204,6 +204,10 @@ def analyze_all(
     worst_case_size = np.max(counts, axis=1).astype(int)
     expected_size = np.sum(counts**2, axis=1) / T
 
+    entropy_list = entropy.tolist()
+    worst_case_list = worst_case_size.tolist()
+    expected_size_list = expected_size.tolist()
+
     if weights is not None:
         total_masses = np.sum(masses, axis=1)
         w_probs = np.where(total_masses[:, None] > 0, masses / total_masses[:, None], 0.0)
@@ -211,19 +215,23 @@ def analyze_all(
             w_log_probs = np.where(w_probs > 0, np.log2(w_probs), 0.0)
             weighted_entropy = -np.sum(w_probs * w_log_probs, axis=1)
         weighted_expected_size = np.sum(w_probs * counts, axis=1)
+
+        w_entropy_list = weighted_entropy.tolist()
+        w_expected_list = weighted_expected_size.tolist()
+        total_masses_list = total_masses.tolist()
     else:
-        weighted_entropy = None
-        weighted_expected_size = None
-        total_masses = None
+        w_entropy_list = None
+        w_expected_list = None
+        total_masses_list = None
 
     analyses = []
     for i, guess in enumerate(guess_list):
         is_possible_solution = guess in target_set
-        w_ent = float(weighted_entropy[i]) if weighted_entropy is not None else None
-        w_exp = float(weighted_expected_size[i]) if weighted_expected_size is not None else None
+        w_ent = w_entropy_list[i] if w_entropy_list is not None else None
+        w_exp = w_expected_list[i] if w_expected_list is not None else None
         sol_prob = None
-        if weights is not None and total_masses is not None:
-            tm = float(total_masses[i])
+        if total_masses_list is not None:
+            tm = total_masses_list[i]
             g_w = weights.get(guess, 1.0) if is_possible_solution else 0.0
             sol_prob = g_w / tm if tm else 0.0
 
@@ -233,9 +241,9 @@ def analyze_all(
             GuessAnalysis(
                 guess=guess,
                 buckets=buckets,
-                entropy=float(entropy[i]),
-                worst_case_size=int(worst_case_size[i]),
-                expected_size=float(expected_size[i]),
+                entropy=entropy_list[i],
+                worst_case_size=worst_case_list[i],
+                expected_size=expected_size_list[i],
                 is_possible_solution=is_possible_solution,
                 weighted_entropy=w_ent,
                 weighted_expected_size=w_exp,

@@ -52,6 +52,10 @@ class TestParseFile:
         with pytest.raises(ValueError, match="too many blank lines"):
             parse_file(io.StringIO("aa\n\ncc\n\ndd\n"))
 
+    def test_empty_file_raises(self):
+        with pytest.raises(ValueError, match="Empty word list file"):
+            parse_file(io.StringIO(""))
+
     def test_real_wordle_wordlist(self):
         with open(REPO_ROOT / "words.wordle.txt") as fp:
             wl = parse_file(fp)

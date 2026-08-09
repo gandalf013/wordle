@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from enum import Enum, auto
 
 import analysis
+import fast_scoring
 import scoring
 from analysis import GuessAnalysis
 from strategies import Strategy
@@ -69,9 +70,7 @@ class SolverEngine:
                 self.candidates,
                 weights=self.weights,
                 use_cache=use_cache,
-                include_bucket_stats=getattr(
-                    self.strategy, "requires_bucket_stats", False
-                ),
+                include_bucket_stats=self.strategy.requires_bucket_stats,
             )
             self._cached_analyses_by_guess = {
                 a.guess: a for a in self._cached_analyses
@@ -131,9 +130,13 @@ class SolverEngine:
         self._cached_analyses_by_guess = None
         self.history.append((guess, score))
 
-        new_candidates = [
-            word for word in self.candidates if scoring.get_score(guess, word) == score
-        ]
+        if len(self.candidates) > 50:
+            scores = fast_scoring.score_matrix([guess], self.candidates)[0]
+            new_candidates = [word for word, s in zip(self.candidates, scores) if s == score]
+        else:
+            new_candidates = [
+                word for word in self.candidates if scoring.get_score(guess, word) == score
+            ]
         if not new_candidates:
             return RoundResult(outcome=RoundOutcome.ERROR, candidates_remaining=0)
 
