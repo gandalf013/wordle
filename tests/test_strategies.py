@@ -215,3 +215,12 @@ class TestTwoPlyExpectimaxStrategy:
 
     def test_handles_empty_analyses_list(self):
         assert TwoPlyExpectimaxStrategy().rank([]) == []
+
+    def test_weighted_ranking_uses_weights(self):
+        targets = ["aa", "ab", "ca", "cb"]
+        weights = {"aa": 100.0, "ab": 100.0, "ca": 0.001, "cb": 0.001}
+        guesses = ["aa", "ca", "xx"]
+        results = analysis.analyze_all(guesses, targets, weights=weights)
+        ranked = TwoPlyExpectimaxStrategy(weighted=True).rank(results, weights=weights)
+        assert len(ranked) == len(results)
+        assert ranked[0].guess == "aa"

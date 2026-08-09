@@ -72,7 +72,7 @@ class SolverEngine:
 
     def get_ranked_analyses(self) -> list[GuessAnalysis]:
         """Return analyses for the current candidate pool ranked by strategy."""
-        return self.strategy.rank(self.get_analyses())
+        return self.strategy.rank(self.get_analyses(), weights=self.weights)
 
     def suggest(self) -> GuessAnalysis:
         """Best guess for the current candidate pool, per self.strategy,

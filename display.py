@@ -74,6 +74,9 @@ def format_buckets(
     def mass(words: list[str]) -> float:
         return sum(weights.get(w, 1.0) for w in words)
 
+    if analysis.buckets is None:
+        return "<No bucket details available for this analysis>"
+
     items = list(analysis.buckets.items())
     if weights is not None:
         items.sort(key=lambda kv: mass(kv[1]), reverse=True)

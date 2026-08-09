@@ -105,3 +105,14 @@ class TestFormatBuckets:
         lines = format_buckets(result, weights=weights).splitlines()
         assert "mass" in lines[0]
         assert "2 words" in lines[0]
+
+    def test_handles_none_buckets(self):
+        a = GuessAnalysis(
+            guess="test",
+            entropy=1.0,
+            worst_case_size=1,
+            expected_size=1.0,
+            is_possible_solution=True,
+            buckets=None,
+        )
+        assert "No bucket details" in format_buckets(a)

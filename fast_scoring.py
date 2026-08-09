@@ -64,8 +64,8 @@ def _score_batch(guess_batch, target_codes, target_counts, place_values, n):
         yellow[:, :, i] = eligible
         remaining -= eligible[:, :, None] * same_letter[:, i, :][:, None, :]
 
-    category = np.where(green, 2, np.where(yellow, 1, 0)).astype(np.int32)
-    return (category * place_values[None, None, :]).sum(axis=2).astype(np.uint8)
+    category = green.astype(np.uint8) * np.uint8(2) + yellow.astype(np.uint8)
+    return (category * place_values[None, None, :]).sum(axis=2, dtype=np.uint8)
 
 
 def score_matrix(guesses, targets, batch_size=1000):
@@ -81,7 +81,7 @@ def score_matrix(guesses, targets, batch_size=1000):
     for i in range(n):
         np.add.at(target_counts, (np.arange(T), target_codes[:, i]), 1)
 
-    place_values = (3 ** np.arange(n - 1, -1, -1)).astype(np.int32)
+    place_values = (3 ** np.arange(n - 1, -1, -1)).astype(np.uint8)
 
     out = np.empty((G, T), dtype=np.uint8)
     batches = range(0, G, batch_size)

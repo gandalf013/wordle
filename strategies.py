@@ -11,11 +11,14 @@ from typing import Protocol
 
 import numpy as np
 
+import fast_scoring
 from analysis import GuessAnalysis
 
 
 class Strategy(Protocol):
-    def rank(self, analyses: list[GuessAnalysis]) -> list[GuessAnalysis]:
+    def rank(
+        self, analyses: list[GuessAnalysis], weights: dict[str, float] | None = None
+    ) -> list[GuessAnalysis]:
         """Return `analyses` sorted best-first."""
         ...
 
@@ -52,7 +55,9 @@ class EntropyStrategy:
             return analysis.weighted_entropy
         return analysis.entropy
 
-    def rank(self, analyses: list[GuessAnalysis]) -> list[GuessAnalysis]:
+    def rank(
+        self, analyses: list[GuessAnalysis], weights: dict[str, float] | None = None
+    ) -> list[GuessAnalysis]:
         ordered = sorted(analyses, key=self._key, reverse=True)
         best = ordered[0]
         best_key = self._key(best)
@@ -96,7 +101,9 @@ class ExpectedPoolSizeStrategy:
             return analysis.weighted_expected_size
         return analysis.expected_size
 
-    def rank(self, analyses: list[GuessAnalysis]) -> list[GuessAnalysis]:
+    def rank(
+        self, analyses: list[GuessAnalysis], weights: dict[str, float] | None = None
+    ) -> list[GuessAnalysis]:
         return sorted(analyses, key=self._key)
 
 
@@ -107,7 +114,9 @@ class MinimaxStrategy:
     an implausible-but-possible answer should still be guarded against.
     """
 
-    def rank(self, analyses: list[GuessAnalysis]) -> list[GuessAnalysis]:
+    def rank(
+        self, analyses: list[GuessAnalysis], weights: dict[str, float] | None = None
+    ) -> list[GuessAnalysis]:
         return sorted(analyses, key=lambda a: a.worst_case_size)
 
 
@@ -136,7 +145,9 @@ class TwoPlyExpectimaxStrategy:
             return 1.5
         return 2.0 + 0.3 * (n - 3)
 
-    def rank(self, analyses: list[GuessAnalysis]) -> list[GuessAnalysis]:
+    def rank(
+        self, analyses: list[GuessAnalysis], weights: dict[str, float] | None = None
+    ) -> list[GuessAnalysis]:
         if not analyses:
             return []
 
@@ -152,17 +163,32 @@ class TwoPlyExpectimaxStrategy:
         if total_targets == 0:
             return analyses
 
-        import fast_scoring
         beam_guesses = [a.guess for a in beam]
         matrix = fast_scoring.score_matrix(beam_guesses, target_pool)
+
+        if self.weighted and weights is not None:
+            target_weights = np.array([weights.get(w, 1.0) for w in target_pool], dtype=np.float64)
+            total_mass = float(target_weights.sum())
+        else:
+            target_weights = None
+            total_mass = float(total_targets)
 
         scored_beam = []
         for i, a in enumerate(beam):
             scores = matrix[i]
-            counts = np.bincount(scores, minlength=243)
-            active_counts = counts[counts > 0]
-            b_costs = np.array([self._estimate_bucket_cost(c) for c in active_counts])
-            cost = 1.0 + float(np.sum(active_counts * b_costs)) / total_targets
+            if self.weighted and target_weights is not None:
+                masses = np.bincount(scores, weights=target_weights, minlength=243)
+                counts = np.bincount(scores, minlength=243)
+                active_mask = counts > 0
+                active_masses = masses[active_mask]
+                active_counts = counts[active_mask]
+                b_costs = np.array([self._estimate_bucket_cost(int(c)) for c in active_counts])
+                cost = 1.0 + float(np.sum(active_masses * b_costs)) / total_mass if total_mass else 1.0
+            else:
+                counts = np.bincount(scores, minlength=243)
+                active_counts = counts[counts > 0]
+                b_costs = np.array([self._estimate_bucket_cost(int(c)) for c in active_counts])
+                cost = 1.0 + float(np.sum(active_counts * b_costs)) / total_targets if total_targets else 1.0
             scored_beam.append((cost, a))
 
         scored_beam.sort(key=lambda item: item[0])

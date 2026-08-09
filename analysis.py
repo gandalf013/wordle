@@ -151,7 +151,7 @@ def analyze_all(
         log_probs = np.where(probs > 0, np.log2(probs), 0.0)
         entropy = -np.sum(probs * log_probs, axis=1)
     worst_case_size = np.max(counts, axis=1).astype(int)
-    expected_size = np.sum(counts * probs, axis=1)
+    expected_size = np.sum(counts**2, axis=1) / T
 
     if weights is not None:
         target_weights = np.array([weights.get(w, 1.0) for w in target_pool], dtype=np.float64)
