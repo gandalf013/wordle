@@ -127,12 +127,20 @@ class TestPlayOneRoundAutomatic:
         )
         state = play_one_round(engine, automatic=True, solution="bb")
         assert state == LoopState.SOLVED
-        # One real guess ("aa") plus a synthesized perfect-score entry for
-        # the deduced answer, since "aa" alone didn't score all-green.
-        assert engine.history == [
-            ("aa", scoring.get_score("aa", "bb")),
-            ("bb", scoring.get_score_num([scoring.Score.GREEN] * 2)),
-        ]
+        # history records only the real guess; the implied final all-green
+        # move is rendered by _commit, not stored in engine state.
+        assert engine.history == [("aa", scoring.get_score("aa", "bb"))]
+
+    def test_automatic_solve_renders_the_implied_final_guess(self, capsys):
+        engine = SolverEngine(
+            ["aa", "ab", "ba", "bb"],
+            ["aa", "ab", "ba", "bb"],
+            EntropyStrategy(),
+            initial_guess="aa",
+        )
+        play_one_round(engine, automatic=True, solution="bb")
+        out = capsys.readouterr().out
+        assert "bb 🟩🟩" in out  # the deduced answer shown as a green row
 
     def test_guessing_the_answer_directly_does_not_duplicate_history_entry(self):
         engine = SolverEngine(
@@ -171,13 +179,9 @@ class TestPlayOneRoundInteractive:
         with patch("builtins.input", side_effect=["!bb", _score_digits(target_score, 2)]):
             state = play_one_round(engine, automatic=False, solution=None)
         # Only "aa" matches that score against "bb", so the 2-word pool is
-        # immediately solved -- one real guess ("bb") plus the synthesized
-        # perfect-score entry for the deduced answer.
+        # immediately solved; history records the one real guess played.
         assert state == LoopState.SOLVED
-        assert engine.history == [
-            ("bb", target_score),
-            ("aa", scoring.get_score_num([scoring.Score.GREEN] * 2)),
-        ]
+        assert engine.history == [("bb", target_score)]
 
     def test_override_guess_then_empty_input_commits_via_solution(self):
         engine = SolverEngine(
@@ -199,12 +203,9 @@ class TestPlayOneRoundInteractive:
             state = play_one_round(engine, automatic=False, solution="bb")
         assert state == LoopState.SOLVED
         # Only "bb" matches "aa"'s score against the solution, so the
-        # 2-word pool is immediately solved -- the real guess ("aa") plus
-        # the synthesized perfect-score entry for the deduced answer.
-        assert engine.history == [
-            ("aa", scoring.get_score("aa", "bb")),
-            ("bb", scoring.get_score_num([scoring.Score.GREEN] * 2)),
-        ]
+        # 2-word pool is immediately solved -- history records the one real
+        # guess ("aa"), and the final move is implied by the result.
+        assert engine.history == [("aa", scoring.get_score("aa", "bb"))]
 
     def test_analyze_buckets_and_top_do_not_commit(self, capsys):
         engine = SolverEngine(["aa", "bb"], ["aa", "bb"], EntropyStrategy())

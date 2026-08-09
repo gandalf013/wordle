@@ -76,6 +76,25 @@ class TestAnalyze:
         assert engine.candidates == ["aa", "ab", "ac"]
         assert engine.history == []
 
+    def test_reuses_cached_analyses_when_buckets_not_needed(self):
+        engine = SolverEngine(["ax", "aa"], ["aa", "ab", "ac"], EntropyStrategy())
+        cached = engine.get_analyses()
+        result = engine.analyze("aa", include_buckets=False)
+        assert result is cached[1]  # same object -- no re-scoring
+
+    def test_analyze_without_buckets_returns_the_cached_object(self):
+        engine = SolverEngine(["ax", "aa"], ["aa", "ab", "ac"], EntropyStrategy())
+        engine.get_analyses()
+        result = engine.analyze("aa", include_buckets=False)
+        assert result.buckets is None  # cached analyses don't carry buckets
+
+    def test_analyze_with_buckets_recomputes(self):
+        engine = SolverEngine(["ax", "aa"], ["aa", "ab", "ac"], EntropyStrategy())
+        engine.get_analyses()
+        result = engine.analyze("aa")
+        assert result.guess == "aa"
+        assert result.buckets is not None
+
 
 class TestApplyScore:
     def test_narrows_candidates_to_the_matching_score(self):
@@ -99,14 +118,11 @@ class TestApplyScore:
         result = engine.apply_score("aa", scoring.get_score("aa", "bb"))
         assert result.outcome == RoundOutcome.SOLVED
         assert result.solution == "bb"
+        # history records only the move actually played; the implied final
+        # "guess it" move is accounted for by guesses_used instead.
+        assert engine.history == [("aa", scoring.get_score("aa", "bb"))]
+        assert result.guesses_used == 2
         assert engine.candidates == ["bb"]
-        # A real guess ("aa") plus a synthesized perfect-score entry for the
-        # deduced answer, since "aa" alone didn't score all-green.
-        perfect_score = scoring.get_score_num([scoring.Score.GREEN] * 2)
-        assert engine.history == [
-            ("aa", scoring.get_score("aa", "bb")),
-            ("bb", perfect_score),
-        ]
 
     def test_guessing_the_answer_directly_does_not_duplicate_history(self):
         engine = SolverEngine(["aa", "bb"], ["aa", "bb"], EntropyStrategy())
@@ -114,6 +130,7 @@ class TestApplyScore:
         result = engine.apply_score("bb", perfect_score)
         assert result.outcome == RoundOutcome.SOLVED
         assert result.solution == "bb"
+        assert result.guesses_used == 1
         assert engine.history == [("bb", perfect_score)]
 
     def test_no_candidates_match_score_is_an_error(self):

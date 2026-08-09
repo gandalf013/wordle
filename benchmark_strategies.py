@@ -22,12 +22,15 @@ from wordlists import parse_file
 
 def play(engine: SolverEngine, solution: str, max_guesses: int = 12) -> int:
     engine.reset()
-    for guesses_used in range(1, max_guesses + 1):
+    for _ in range(1, max_guesses + 1):
         suggestion = engine.suggest()
         score = scoring.get_score(suggestion.guess, solution)
         result = engine.apply_score(suggestion.guess, score)
         if result.outcome == RoundOutcome.SOLVED:
-            return guesses_used
+            # RoundResult.guesses_used is the single source of truth: it
+            # includes the implied final guess when the pool collapsed to a
+            # single candidate without the last played guess being it.
+            return result.guesses_used
         if result.outcome == RoundOutcome.ERROR:
             raise RuntimeError(f"no candidate matched while solving for {solution!r}")
     return max_guesses + 1  # didn't converge -- counts as a blown budget

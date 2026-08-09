@@ -3,12 +3,11 @@
 EntropyStrategy(weighted=False)'s expected winners below (including the
 real-word-list golden value "tarse") were originally cross-checked live
 against the old Game.find_best_guess before Game was retired in favor of
-engine.SolverEngine -- see the "EntropyStrategy(weighted=False) matches
-Game.find_best_guess" note in REFACTOR_PLAN.md's migration log for that
-history. They're asserted directly here now rather than re-deriving them
-from a live comparison each run. ExpectedPoolSizeStrategy and MinimaxStrategy
-have no Game equivalent to cross-check against (they're new), so their
-tests verify the ranking directly against hand-computed expectations.
+engine.SolverEngine. They're asserted directly here now rather than
+re-deriving them from a live comparison each run. ExpectedPoolSizeStrategy
+and MinimaxStrategy have no Game equivalent to cross-check against (they're
+new), so their tests verify the ranking directly against hand-computed
+expectations.
 """
 
 from pathlib import Path
@@ -209,7 +208,7 @@ class TestMinimaxStrategy:
 class TestTwoPlyExpectimaxStrategy:
     def test_ranks_guesses_by_two_ply_expectimax(self):
         guesses, targets = ["ax", "aa"], ["aa", "ab", "ac"]
-        results = analysis.analyze_all(guesses, targets)
+        results = analysis.analyze_all(guesses, targets, include_bucket_stats=True)
         ranked = TwoPlyExpectimaxStrategy().rank(results)
         assert ranked[0].guess == "aa"
 
@@ -220,7 +219,12 @@ class TestTwoPlyExpectimaxStrategy:
         targets = ["aa", "ab", "ca", "cb"]
         weights = {"aa": 100.0, "ab": 100.0, "ca": 0.001, "cb": 0.001}
         guesses = ["aa", "ca", "xx"]
-        results = analysis.analyze_all(guesses, targets, weights=weights)
-        ranked = TwoPlyExpectimaxStrategy(weighted=True).rank(results, weights=weights)
+        results = analysis.analyze_all(
+            guesses, targets, weights=weights, include_bucket_stats=True
+        )
+        ranked = TwoPlyExpectimaxStrategy(weighted=True).rank(results)
         assert len(ranked) == len(results)
         assert ranked[0].guess == "aa"
+
+    def test_requires_bucket_stats_flag_is_set(self):
+        assert TwoPlyExpectimaxStrategy.requires_bucket_stats is True

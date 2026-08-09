@@ -23,6 +23,7 @@ class RoundResult:
     outcome: RoundOutcome
     candidates_remaining: int
     solution: str | None = None
+    guesses_used: int = 0
 
 
 class SolverEngine:
@@ -67,12 +68,15 @@ class SolverEngine:
                 self.candidates,
                 weights=self.weights,
                 use_cache=use_cache,
+                include_bucket_stats=getattr(
+                    self.strategy, "requires_bucket_stats", False
+                ),
             )
         return self._cached_analyses
 
     def get_ranked_analyses(self) -> list[GuessAnalysis]:
         """Return analyses for the current candidate pool ranked by strategy."""
-        return self.strategy.rank(self.get_analyses(), weights=self.weights)
+        return self.strategy.rank(self.get_analyses())
 
     def suggest(self) -> GuessAnalysis:
         """Best guess for the current candidate pool, per self.strategy,
@@ -80,7 +84,10 @@ class SolverEngine:
         if not self.history:
             if self.initial_guess is not None:
                 return analysis.analyze(
-                    self.initial_guess, self.candidates, weights=self.weights
+                    self.initial_guess,
+                    self.candidates,
+                    weights=self.weights,
+                    use_cache=not self.history,
                 )
             if self._cached_initial_suggestion is None:
                 self._cached_initial_suggestion = self.get_ranked_analyses()[0]
@@ -88,16 +95,34 @@ class SolverEngine:
 
         return self.get_ranked_analyses()[0]
 
-    def analyze(self, word: str) -> GuessAnalysis:
+    def analyze(self, word: str, include_buckets: bool = True) -> GuessAnalysis:
         """Analyze `word` against the current pool (with weights) without
-        committing to it. Does not touch self.candidates or self.history."""
-        return analysis.analyze(word, self.candidates, weights=self.weights)
+        committing to it. Does not touch self.candidates or self.history.
+
+        When `include_buckets=False`, a full-round analysis already computed
+        for the current pool is reused if `word` is in it, so the REPL's
+        `analyze <word>` peek doesn't re-score the pool. Buckets (and any
+        bucket stats) are never carried on those cached analyses, so the
+        `buckets` command (include_buckets=True) always re-analyzes."""
+        if self._cached_analyses is not None and not include_buckets:
+            for a in self._cached_analyses:
+                if a.guess == word:
+                    return a
+        return analysis.analyze(
+            word, self.candidates, weights=self.weights, use_cache=not self.history
+        )
 
     def apply_score(self, guess: str, score: int) -> RoundResult:
         """Commit to `guess` scoring `score`: narrows candidates, appends
         history. self.weights is never modified -- narrowing the candidate
         pool doesn't change any surviving word's weight, just which words
-        survive."""
+        survive.
+
+        `history` records only moves actually played; when the pool collapses
+        to a single candidate that wasn't itself the last guess, the final
+        implied "guess it" move is *not* fabricated into history -- it's
+        accounted for by RoundResult.guesses_used, the single source of truth
+        for total guesses (callers like cli and the benchmark both read it)."""
         self._cached_analyses = None
         self.history.append((guess, score))
 
@@ -114,11 +139,11 @@ class SolverEngine:
             )
 
         solution = new_candidates[0]
-        perfect_score = scoring.get_score_num([scoring.Score.GREEN] * self.n)
-        if self.history[-1] != (solution, perfect_score):
-            self.history.append((solution, perfect_score))
         return RoundResult(
-            outcome=RoundOutcome.SOLVED, candidates_remaining=1, solution=solution
+            outcome=RoundOutcome.SOLVED,
+            candidates_remaining=1,
+            solution=solution,
+            guesses_used=len(self.history) if guess == solution else len(self.history) + 1,
         )
 
     def reset(self) -> None:

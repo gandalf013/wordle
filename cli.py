@@ -177,8 +177,16 @@ def _commit(engine, guess, score, threshold_display):
         return LoopState.ERROR
 
     if result.outcome == RoundOutcome.SOLVED:
-        logging.info(f"SOLVED: {result.solution} in {len(engine.history)} guesses")
-        sys.stdout.write(display.format_history(engine.history, engine.n) + "\n")
+        logging.info(f"SOLVED: {result.solution} in {result.guesses_used} guesses")
+        # history records only moves actually played; when the pool collapsed
+        # to the answer without the last guess being it, render the implied
+        # final all-green move explicitly (engine.py no longer fabricates it).
+        display_history = list(engine.history)
+        if display_history and display_history[-1][0] != result.solution:
+            display_history.append(
+                (result.solution, scoring.get_score_num([scoring.Score.GREEN] * engine.n))
+            )
+        sys.stdout.write(display.format_history(display_history, engine.n) + "\n")
         return LoopState.SOLVED
 
     logging.info(f"{result.candidates_remaining} words match the pattern")
@@ -241,7 +249,7 @@ def play_one_round(engine, automatic, solution, threshold_display=3):
             continue
 
         if isinstance(command, Analyze):
-            result = engine.analyze(command.word)
+            result = engine.analyze(command.word, include_buckets=False)
             sys.stdout.write(display.format_top_guesses([result], weighted=weighted) + "\n")
             continue
 

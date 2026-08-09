@@ -9,16 +9,11 @@ the game loop.
 import math
 from typing import Protocol
 
-import numpy as np
-
-import fast_scoring
 from analysis import GuessAnalysis
 
 
 class Strategy(Protocol):
-    def rank(
-        self, analyses: list[GuessAnalysis], weights: dict[str, float] | None = None
-    ) -> list[GuessAnalysis]:
+    def rank(self, analyses: list[GuessAnalysis]) -> list[GuessAnalysis]:
         """Return `analyses` sorted best-first."""
         ...
 
@@ -56,11 +51,8 @@ class EntropyStrategy:
         return analysis.entropy
 
     def rank(
-        self, analyses: list[GuessAnalysis], weights: dict[str, float] | None = None
+        self, analyses: list[GuessAnalysis]
     ) -> list[GuessAnalysis]:
-        # `weights` is accepted (not used directly) to satisfy the Strategy
-        # protocol; weighting is already baked into each analysis's
-        # `weighted_entropy` by analyze_all, which is what `_key` reads.
         ordered = sorted(analyses, key=self._key, reverse=True)
         best = ordered[0]
         best_key = self._key(best)
@@ -105,10 +97,8 @@ class ExpectedPoolSizeStrategy:
         return analysis.expected_size
 
     def rank(
-        self, analyses: list[GuessAnalysis], weights: dict[str, float] | None = None
+        self, analyses: list[GuessAnalysis]
     ) -> list[GuessAnalysis]:
-        # See EntropyStrategy.rank: weighting already lives in
-        # `weighted_expected_size`, which `_key` reads directly.
         return sorted(analyses, key=self._key)
 
 
@@ -120,10 +110,8 @@ class MinimaxStrategy:
     """
 
     def rank(
-        self, analyses: list[GuessAnalysis], weights: dict[str, float] | None = None
+        self, analyses: list[GuessAnalysis]
     ) -> list[GuessAnalysis]:
-        # `weights` is accepted only to satisfy the Strategy protocol -- see
-        # the class docstring for why worst-case size is never weighted.
         return sorted(analyses, key=lambda a: a.worst_case_size)
 
 
@@ -136,7 +124,15 @@ class TwoPlyExpectimaxStrategy:
 
     When `weighted=True`, weights buckets by probability mass rather than raw
     word count. Ties within `tie_tol` are broken toward candidate solutions.
+
+    Ranking reads `bucket_counts`/`bucket_masses` off each GuessAnalysis (the
+    compact bucket tallies populated by analyze_all's
+    `include_bucket_stats=True`) -- the strategy does no scoring itself, and
+    never needs the raw weights dict. SolverEngine enables the stats
+    automatically via the `requires_bucket_stats` flag.
     """
+
+    requires_bucket_stats = True
 
     def __init__(self, beam_width: int = 30, weighted: bool = False, tie_tol: float = 1e-9):
         self.beam_width = beam_width
@@ -152,49 +148,63 @@ class TwoPlyExpectimaxStrategy:
             return 1.5
         return 2.0 + 0.3 * (n - 3)
 
+    @staticmethod
+    def _counts_for(a: GuessAnalysis) -> tuple[tuple[int, int], ...] | None:
+        """Per-guess bucket (score, count) pairs, falling back to deriving
+        them from `.buckets` when `analyze` populated that instead of
+        `bucket_counts`."""
+        if a.bucket_counts is not None:
+            return a.bucket_counts
+        if a.buckets is not None:
+            return tuple(sorted((int(s), len(ws)) for s, ws in a.buckets.items()))
+        return None
+
     def rank(
-        self, analyses: list[GuessAnalysis], weights: dict[str, float] | None = None
+        self, analyses: list[GuessAnalysis]
     ) -> list[GuessAnalysis]:
         if not analyses:
             return []
 
         base_strategy = EntropyStrategy(weighted=self.weighted, tie_tol=self.tie_tol)
-        initial_ranked = base_strategy.rank(analyses, weights)
+        initial_ranked = base_strategy.rank(analyses)
         beam = initial_ranked[: self.beam_width]
         rest = initial_ranked[self.beam_width :]
 
-        target_pool = [a.guess for a in analyses if a.is_possible_solution]
-        if not target_pool:
-            target_pool = [a.guess for a in analyses]
-        total_targets = len(target_pool)
-        if total_targets == 0:
-            return analyses
-
-        beam_guesses = [a.guess for a in beam]
-        matrix = fast_scoring.score_matrix(beam_guesses, target_pool)
-
-        if self.weighted and weights is not None:
-            target_weights = np.array([weights.get(w, 1.0) for w in target_pool], dtype=np.float64)
-            total_mass = float(target_weights.sum())
-        else:
-            target_weights = None
-            total_mass = float(total_targets)
-
-        weighted_mode = self.weighted and target_weights is not None
-        denom = total_mass if weighted_mode else total_targets
-
-        counts_matrix, masses_matrix = fast_scoring.bincount_scores(matrix, weights=target_weights)
+        # denom is the pool total -- all targets (unweighted) or the total
+        # probability mass (weighted) -- which is the same for every guess,
+        # so it can be taken from any analysis that has the relevant stats.
+        weighted_mode = self.weighted and any(
+            a.bucket_masses is not None for a in beam
+        )
+        denom = None
+        for a in beam:
+            counts = self._counts_for(a)
+            if counts is None:
+                continue
+            if weighted_mode and a.bucket_masses is not None:
+                denom = sum(m for _, m in a.bucket_masses)
+                break
+            if not weighted_mode:
+                denom = sum(c for _, c in counts)
+                break
+        if denom is None or denom == 0:
+            denom = 1.0
 
         scored_beam = []
-        for i, a in enumerate(beam):
-            counts = counts_matrix[i]
-            masses = masses_matrix[i]
-            active_mask = counts > 0
-            active_counts = counts[active_mask]
-            weighted_sum = masses[active_mask] if weighted_mode else active_counts
-            b_costs = np.array([self._estimate_bucket_cost(int(c)) for c in active_counts])
-            cost = 1.0 + float(np.sum(weighted_sum * b_costs)) / denom if denom else 1.0
+        for a in beam:
+            counts = self._counts_for(a)
+            if counts is None:
+                scored_beam.append((float("inf"), a))
+                continue
+            masses = dict(a.bucket_masses or ())
+            cost = 1.0 + sum(
+                (masses.get(s, c) if weighted_mode else c) * self._estimate_bucket_cost(c)
+                for s, c in counts
+            ) / denom
             scored_beam.append((cost, a))
+
+        if not scored_beam or all(cost == float("inf") for cost, _ in scored_beam):
+            return initial_ranked
 
         scored_beam.sort(key=lambda item: item[0])
         best_cost, best = scored_beam[0]

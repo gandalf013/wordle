@@ -27,6 +27,12 @@ class GuessAnalysis:
     as strategies only require summary statistics for ranking. Single-guess
     `analyze` and display helpers populate `buckets`.
 
+    `bucket_counts`/`bucket_masses` are the non-zero score buckets as compact
+    (score, count) / (score, mass) pairs -- what strategies like
+    TwoPlyExpectimaxStrategy need without carrying the full word lists.
+    `analyze` always populates them (masses only when weights are supplied);
+    `analyze_all` populates them only when `include_bucket_stats=True`.
+
     The weighted_* fields are None when no weights were supplied to
     analyze()/analyze_all() -- callers must not assume they're populated.
     """
@@ -41,6 +47,9 @@ class GuessAnalysis:
     weighted_entropy: float | None = None
     weighted_expected_size: float | None = None
     solution_probability: float | None = None
+
+    bucket_counts: tuple[tuple[int, int], ...] | None = None
+    bucket_masses: tuple[tuple[int, float], ...] | None = None
 
 
 def _buckets_from_scores(
@@ -64,6 +73,16 @@ def _analysis_from_buckets(
     worst_case_size = int(sizes.max()) if sizes.size else 0
     expected_size = float((sizes * sizes).sum() / total) if total else 0.0
     is_possible_solution = guess in target_set
+
+    bucket_counts = tuple(sorted((int(s), len(words)) for s, words in buckets.items()))
+    bucket_masses = None
+    if weights is not None:
+        bucket_masses = tuple(
+            sorted(
+                (int(s), sum(weights.get(w, 1.0) for w in words))
+                for s, words in buckets.items()
+            )
+        )
 
     weighted_entropy = weighted_expected_size = solution_probability = None
     if weights is not None:
@@ -97,6 +116,8 @@ def _analysis_from_buckets(
         weighted_entropy=weighted_entropy,
         weighted_expected_size=weighted_expected_size,
         solution_probability=solution_probability,
+        bucket_counts=bucket_counts,
+        bucket_masses=bucket_masses,
     )
 
 
@@ -104,6 +125,7 @@ def analyze(
     guess: str,
     target_pool: Sequence[str],
     weights: dict[str, float] | None = None,
+    use_cache: bool = False,
 ) -> GuessAnalysis:
     """Score `guess` against every word in `target_pool` (via
     fast_scoring.score_matrix, not a fresh Python loop) and summarize the
@@ -113,9 +135,15 @@ def analyze(
       - strategies, to rank candidate guesses
       - the `analyze <word>` REPL command (peek without committing)
       - the `buckets <word>` REPL command (renders `.buckets` directly)
+
+    `use_cache=True` persists the (1, T) score matrix to the on-disk cache,
+    so repeated peeks at the same word/pool pair (e.g. the REPL `analyze`
+    and `buckets` commands across restarts) load instantly instead of
+    re-scoring.
     """
     target_pool = list(target_pool)
-    scores = fast_scoring.score_matrix([guess], target_pool)[0]
+    scorer = fast_scoring.cached_score_matrix if use_cache else fast_scoring.score_matrix
+    scores = scorer([guess], target_pool)[0]
     buckets = _buckets_from_scores(target_pool, scores)
     return _analysis_from_buckets(guess, buckets, frozenset(target_pool), weights)
 
@@ -126,13 +154,17 @@ def analyze_all(
     weights: dict[str, float] | None = None,
     use_cache: bool = False,
     include_buckets: bool = False,
+    include_bucket_stats: bool = False,
 ) -> list[GuessAnalysis]:
     """analyze() for every candidate guess, backed by vectorized bincount stats
     and optional score_matrix caching.
 
     By default (`include_buckets=False`), `buckets` is set to None on each
     `GuessAnalysis` to avoid constructing millions of Python dictionary
-    entries during ranking.
+    entries during ranking. `include_bucket_stats=True` additionally
+    populates `bucket_counts`/`bucket_masses` (the compact per-guess bucket
+    tallies) -- also vectorized, and only needed by strategies like
+    TwoPlyExpectimaxStrategy, so it's opt-in too.
     """
     guess_list = list(guess_list)
     target_pool = list(target_pool)
@@ -149,6 +181,17 @@ def analyze_all(
     if weights is not None:
         target_weights = np.array([weights.get(w, 1.0) for w in target_pool], dtype=np.float64)
     counts, masses = fast_scoring.bincount_scores(matrix, weights=target_weights)
+
+    bucket_counts_list: list[tuple[tuple[int, int], ...] | None] = [None] * G
+    bucket_masses_list: list[tuple[tuple[int, float], ...] | None] = [None] * G
+    if include_bucket_stats:
+        for i in range(G):
+            nz = np.flatnonzero(counts[i])
+            bucket_counts_list[i] = tuple((int(s), int(counts[i][s])) for s in nz)
+            if weights is not None:
+                bucket_masses_list[i] = tuple(
+                    (int(s), float(masses[i][s])) for s in nz
+                )
 
     probs = counts / T
     with np.errstate(divide="ignore", invalid="ignore"):
@@ -193,6 +236,8 @@ def analyze_all(
                 weighted_entropy=w_ent,
                 weighted_expected_size=w_exp,
                 solution_probability=sol_prob,
+                bucket_counts=bucket_counts_list[i],
+                bucket_masses=bucket_masses_list[i],
             )
         )
     return analyses

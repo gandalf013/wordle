@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """Thin entry-point shim. All real logic lives in scoring.py, fast_scoring.py,
-wordlists.py, analysis.py, strategies.py, engine.py, and cli.py -- see
-REFACTOR_PLAN.md.
+wordlists.py, analysis.py, strategies.py, engine.py, and cli.py.
 """
 
 from cli import main

@@ -82,6 +82,18 @@ class TestAnalyze:
         assert result.weighted_expected_size is None
         assert result.solution_probability is None
 
+    def test_bucket_counts_and_masses_populated(self):
+        result = analysis.analyze("aa", ["aa", "ab", "ac"], weights={"aa": 2.0})
+        # "aa" scores all-green; "ab" and "ac" share a green+gray bucket.
+        assert dict(result.bucket_counts) == {8: 1, 6: 2}
+        # "aa" has explicit weight 2.0; "ab"/"ac" default to 1.0 each.
+        assert dict(result.bucket_masses) == {8: 2.0, 6: 2.0}
+
+    def test_bucket_masses_none_without_weights(self):
+        result = analysis.analyze("aa", ["aa", "ab", "ac"])
+        assert dict(result.bucket_counts) == {8: 1, 6: 2}
+        assert result.bucket_masses is None
+
 
 class TestWeightedAnalyze:
     # A pool of two high-weight "plausible" targets ("aa", "ab") and four
@@ -221,6 +233,35 @@ class TestAnalyzeAll:
     def test_empty_guess_or_target_pool_returns_empty_list(self):
         assert analysis.analyze_all([], ["aa", "ab"]) == []
         assert analysis.analyze_all(["aa", "ab"], []) == []
+
+    def test_include_bucket_stats_populates_counts_and_masses(self):
+        targets = TestWeightedAnalyze.TARGETS
+        weights = TestWeightedAnalyze.WEIGHTS
+        results = analysis.analyze_all(
+            ["dc", "bb"], targets, weights=weights, include_bucket_stats=True
+        )
+        for r in results:
+            assert r.bucket_counts is not None
+            assert r.bucket_masses is not None
+            assert sum(c for _, c in r.bucket_counts) == len(targets)
+            assert sum(m for _, m in r.bucket_masses) == pytest.approx(
+                sum(weights.values())
+            )
+
+    def test_include_bucket_stats_matches_analyze(self):
+        targets = ["aa", "ab", "ac"]
+        for guess in ["aa", "ax"]:
+            single = analysis.analyze(guess, targets)
+            many = analysis.analyze_all(
+                [guess], targets, include_bucket_stats=True
+            )[0]
+            assert many.bucket_counts == single.bucket_counts
+            assert many.bucket_masses == single.bucket_masses
+
+    def test_include_bucket_stats_absent_by_default(self):
+        results = analysis.analyze_all(["aa", "bb"], ["aa", "ab", "ac"])
+        assert all(r.bucket_counts is None for r in results)
+        assert all(r.bucket_masses is None for r in results)
 
 
 @pytest.mark.slow
