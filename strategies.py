@@ -58,6 +58,9 @@ class EntropyStrategy:
     def rank(
         self, analyses: list[GuessAnalysis], weights: dict[str, float] | None = None
     ) -> list[GuessAnalysis]:
+        # `weights` is accepted (not used directly) to satisfy the Strategy
+        # protocol; weighting is already baked into each analysis's
+        # `weighted_entropy` by analyze_all, which is what `_key` reads.
         ordered = sorted(analyses, key=self._key, reverse=True)
         best = ordered[0]
         best_key = self._key(best)
@@ -104,6 +107,8 @@ class ExpectedPoolSizeStrategy:
     def rank(
         self, analyses: list[GuessAnalysis], weights: dict[str, float] | None = None
     ) -> list[GuessAnalysis]:
+        # See EntropyStrategy.rank: weighting already lives in
+        # `weighted_expected_size`, which `_key` reads directly.
         return sorted(analyses, key=self._key)
 
 
@@ -117,6 +122,8 @@ class MinimaxStrategy:
     def rank(
         self, analyses: list[GuessAnalysis], weights: dict[str, float] | None = None
     ) -> list[GuessAnalysis]:
+        # `weights` is accepted only to satisfy the Strategy protocol -- see
+        # the class docstring for why worst-case size is never weighted.
         return sorted(analyses, key=lambda a: a.worst_case_size)
 
 
@@ -152,7 +159,7 @@ class TwoPlyExpectimaxStrategy:
             return []
 
         base_strategy = EntropyStrategy(weighted=self.weighted, tie_tol=self.tie_tol)
-        initial_ranked = base_strategy.rank(analyses)
+        initial_ranked = base_strategy.rank(analyses, weights)
         beam = initial_ranked[: self.beam_width]
         rest = initial_ranked[self.beam_width :]
 
@@ -173,22 +180,17 @@ class TwoPlyExpectimaxStrategy:
             target_weights = None
             total_mass = float(total_targets)
 
+        weighted_mode = self.weighted and target_weights is not None
+        denom = total_mass if weighted_mode else total_targets
+
         scored_beam = []
         for i, a in enumerate(beam):
-            scores = matrix[i]
-            if self.weighted and target_weights is not None:
-                masses = np.bincount(scores, weights=target_weights, minlength=243)
-                counts = np.bincount(scores, minlength=243)
-                active_mask = counts > 0
-                active_masses = masses[active_mask]
-                active_counts = counts[active_mask]
-                b_costs = np.array([self._estimate_bucket_cost(int(c)) for c in active_counts])
-                cost = 1.0 + float(np.sum(active_masses * b_costs)) / total_mass if total_mass else 1.0
-            else:
-                counts = np.bincount(scores, minlength=243)
-                active_counts = counts[counts > 0]
-                b_costs = np.array([self._estimate_bucket_cost(int(c)) for c in active_counts])
-                cost = 1.0 + float(np.sum(active_counts * b_costs)) / total_targets if total_targets else 1.0
+            counts, masses = fast_scoring.bincount_scores(matrix[i], weights=target_weights)
+            active_mask = counts > 0
+            active_counts = counts[active_mask]
+            weighted_sum = masses[active_mask] if weighted_mode else active_counts
+            b_costs = np.array([self._estimate_bucket_cost(int(c)) for c in active_counts])
+            cost = 1.0 + float(np.sum(weighted_sum * b_costs)) / denom if denom else 1.0
             scored_beam.append((cost, a))
 
         scored_beam.sort(key=lambda item: item[0])

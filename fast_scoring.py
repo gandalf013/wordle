@@ -95,6 +95,32 @@ def score_matrix(guesses, targets, batch_size=1000):
     return out
 
 
+def bincount_scores(scores, weights=None, minlength=243):
+    """Bucket a packed base-3 score array (from score_matrix) by value.
+
+    `scores` is 1-D (one guess's row) or 2-D (stacked rows, one per guess).
+    Returns `(counts, masses)`, each shaped like `scores` but with a
+    trailing `minlength`-sized bucket axis: `counts` is the raw per-bucket
+    tally, and `masses` is the same tally weighted by `weights` (aligned to
+    scores' target axis) -- or `counts` itself when `weights` is None, so
+    callers can use `masses` unconditionally instead of branching."""
+    if scores.ndim == 1:
+        counts = np.bincount(scores, minlength=minlength).astype(np.float64)
+        if weights is None:
+            return counts, counts
+        masses = np.bincount(scores, weights=weights, minlength=minlength)
+        return counts, masses
+
+    counts = np.array([np.bincount(row, minlength=minlength) for row in scores], dtype=np.float64)
+    if weights is None:
+        return counts, counts
+    masses = np.array(
+        [np.bincount(row, weights=weights, minlength=minlength) for row in scores],
+        dtype=np.float64,
+    )
+    return counts, masses
+
+
 def cache_key(guesses, targets):
     h = hashlib.sha256()
     h.update("\n".join(guesses).encode())

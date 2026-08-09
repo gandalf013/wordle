@@ -145,7 +145,11 @@ def analyze_all(
     scorer = fast_scoring.cached_score_matrix if use_cache else fast_scoring.score_matrix
     matrix = scorer(guess_list, target_pool)
 
-    counts = np.array([np.bincount(row, minlength=243) for row in matrix], dtype=np.float64)
+    target_weights = None
+    if weights is not None:
+        target_weights = np.array([weights.get(w, 1.0) for w in target_pool], dtype=np.float64)
+    counts, masses = fast_scoring.bincount_scores(matrix, weights=target_weights)
+
     probs = counts / T
     with np.errstate(divide="ignore", invalid="ignore"):
         log_probs = np.where(probs > 0, np.log2(probs), 0.0)
@@ -154,11 +158,6 @@ def analyze_all(
     expected_size = np.sum(counts**2, axis=1) / T
 
     if weights is not None:
-        target_weights = np.array([weights.get(w, 1.0) for w in target_pool], dtype=np.float64)
-        masses = np.array(
-            [np.bincount(row, weights=target_weights, minlength=243) for row in matrix],
-            dtype=np.float64,
-        )
         total_masses = np.sum(masses, axis=1)
         w_probs = np.where(total_masses[:, None] > 0, masses / total_masses[:, None], 0.0)
         with np.errstate(divide="ignore", invalid="ignore"):
