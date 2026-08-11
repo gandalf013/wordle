@@ -18,6 +18,7 @@ import pytest
 import scoring
 from cli import (
     Analyze,
+    Back,
     Buckets,
     Help,
     LoopState,
@@ -93,6 +94,19 @@ class TestParseCommand:
 
     def test_top_invalid_n_is_none(self):
         assert parse_command("top abc", 2) is None
+
+    def test_back_default_n(self):
+        assert parse_command("b", 2) == Back(1)
+        assert parse_command("back", 2) == Back(1)
+
+    def test_back_with_explicit_n(self):
+        assert parse_command("b 2", 2) == Back(2)
+        assert parse_command("back 3", 2) == Back(3)
+
+    def test_back_invalid_n_is_none(self):
+        assert parse_command("b 0", 2) is None
+        assert parse_command("back -1", 2) is None
+        assert parse_command("back abc", 2) is None
 
     def test_restart_short_and_long_form(self):
         assert parse_command("r", 2) == Restart()
@@ -227,6 +241,29 @@ class TestPlayOneRoundInteractive:
         assert engine.history == []
         out = capsys.readouterr().out
         assert "Commands:" in out
+
+    def test_back_command_undos_move_and_continues(self, caplog):
+        engine = SolverEngine(["aa", "ab", "ba"], ["aa", "ab", "ba"], EntropyStrategy())
+        score = scoring.get_score("aa", "ab")
+        engine.apply_score("aa", score)
+        assert len(engine.candidates) < 3
+
+        with caplog.at_level("INFO"):
+            with patch("builtins.input", side_effect=["back", "restart"]):
+                state = play_one_round(engine, automatic=False, solution=None)
+        assert state == LoopState.RESTART
+        assert engine.history == []
+        assert len(engine.candidates) == 3
+        assert "Backed up 1 move(s)" in caplog.text
+
+    def test_back_on_empty_history_logs_and_reprompts(self, caplog):
+        engine = SolverEngine(["aa", "bb"], ["aa", "bb"], EntropyStrategy())
+        with caplog.at_level("INFO"):
+            with patch("builtins.input", side_effect=["back", "restart"]):
+                state = play_one_round(engine, automatic=False, solution=None)
+        assert state == LoopState.RESTART
+        assert "No moves to undo" in caplog.text
+
 
 
 class TestRunInteractive:

@@ -162,6 +162,31 @@ class SolverEngine:
             guesses_used=len(self.history) if guess == solution else len(self.history) + 1,
         )
 
+    def back(self, n: int = 1) -> int:
+        """Undo up to `n` moves, restoring the candidate pool and history
+        to the state before those moves were applied. Returns the number
+        of moves actually undone.
+        """
+        if n <= 0 or not self.history:
+            return 0
+
+        undone = min(n, len(self.history))
+        self.history = self.history[:-undone]
+
+        self.candidates = list(self.target_list)
+        for guess, score in self.history:
+            if len(self.candidates) > 50:
+                scores = fast_scoring.score_matrix([guess], self.candidates)[0]
+                self.candidates = [w for w, s in zip(self.candidates, scores) if s == score]
+            else:
+                self.candidates = [
+                    w for w in self.candidates if scoring.get_score(guess, w) == score
+                ]
+
+        self._cached_analyses = None
+        self._cached_analyses_by_guess = None
+        return undone
+
     def reset(self) -> None:
         """Start a new round against the original target list. The cached
         initial suggestion survives a reset -- it depends only on
@@ -170,3 +195,4 @@ class SolverEngine:
         self.history = []
         self._cached_analyses = None
         self._cached_analyses_by_guess = None
+

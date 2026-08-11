@@ -160,3 +160,64 @@ class TestReset:
         engine.reset()
         assert engine.candidates == ["aa", "bb"]
         assert engine.history == []
+
+
+class TestBack:
+    def test_back_one_move_restores_candidates_and_history(self):
+        engine = SolverEngine(
+            ["aa", "ab", "ba", "bb"], ["aa", "ab", "ba", "bb"], EntropyStrategy()
+        )
+        score1 = scoring.get_score("aa", "ab")
+        engine.apply_score("aa", score1)
+        candidates_after_move1 = list(engine.candidates)
+
+        score2 = scoring.get_score("ab", "ab")
+        engine.apply_score("ab", score2)
+
+        undone = engine.back(1)
+        assert undone == 1
+        assert engine.history == [("aa", score1)]
+        assert engine.candidates == candidates_after_move1
+
+    def test_back_multiple_moves(self):
+        engine = SolverEngine(
+            ["aa", "ab", "ba", "bb"], ["aa", "ab", "ba", "bb"], EntropyStrategy()
+        )
+        engine.apply_score("aa", scoring.get_score("aa", "ba"))
+        engine.apply_score("ab", scoring.get_score("ab", "ba"))
+
+        undone = engine.back(2)
+        assert undone == 2
+        assert engine.history == []
+        assert engine.candidates == ["aa", "ab", "ba", "bb"]
+
+    def test_back_more_moves_than_history_caps_to_len_history(self):
+        engine = SolverEngine(
+            ["aa", "ab", "ba", "bb"], ["aa", "ab", "ba", "bb"], EntropyStrategy()
+        )
+        engine.apply_score("aa", scoring.get_score("aa", "ba"))
+
+        undone = engine.back(5)
+        assert undone == 1
+        assert engine.history == []
+        assert engine.candidates == ["aa", "ab", "ba", "bb"]
+
+    def test_back_on_empty_history_returns_zero(self):
+        engine = SolverEngine(
+            ["aa", "ab"], ["aa", "ab"], EntropyStrategy()
+        )
+        undone = engine.back(1)
+        assert undone == 0
+        assert engine.history == []
+
+    def test_back_invalidates_analysis_cache(self):
+        engine = SolverEngine(
+            ["aa", "ab", "ba"], ["aa", "ab", "ba"], EntropyStrategy()
+        )
+        engine.apply_score("aa", scoring.get_score("aa", "ab"))
+        first_analyses = engine.get_analyses()
+
+        engine.back(1)
+        second_analyses = engine.get_analyses()
+        assert second_analyses is not first_analyses
+

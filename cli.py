@@ -72,6 +72,11 @@ class Top:
 
 
 @dataclass(frozen=True)
+class Back:
+    n: int = 1
+
+
+@dataclass(frozen=True)
 class Restart:
     pass
 
@@ -86,7 +91,7 @@ class Help:
     pass
 
 
-Command = Union[ShowScore, OverrideGuess, Analyze, Buckets, Top, Restart, Quit, Help]
+Command = Union[ShowScore, OverrideGuess, Analyze, Buckets, Top, Back, Restart, Quit, Help]
 
 _DEFAULT_TOP_N = 10
 
@@ -97,6 +102,7 @@ Commands:
   ?<word> | analyze <word> -> analyze <word> as a candidate guess
   buckets [word] -> show score-bucket breakdown for [word] (or current guess)
   top [N] -> show the top N guesses by the active strategy (default 10)
+  b [N] | back [N] -> undo N moves (default 1)
   r | restart -> restart the round
   q | quit -> quit
   ? -> show this help"""
@@ -112,6 +118,7 @@ def parse_command(raw: str, n: int) -> Command | None:
       '?<word>' | 'analyze <word>' -> Analyze(word)
       'buckets [word]'             -> Buckets(word or None)
       'top [N]'                    -> Top(n=N or default 10)
+      'b [N]' | 'back [N]'         -> Back(n=N or default 1)
       'r' | 'restart'              -> Restart()
       'q' | 'quit'                 -> Quit()
       '?'                          -> Help()
@@ -133,6 +140,15 @@ def parse_command(raw: str, n: int) -> Command | None:
         return Restart()
     if head in ("q", "quit"):
         return Quit()
+
+    if head in ("b", "back"):
+        if rest is None:
+            return Back(1)
+        try:
+            val = int(rest)
+            return Back(val) if val > 0 else None
+        except ValueError:
+            return None
 
     if head == "analyze" and rest and len(rest) == n:
         return Analyze(rest)
@@ -262,6 +278,21 @@ def play_one_round(engine, automatic, solution, threshold_display=3):
             sys.stdout.write(
                 display.format_top_guesses(ranked, top_n=command.n, weighted=weighted) + "\n"
             )
+            continue
+
+        if isinstance(command, Back):
+            if not engine.history:
+                logging.info("No moves to undo")
+                continue
+            undone = engine.back(command.n)
+            logging.info(
+                f"Backed up {undone} move(s). {len(engine.candidates)} candidates remaining."
+            )
+            if len(engine.candidates) <= threshold_display:
+                logging.info(f"Matching words: {sorted(engine.candidates)}")
+            suggestion = engine.suggest()
+            current_guess = suggestion.guess
+            logging.info(f"Best guess {current_guess} entropy {suggestion.entropy}")
             continue
 
         # ShowScore: solution (if known) always overrides a manually typed
