@@ -107,3 +107,38 @@ class TestScoreMatrixCache:
         with patch("fast_scoring.tqdm", wraps=fast_scoring.tqdm) as spy:
             fast_scoring.score_matrix(guesses, targets, show_progress=False)
             spy.assert_not_called()
+
+
+class TestScoreMatrixAndBincounts:
+    def test_fused_matches_separate_matrix_and_bincounts(self):
+        guesses = ["bobby", "erase", "speed"]
+        targets = ["abbey", "speed", "erase", "mount"]
+        weights = {"abbey": 1.0, "speed": 2.5, "erase": 0.5, "mount": 1.2}
+
+        matrix_sep = fast_scoring.score_matrix(guesses, targets)
+        w_arr = np.array([weights[w] for w in targets], dtype=np.float64)
+        counts_sep, masses_sep = fast_scoring.bincount_scores(matrix_sep, weights=w_arr)
+
+        matrix_fused, counts_fused, masses_fused = fast_scoring.score_matrix_and_bincounts(
+            guesses, targets, weights=weights
+        )
+
+        np.testing.assert_array_equal(matrix_fused, matrix_sep)
+        np.testing.assert_allclose(counts_fused, counts_sep)
+        np.testing.assert_allclose(masses_fused, masses_sep)
+
+    def test_numpy_fallback_matches_c_implementation(self, monkeypatch):
+        guesses = ["bobby", "erase", "speed", "apple", "fjzkx"]
+        targets = ["abbey", "speed", "erase", "mount", "apple"]
+        weights = {"abbey": 1.0, "speed": 2.5, "erase": 0.5, "mount": 1.2, "apple": 0.8}
+
+        mat_c = fast_scoring._score_matrix_c(guesses, targets)
+        mat_np = fast_scoring._score_matrix_numpy(guesses, targets)
+        np.testing.assert_array_equal(mat_c, mat_np)
+
+        monkeypatch.setattr(fast_scoring, "HAS_C_LIB", False)
+        mat_fallback, counts_fallback, masses_fallback = fast_scoring.score_matrix_and_bincounts(
+            guesses, targets, weights=weights
+        )
+        np.testing.assert_array_equal(mat_fallback, mat_c)
+

@@ -180,13 +180,13 @@ def analyze_all(
     if not G or not T:
         return []
 
-    scorer = fast_scoring.cached_score_matrix if use_cache else fast_scoring.score_matrix
-    matrix = scorer(guess_list, target_pool, show_progress=show_progress)
-
-    target_weights = None
-    if weights is not None:
-        target_weights = np.array([weights.get(w, 1.0) for w in target_pool], dtype=np.float64)
-    counts, masses = fast_scoring.bincount_scores(matrix, weights=target_weights)
+    matrix, counts, masses = fast_scoring.score_matrix_and_bincounts(
+        guess_list,
+        target_pool,
+        weights=weights,
+        use_cache=use_cache,
+        show_progress=show_progress,
+    )
 
     bucket_counts_list: list[tuple[tuple[int, int], ...] | None] = [None] * G
     bucket_masses_list: list[tuple[tuple[int, float], ...] | None] = [None] * G
