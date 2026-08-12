@@ -180,10 +180,12 @@ def analyze_all(
     if not G or not T:
         return []
 
-    matrix, counts, masses = fast_scoring.score_matrix_and_bincounts(
+    stats = fast_scoring.score_and_analyze(
         guess_list,
         target_pool,
         weights=weights,
+        need_matrix=include_buckets,
+        need_bucket_arrays=include_bucket_stats,
         use_cache=use_cache,
         show_progress=show_progress,
     )
@@ -191,6 +193,7 @@ def analyze_all(
     bucket_counts_list: list[tuple[tuple[int, int], ...] | None] = [None] * G
     bucket_masses_list: list[tuple[tuple[int, float], ...] | None] = [None] * G
     if include_bucket_stats:
+        counts, masses = stats.counts, stats.masses
         for i in range(G):
             nz = np.flatnonzero(counts[i])
             c_nz = counts[i][nz].tolist()
@@ -199,28 +202,14 @@ def analyze_all(
                 m_nz = masses[i][nz].tolist()
                 bucket_masses_list[i] = tuple(zip(nz.tolist(), m_nz))
 
-    probs = counts / T
-    with np.errstate(divide="ignore", invalid="ignore"):
-        log_probs = np.where(probs > 0, np.log2(probs), 0.0)
-        entropy = -np.sum(probs * log_probs, axis=1)
-    worst_case_size = np.max(counts, axis=1).astype(int)
-    expected_size = np.sum(counts**2, axis=1) / T
-
-    entropy_list = entropy.tolist()
-    worst_case_list = worst_case_size.tolist()
-    expected_size_list = expected_size.tolist()
+    entropy_list = stats.entropy.tolist()
+    worst_case_list = stats.worst_case_size.astype(int).tolist()
+    expected_size_list = stats.expected_size.tolist()
 
     if weights is not None:
-        total_masses = np.sum(masses, axis=1)
-        w_probs = np.where(total_masses[:, None] > 0, masses / total_masses[:, None], 0.0)
-        with np.errstate(divide="ignore", invalid="ignore"):
-            w_log_probs = np.where(w_probs > 0, np.log2(w_probs), 0.0)
-            weighted_entropy = -np.sum(w_probs * w_log_probs, axis=1)
-        weighted_expected_size = np.sum(w_probs * counts, axis=1)
-
-        w_entropy_list = weighted_entropy.tolist()
-        w_expected_list = weighted_expected_size.tolist()
-        total_masses_list = total_masses.tolist()
+        w_entropy_list = stats.weighted_entropy.tolist()
+        w_expected_list = stats.weighted_expected_size.tolist()
+        total_masses_list = stats.total_mass.tolist()
     else:
         w_entropy_list = None
         w_expected_list = None
@@ -237,7 +226,7 @@ def analyze_all(
             g_w = weights.get(guess, 1.0) if is_possible_solution else 0.0
             sol_prob = g_w / tm if tm else 0.0
 
-        buckets = _buckets_from_scores(target_pool, matrix[i]) if include_buckets else None
+        buckets = _buckets_from_scores(target_pool, stats.matrix[i]) if include_buckets else None
 
         analyses.append(
             GuessAnalysis(

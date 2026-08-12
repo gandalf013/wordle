@@ -13,6 +13,7 @@ import time
 
 import numpy as np
 
+import analysis
 import fast_scoring
 import scoring
 from wordlists import parse_file
@@ -77,6 +78,30 @@ def benchmark_fused(guesses, targets, weights_dict=None):
     return elapsed
 
 
+def benchmark_analyze_all(guesses, targets, weights_dict=None, sizes=(5, 50, 500)):
+    """Times analysis.analyze_all -- the actual function SolverEngine calls
+    every round -- at realistic candidate-pool sizes with the *full* guess
+    list held fixed. This is deliberately different from the raw
+    score_matrix benchmarks above: G (the guess list) never shrinks during a
+    real game, only T (the candidate pool) does, and analyze_all's
+    per-guess reduction and GuessAnalysis construction cost scales with G,
+    not T. So a small T (a near-solved pool, the common case after round 1)
+    is not a small workload here the way it is for score_matrix -- it's
+    dominated by fixed per-guess overhead, which the raw scoring benchmarks
+    above don't show at all.
+    """
+    G = len(guesses)
+    for T in sizes:
+        pool = targets[: min(T, len(targets))]
+        analysis.analyze_all(guesses, pool, weights=weights_dict, show_progress=False)  # warm
+        reps = 10
+        t0 = time.perf_counter()
+        for _ in range(reps):
+            analysis.analyze_all(guesses, pool, weights=weights_dict, show_progress=False)
+        elapsed = (time.perf_counter() - t0) / reps
+        print(f"  T={len(pool):5d} (G={G:,} fixed):  {elapsed*1000:8.3f} ms/round")
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("infile", nargs="?", default="words.wordle.txt")
@@ -110,6 +135,10 @@ def main(argv=None):
 
     print("=== 4. Fused Matrix + Bincount Benchmark ===")
     benchmark_fused(guesses, targets, wl.weights)
+    print()
+
+    print("=== 5. analyze_all at realistic in-game pool sizes (full guess list held fixed) ===")
+    benchmark_analyze_all(guesses, targets, wl.weights, sizes=(5, 50, 500, len(targets)))
     print()
 
 
