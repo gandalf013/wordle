@@ -13,6 +13,7 @@ runs against an unchanged word list load instantly instead of recomputing.
 import ctypes
 import hashlib
 import os
+import platform
 import shutil
 import subprocess
 import sys
@@ -262,10 +263,35 @@ void score_bincount_stats_parallel(
 """
 
 
+def _arch_tuning_flag() -> str | None:
+    """The compiler flag that lets the vectorizer use this machine's full
+    instruction set, appropriate to the *build* machine -- safe here only
+    because the library is compiled at runtime on the same machine that
+    will run it (see the cache-key comment below), never distributed as a
+    prebuilt binary. x86_64's baseline ISA is SSE2-only; AVX2 (double the
+    SIMD lanes) requires opting in via -march. ARM64's baseline already
+    includes NEON, so there's no equivalent gap for -mcpu to close there,
+    but passing it is harmless and keeps builds consistent across archs."""
+    machine = platform.machine().lower()
+    if machine in ("x86_64", "amd64", "i386", "i686"):
+        return "-march=native"
+    if machine in ("arm64", "aarch64"):
+        return "-mcpu=native"
+    return None
+
+
 def _load_c_lib():
     """Attempt to compile and load the C scoring library. Return (lib, True) or (None, False)."""
     ext = ".dylib" if sys.platform == "darwin" else (".dll" if sys.platform == "win32" else ".so")
-    src_hash = hashlib.sha256(C_SOURCE_CODE.encode()).hexdigest()[:12]
+
+    # The compiled library is cached to disk keyed on a hash that includes
+    # this machine's hostname and architecture, not just the C source --
+    # otherwise a -march=native/-mcpu=native build (see _arch_tuning_flag)
+    # copied to a different machine (e.g. an rsync'd home directory instead
+    # of a fresh checkout) could reuse a stale binary tuned for a different
+    # CPU and crash with an illegal instruction instead of recompiling.
+    fingerprint = f"{platform.node()}|{platform.machine()}|{C_SOURCE_CODE}"
+    src_hash = hashlib.sha256(fingerprint.encode()).hexdigest()[:12]
     lib_dir = CACHE_DIR
     lib_path = lib_dir / f"libscore_{src_hash}{ext}"
 
@@ -276,13 +302,26 @@ def _load_c_lib():
         lib_dir.mkdir(parents=True, exist_ok=True)
         c_src_path = lib_dir / f"score_{src_hash}.c"
         c_src_path.write_text(C_SOURCE_CODE)
-        try:
-            cmd = [
-                compiler, "-O3", "-shared", "-fPIC",
-                str(c_src_path), "-o", str(lib_path), "-lm",
-            ]
-            subprocess.check_call(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        except Exception:
+
+        # -pthread (not just -lm) is needed for correct pthread linking on
+        # some libcs -- macOS links pthread symbols into libSystem
+        # unconditionally so it's a no-op there, but musl (Alpine) and some
+        # glibc configurations need it to actually resolve at link time.
+        base_cmd = [compiler, "-O3", "-shared", "-fPIC", "-pthread"]
+        arch_flag = _arch_tuning_flag()
+        attempts = [base_cmd + [arch_flag]] if arch_flag else []
+        attempts.append(base_cmd)
+
+        compiled = False
+        for extra_flags in attempts:
+            cmd = [*extra_flags, str(c_src_path), "-o", str(lib_path), "-lm"]
+            try:
+                subprocess.check_call(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                compiled = True
+                break
+            except Exception:
+                continue
+        if not compiled:
             return None, False
 
     try:

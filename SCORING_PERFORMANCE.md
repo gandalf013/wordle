@@ -87,6 +87,18 @@ This was **not implemented in this pass** because it changes the `Strategy` prot
 
 ---
 
+## 3a. Portability (Linux / Windows)
+
+The scoring algorithm itself (`score_pair`) is fully architecture-independent: no intrinsics, no `__builtin_*` calls, no endianness/word-size assumptions. It compiles identically on x86_64, arm64, or anything else gcc/clang targets.
+
+**Threading is the real cross-platform constraint.** The kernel uses `pthread.h`, which is standard on Linux/macOS but not available under MSVC (Windows's default toolchain) -- it works on Windows only via MinGW-w64, WSL, or Cygwin. `_load_c_lib()`'s compiler search (`shutil.which("clang") or shutil.which("gcc")`) typically finds nothing on a stock Windows machine, and every failure path (missing compiler, compile error) is caught and falls back to `HAS_C_LIB = False` -- the pure-NumPy path, still correct, ~20x slower than the C kernel. **Nothing crashes; Windows without a POSIX-capable toolchain just doesn't get the C acceleration.** Closing that gap for real (without requiring the user to install MinGW) would mean dropping the pthread dependency from the C side entirely and doing the parallel fan-out in Python via `concurrent.futures.ThreadPoolExecutor` instead (ctypes calls release the GIL for their duration, so this preserves true multi-core speed) -- not done in this pass; flagged here as the next step if native-Windows acceleration becomes a priority.
+
+**`-march`/`-mcpu` tuning is now applied, machine-appropriate, and cache-safe.** `_arch_tuning_flag()` picks `-march=native` on x86_64 (unlocks AVX2 -- the ARM64 finding above of "no measurable win" doesn't generalize to x86, whose baseline ISA is SSE2-only and needs an explicit opt-in for wider SIMD) or `-mcpu=native` on arm64/aarch64 (matches this doc's measured ARM64 result: harmless, no expected win, kept for build consistency). This is only safe because the library compiles at runtime *on the machine that will run it*, not as a distributed binary -- so the compiled cache is now keyed on `hostname + arch + source`, not just source, meaning a `.wordle_cache/` directory copied to a different machine (e.g. via `rsync` instead of a fresh clone) always triggers a fresh, correctly-tuned recompile rather than risking an illegal-instruction crash from reusing a stale native-tuned binary. If the compiler rejects the tuning flag for any reason, compilation retries once with baseline flags before giving up. Also added: an explicit `-pthread` compile flag (macOS links pthread symbols into `libSystem` unconditionally so this was a silent no-op there, but musl/Alpine and some glibc configurations need it to link correctly).
+
+The x86_64 `-march=native` win is expected but **unverified in this pass** -- no x86 hardware was available to measure it directly; the ARM64 numbers throughout this document were re-measured with the new flags and are unchanged (as expected, since ARM64 had no gap for `-mcpu` to close).
+
+---
+
 ## 4. Architectural Design
 
 ```
