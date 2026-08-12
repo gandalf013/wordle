@@ -93,21 +93,6 @@ class TestScoreMatrixCache:
         )
         assert len(list(cache_dir.glob("*.npy"))) == 1
 
-    def test_show_progress_tqdm_invocation(self):
-        alphabet = "abcdefghijklmnopqrstuvwxyz"
-        guesses = [
-            f"{alphabet[i % 26]}{alphabet[(i // 26) % 26]}{alphabet[(i // 676) % 26]}aa"
-            for i in range(1500)
-        ]
-        targets = ["aaaaa", "bbbbb"]
-        with patch("fast_scoring.tqdm", wraps=fast_scoring.tqdm) as spy:
-            fast_scoring.score_matrix(guesses, targets, show_progress=True)
-            spy.assert_called_once()
-
-        with patch("fast_scoring.tqdm", wraps=fast_scoring.tqdm) as spy:
-            fast_scoring.score_matrix(guesses, targets, show_progress=False)
-            spy.assert_not_called()
-
 
 class TestScoreMatrixAndBincounts:
     def test_fused_matches_separate_matrix_and_bincounts(self):

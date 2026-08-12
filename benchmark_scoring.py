@@ -39,7 +39,7 @@ def benchmark_numpy(guesses, targets):
     G, T = len(guesses), len(targets)
     total_pairs = G * T
     t0 = time.perf_counter()
-    fast_scoring._score_matrix_numpy(guesses, targets, show_progress=False)
+    fast_scoring._score_matrix_numpy(guesses, targets)
     t1 = time.perf_counter()
     elapsed = t1 - t0
     rate = total_pairs / elapsed / 1e6
@@ -68,7 +68,7 @@ def benchmark_fused(guesses, targets, weights_dict=None):
 
     t0 = time.perf_counter()
     matrix, counts, masses = fast_scoring.score_matrix_and_bincounts(
-        guesses, targets, weights=weights_dict, show_progress=False
+        guesses, targets, weights=weights_dict
     )
     t1 = time.perf_counter()
     elapsed = t1 - t0
@@ -93,11 +93,11 @@ def benchmark_analyze_all(guesses, targets, weights_dict=None, sizes=(5, 50, 500
     G = len(guesses)
     for T in sizes:
         pool = targets[: min(T, len(targets))]
-        analysis.analyze_all(guesses, pool, weights=weights_dict, show_progress=False)  # warm
+        analysis.analyze_all(guesses, pool, weights=weights_dict)  # warm
         reps = 10
         t0 = time.perf_counter()
         for _ in range(reps):
-            analysis.analyze_all(guesses, pool, weights=weights_dict, show_progress=False)
+            analysis.analyze_all(guesses, pool, weights=weights_dict)
         elapsed = (time.perf_counter() - t0) / reps
         print(f"  T={len(pool):5d} (G={G:,} fixed):  {elapsed*1000:8.3f} ms/round")
 

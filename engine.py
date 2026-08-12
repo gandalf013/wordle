@@ -43,7 +43,6 @@ class SolverEngine:
         strategy: Strategy,
         weights: dict[str, float] | None = None,
         initial_guess: str | None = None,
-        show_progress: bool | None = None,
     ):
         self.guess_list = list(guess_list)
         self.target_list = list(target_list)
@@ -51,7 +50,6 @@ class SolverEngine:
         self.strategy = strategy
         self.weights = weights
         self.initial_guess = initial_guess
-        self.show_progress = show_progress
         self.n = len(self.guess_list[0])
         self.history: list[tuple[str, int]] = []
 
@@ -73,7 +71,6 @@ class SolverEngine:
                 weights=self.weights,
                 use_cache=use_cache,
                 include_bucket_stats=self.strategy.requires_bucket_stats,
-                show_progress=self.show_progress,
             )
             self._cached_analyses_by_guess = {
                 a.guess: a for a in self._cached_analyses
@@ -94,7 +91,6 @@ class SolverEngine:
                     self.candidates,
                     weights=self.weights,
                     use_cache=True,
-                    show_progress=self.show_progress,
                 )
             if self._cached_initial_suggestion is None:
                 self._cached_initial_suggestion = self.get_ranked_analyses()[0]
@@ -120,7 +116,6 @@ class SolverEngine:
             self.candidates,
             weights=self.weights,
             use_cache=not self.history,
-            show_progress=self.show_progress if include_buckets else False,
         )
 
     def apply_score(self, guess: str, score: int) -> RoundResult:

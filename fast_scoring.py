@@ -21,7 +21,6 @@ from pathlib import Path
 from typing import NamedTuple, Sequence
 
 import numpy as np
-from tqdm import tqdm
 
 CACHE_DIR = Path(__file__).resolve().parent / ".wordle_cache"
 CACHE_VERSION = 1
@@ -420,7 +419,6 @@ def _score_matrix_c(
     guesses: Sequence[str],
     targets: Sequence[str],
     batch_size: int = 1000,
-    show_progress: bool | None = None,
 ) -> np.ndarray:
     n = len(targets[0])
     G, T = len(guesses), len(targets)
@@ -428,12 +426,7 @@ def _score_matrix_c(
     target_codes = words_to_codes(targets, n)
     out = np.empty((G, T), dtype=np.uint8)
 
-    should_show = sys.stderr.isatty() if show_progress is None else show_progress
-    batches = range(0, G, batch_size)
-    if should_show and G > batch_size:
-        batches = tqdm(batches, total=-(-G // batch_size))
-
-    for start in batches:
+    for start in range(0, G, batch_size):
         end = min(start + batch_size, G)
         batch_G = end - start
         _C_LIB.score_and_bincount_parallel(
@@ -454,7 +447,6 @@ def _score_matrix_numpy(
     guesses: Sequence[str],
     targets: Sequence[str],
     batch_size: int = 1000,
-    show_progress: bool | None = None,
 ) -> np.ndarray:
     n = len(targets[0])
     G, T = len(guesses), len(targets)
@@ -468,11 +460,7 @@ def _score_matrix_numpy(
     place_values = (3 ** np.arange(n - 1, -1, -1)).astype(np.uint8)
 
     out = np.empty((G, T), dtype=np.uint8)
-    batches = range(0, G, batch_size)
-    should_show = sys.stderr.isatty() if show_progress is None else show_progress
-    if should_show and G > batch_size:
-        batches = tqdm(batches, total=-(-G // batch_size))
-    for start in batches:
+    for start in range(0, G, batch_size):
         end = start + batch_size
         out[start:end] = _score_batch_numpy(
             guess_codes[start:end], target_codes, target_counts, place_values, n
@@ -484,14 +472,13 @@ def score_matrix(
     guesses: Sequence[str],
     targets: Sequence[str],
     batch_size: int = 1000,
-    show_progress: bool | None = None,
 ) -> np.ndarray:
     """Packed base-3 score of every guess against every target, as a
     (len(guesses), len(targets)) uint8 array, where matrix[g, t] equals
     Game.get_score(guesses[g], targets[t])."""
     if HAS_C_LIB and len(guesses) > 0 and len(targets) > 0 and len(targets[0]) == 5:
-        return _score_matrix_c(guesses, targets, batch_size=batch_size, show_progress=show_progress)
-    return _score_matrix_numpy(guesses, targets, batch_size=batch_size, show_progress=show_progress)
+        return _score_matrix_c(guesses, targets, batch_size=batch_size)
+    return _score_matrix_numpy(guesses, targets, batch_size=batch_size)
 
 
 def score_matrix_and_bincounts(
@@ -499,13 +486,12 @@ def score_matrix_and_bincounts(
     targets: Sequence[str],
     weights: dict[str, float] | None = None,
     use_cache: bool = False,
-    show_progress: bool | None = None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Compute score matrix, unweighted bucket counts, and weighted bucket masses
     in a single pass (using fused multithreaded C routine if available, or falling back
     to score_matrix + bincount_scores)."""
     if use_cache:
-        matrix = cached_score_matrix(guesses, targets, show_progress=show_progress)
+        matrix = cached_score_matrix(guesses, targets)
         target_weights = (
             np.array([weights.get(w, 1.0) for w in targets], dtype=np.float64)
             if weights is not None
@@ -551,7 +537,7 @@ def score_matrix_and_bincounts(
         )
         return matrix, counts, masses
 
-    matrix = score_matrix(guesses, targets, show_progress=show_progress)
+    matrix = score_matrix(guesses, targets)
     target_weights = (
         np.array([weights.get(w, 1.0) for w in targets], dtype=np.float64)
         if weights is not None
@@ -612,7 +598,6 @@ def score_and_analyze(
     need_matrix: bool = False,
     need_bucket_arrays: bool = False,
     use_cache: bool = False,
-    show_progress: bool | None = None,
 ) -> ScoringStats:
     """Score every guess against every target and reduce straight to the
     per-guess summary stats analysis.analyze_all needs (entropy, worst-case
@@ -659,7 +644,7 @@ def score_and_analyze(
         # entry point that reduces an already-built matrix instead of
         # scoring one.
         matrix, counts, masses = score_matrix_and_bincounts(
-            guesses, targets, weights=weights, use_cache=True, show_progress=show_progress
+            guesses, targets, weights=weights, use_cache=True
         )
         (
             entropy,
@@ -739,9 +724,7 @@ def score_and_analyze(
             total_mass=total_mass,
         )
 
-    matrix, counts, masses = score_matrix_and_bincounts(
-        guesses, targets, weights=weights, show_progress=show_progress
-    )
+    matrix, counts, masses = score_matrix_and_bincounts(guesses, targets, weights=weights)
     (
         entropy,
         worst_case_size,
@@ -803,7 +786,6 @@ def cached_score_matrix(
     targets: Sequence[str],
     cache_dir=None,
     batch_size: int = 1000,
-    show_progress: bool | None = None,
 ) -> np.ndarray:
     """score_matrix(guesses, targets), backed by an on-disk cache keyed on
     the exact ordered word lists (+ CACHE_VERSION). A hit is a single
@@ -813,9 +795,7 @@ def cached_score_matrix(
     if path.exists():
         return np.load(path)
 
-    matrix = score_matrix(
-        guesses, targets, batch_size=batch_size, show_progress=show_progress
-    )
+    matrix = score_matrix(guesses, targets, batch_size=batch_size)
     cache_dir.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(".tmp.npy")
     np.save(tmp, matrix)

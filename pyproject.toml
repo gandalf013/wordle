@@ -13,7 +13,6 @@ dependencies = [
     "scipy>=1.15.1",
     "sqlparams>=6.2.0",
     "sqlparse>=0.5.5",
-    "tqdm>=4.67.1",
 ]
 
 [dependency-groups]
