@@ -142,19 +142,57 @@ class TwoPlyExpectimaxStrategy:
 
     requires_bucket_stats = True
 
-    def __init__(self, beam_width: int = 30, weighted: bool = False, tie_tol: float = 1e-9):
+    def __init__(
+        self,
+        beam_width: int = 30,
+        weighted: bool = False,
+        tie_tol: float = 1e-9,
+        large_n_anchor: tuple[int, float] = (3209, 3.6),
+    ):
         self.beam_width = beam_width
         self.weighted = weighted
         self.tie_tol = tie_tol
+        self.large_n_anchor = large_n_anchor
 
     def _estimate_bucket_cost(self, n: int) -> float:
+        """Estimated expected number of *additional* guesses (beyond the
+        guess that produced this bucket) needed to resolve a residual
+        bucket of size `n`.
+
+        n=0/1/2 are exact, analytically-derived values: an empty bucket
+        needs nothing further; a lone survivor needs exactly one more
+        guess; a 2-way tie needs one more guess half the time and two the
+        other half (guess either candidate directly), so 0.5*1 + 0.5*2 =
+        1.5. Larger buckets are interpolated *log-linearly* between the
+        n=3 anchor (2.0 -- provably achievable: either a perfect
+        1-guess/1/1/1 split exists, giving a guaranteed 2, or guessing a
+        candidate directly gives the same 2.0 in expectation) and
+        `large_n_anchor`, a (pool_size, avg_guesses) point measured from
+        this repo's own EntropyStrategy performance
+        (`benchmark_strategies.py`) -- resolving a bucket takes guesses
+        proportional to the *information* (bits) needed to narrow it, not
+        to its raw size, so the growth is ~log2(n), never linear.
+
+        The previous version of this formula (`2.0 + 0.3 * (n - 3)`) was
+        an unvalidated linear guess: it predicted needing ~963 *more*
+        guesses to resolve a 3,209-word bucket, when real play resolves
+        that in ~2.6. That miscalibration made this strategy effectively
+        blind to bucket size beyond a handful of words, which is why it
+        underperformed plain EntropyStrategy in benchmarks despite doing
+        strictly more work.
+        """
         if n <= 0:
             return 0.0
         if n == 1:
             return 1.0
         if n == 2:
             return 1.5
-        return 2.0 + 0.3 * (n - 3)
+        lo_n, lo_cost = 3, 2.0
+        hi_n, hi_cost = self.large_n_anchor
+        if n >= hi_n:
+            return hi_cost
+        frac = (math.log2(n) - math.log2(lo_n)) / (math.log2(hi_n) - math.log2(lo_n))
+        return lo_cost + (hi_cost - lo_cost) * frac
 
     @staticmethod
     def _counts_for(a: GuessAnalysis) -> tuple[tuple[int, int], ...] | None:
@@ -211,15 +249,25 @@ class TwoPlyExpectimaxStrategy:
                 scored_beam.append((float("inf"), a))
                 continue
 
+            # The win-score bucket (guess == target exactly) needs *zero*
+            # additional guesses -- the game is already over. Without this,
+            # every bucket-cost lookup (including _estimate_bucket_cost(1))
+            # charged that branch a full extra guess, which systematically
+            # made guessing an actual candidate look no better than wasting
+            # a turn on a pure information-gathering probe.
+            win_score = 3 ** len(a.guess) - 1
+
             if weighted_mode and a.bucket_masses is not None:
                 cost = 1.0 + sum(
                     m * self._estimate_bucket_cost(c)
-                    for (_, c), (_, m) in zip(counts, a.bucket_masses)
+                    for (score, c), (_, m) in zip(counts, a.bucket_masses)
+                    if score != win_score
                 ) / denom
             else:
                 cost = 1.0 + sum(
                     c * self._estimate_bucket_cost(c)
-                    for _, c in counts
+                    for score, c in counts
+                    if score != win_score
                 ) / denom
             scored_beam.append((cost, a))
 
