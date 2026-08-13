@@ -92,7 +92,7 @@ class TestEntropyStrategyMatchesGame:
 @pytest.mark.slow
 class TestEntropyStrategyRealWordList:
     def test_round_one_matches_game_golden_value(self):
-        with open(REPO_ROOT / "words.wordle.txt") as fp:
+        with open(REPO_ROOT / "words.txt") as fp:
             wl = parse_file(fp)
         guesses = sorted(set(wl.target) | set(wl.extra))
         targets = wl.target
@@ -100,7 +100,7 @@ class TestEntropyStrategyRealWordList:
         results = analysis.analyze_all(guesses, targets, use_cache=True)
         ranked = EntropyStrategy().rank(results)
         assert ranked[0].guess == "tarse"
-        assert ranked[0].entropy == pytest.approx(5.948974509955522)
+        assert ranked[0].entropy == pytest.approx(5.895057463477305)
 
 
 class TestEntropyStrategyWeighted:

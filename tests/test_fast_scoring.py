@@ -43,7 +43,7 @@ class TestScoreMatrixMatchesScalar:
         # cases, but the vectorized algorithm's correctness claim is really
         # "matches the scalar implementation for every pair", so verify that
         # directly rather than trusting a handful of examples.
-        with open(REPO_ROOT / "words.wordle.txt") as fp:
+        with open(REPO_ROOT / "words.txt") as fp:
             wl = parse_file(fp)
         words = sorted(set(wl.target) | set(wl.extra))
 

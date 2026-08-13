@@ -273,7 +273,7 @@ class TestRealWordList:
         yield
 
     def test_round_one_entropy_matches_independent_census_computation(self):
-        with open(REPO_ROOT / "words.wordle.txt") as fp:
+        with open(REPO_ROOT / "words.txt") as fp:
             wl = parse_file(fp)
         guesses = sorted(set(wl.target) | set(wl.extra))
         targets = wl.target
@@ -286,4 +286,4 @@ class TestRealWordList:
 
         best = max(results, key=lambda r: r.entropy)
         assert best.guess == "tarse"
-        assert best.entropy == pytest.approx(5.948974509955522)
+        assert best.entropy == pytest.approx(5.895057463477305)

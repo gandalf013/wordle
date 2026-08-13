@@ -56,23 +56,17 @@ class TestParseFile:
         with pytest.raises(ValueError, match="Empty word list file"):
             parse_file(io.StringIO(""))
 
-    def test_real_wordle_wordlist(self):
-        with open(REPO_ROOT / "words.wordle.txt") as fp:
-            wl = parse_file(fp)
-        assert wl.word_length == 5
-        assert len(wl.target) == 2309
-        assert len(wl.extra) == 12546
-        assert not set(wl.target) & set(wl.extra)
-        assert all(w == 1.0 for w in wl.weights.values())
-
-    def test_real_weighted_wordlist(self):
-        # "word <weight>" per line, no separate extra section -- the same
-        # list is meant to serve as both guesses and targets.
-        with open(REPO_ROOT / "words.weighted.txt") as fp:
+    def test_real_wordlist(self):
+        # words.txt: weighted targets, blank line, then unweighted extra
+        # guess-only words (defaulting to uniform weight 1.0).
+        with open(REPO_ROOT / "words.txt") as fp:
             wl = parse_file(fp)
         assert wl.word_length == 5
         assert len(wl.target) == 3209
-        assert wl.extra == []
-        assert all(word.isalpha() and word.islower() for word in wl.target)
-        assert set(wl.weights) == set(wl.target)
+        assert len(wl.extra) == 11646
+        assert not set(wl.target) & set(wl.extra)
+        assert all(word.isalpha() and word.islower() for word in wl.target + wl.extra)
+        assert set(wl.weights) == set(wl.target) | set(wl.extra)
         assert all(isinstance(w, float) for w in wl.weights.values())
+        assert not all(wl.weights[w] == 1.0 for w in wl.target)
+        assert all(wl.weights[w] == 1.0 for w in wl.extra)
