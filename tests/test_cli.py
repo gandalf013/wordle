@@ -23,6 +23,7 @@ from cli import (
     Help,
     LoopState,
     OverrideGuess,
+    Pool,
     Quit,
     Restart,
     ShowScore,
@@ -94,6 +95,19 @@ class TestParseCommand:
 
     def test_top_invalid_n_is_none(self):
         assert parse_command("top abc", 2) is None
+
+    def test_pool_default_shows_all(self):
+        assert parse_command("pool", 2) == Pool(None)
+
+    def test_pool_with_explicit_n(self):
+        assert parse_command("pool 5", 2) == Pool(5)
+
+    def test_pool_invalid_n_is_none(self):
+        assert parse_command("pool abc", 2) is None
+
+    def test_pool_non_positive_n_is_none(self):
+        assert parse_command("pool 0", 2) is None
+        assert parse_command("pool -1", 2) is None
 
     def test_back_default_n(self):
         assert parse_command("b", 2) == Back(1)
@@ -232,6 +246,16 @@ class TestPlayOneRoundInteractive:
         assert engine.candidates == ["aa", "bb"]
         out = capsys.readouterr().out
         assert "guess" in out  # format_top_guesses header, from ?bb and top
+
+    def test_pool_does_not_commit(self, capsys):
+        engine = SolverEngine(["aa", "bb"], ["aa", "bb"], EntropyStrategy())
+        with patch("builtins.input", side_effect=["pool", "restart"]):
+            state = play_one_round(engine, automatic=False, solution=None)
+        assert state == LoopState.RESTART
+        assert engine.history == []
+        assert engine.candidates == ["aa", "bb"]
+        out = capsys.readouterr().out
+        assert "aa" in out and "bb" in out
 
     def test_bare_question_mark_prints_help_and_does_not_commit(self, capsys):
         engine = SolverEngine(["aa", "bb"], ["aa", "bb"], EntropyStrategy())

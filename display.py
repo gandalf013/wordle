@@ -58,6 +58,33 @@ def format_top_guesses(
     )
 
 
+def format_pool(
+    words: list[str], weights: dict[str, float] | None = None, limit: int | None = None
+) -> str:
+    """List the remaining candidate pool, most-likely first when `weights`
+    is given (ties broken alphabetically), or alphabetically when it isn't.
+    `limit` caps how many words are shown; the true count is always shown
+    in a trailing summary line so truncation is never silent.
+    """
+    if weights is not None:
+        ranked = sorted(words, key=lambda w: (-weights.get(w, 1.0), w))
+    else:
+        ranked = sorted(words)
+
+    shown = ranked if limit is None else ranked[:limit]
+    if weights is not None:
+        lines = [f"{w}  {weights.get(w, 1.0):.4f}" for w in shown]
+    else:
+        lines = list(shown)
+
+    lines.append(
+        f"({len(shown)} of {len(ranked)} words shown)"
+        if limit is not None and len(ranked) > limit
+        else f"({len(ranked)} word{'s' if len(ranked) != 1 else ''})"
+    )
+    return "\n".join(lines)
+
+
 def format_buckets(
     analysis: GuessAnalysis,
     limit: int | None = None,

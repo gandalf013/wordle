@@ -5,7 +5,7 @@ test_cli.py.
 
 import analysis
 from analysis import GuessAnalysis
-from display import format_buckets, format_history, format_score, format_top_guesses
+from display import format_buckets, format_history, format_pool, format_score, format_top_guesses
 from scoring import Score, get_score_num
 from strategies import EntropyStrategy
 
@@ -75,6 +75,42 @@ class TestFormatTopGuesses:
         table = format_top_guesses([unweighted], weighted=True)
         _, row = table.splitlines()
         assert "-" in row.split()
+
+
+class TestFormatPool:
+    def test_no_weights_sorts_alphabetically(self):
+        lines = format_pool(["cc", "aa", "bb"]).splitlines()
+        assert lines[:-1] == ["aa", "bb", "cc"]
+
+    def test_weights_sort_most_likely_first(self):
+        weights = {"aa": 1.0, "bb": 5.0, "cc": 2.0}
+        lines = format_pool(["aa", "bb", "cc"], weights=weights).splitlines()
+        assert [line.split()[0] for line in lines[:-1]] == ["bb", "cc", "aa"]
+
+    def test_equal_weights_break_ties_alphabetically(self):
+        weights = {"cc": 1.0, "aa": 1.0, "bb": 1.0}
+        lines = format_pool(["cc", "aa", "bb"], weights=weights).splitlines()
+        assert [line.split()[0] for line in lines[:-1]] == ["aa", "bb", "cc"]
+
+    def test_missing_weight_defaults_to_one(self):
+        lines = format_pool(["aa", "bb"], weights={"bb": 5.0}).splitlines()
+        assert [line.split()[0] for line in lines[:-1]] == ["bb", "aa"]
+
+    def test_trailing_summary_line_has_total_count(self):
+        lines = format_pool(["aa", "bb", "cc"]).splitlines()
+        assert lines[-1] == "(3 words)"
+
+    def test_singular_word_count(self):
+        lines = format_pool(["aa"]).splitlines()
+        assert lines[-1] == "(1 word)"
+
+    def test_limit_truncates_and_notes_omitted_count(self):
+        lines = format_pool(["cc", "aa", "bb"], limit=2).splitlines()
+        assert lines == ["aa", "bb", "(2 of 3 words shown)"]
+
+    def test_limit_larger_than_pool_shows_all_without_truncation_note(self):
+        lines = format_pool(["aa", "bb"], limit=10).splitlines()
+        assert lines[-1] == "(2 words)"
 
 
 class TestFormatBuckets:

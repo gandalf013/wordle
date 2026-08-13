@@ -72,6 +72,11 @@ class Top:
 
 
 @dataclass(frozen=True)
+class Pool:
+    n: int | None  # None -> show every remaining candidate
+
+
+@dataclass(frozen=True)
 class Back:
     n: int = 1
 
@@ -91,7 +96,9 @@ class Help:
     pass
 
 
-Command = Union[ShowScore, OverrideGuess, Analyze, Buckets, Top, Back, Restart, Quit, Help]
+Command = Union[
+    ShowScore, OverrideGuess, Analyze, Buckets, Top, Pool, Back, Restart, Quit, Help
+]
 
 _DEFAULT_TOP_N = 10
 
@@ -102,6 +109,8 @@ Commands:
   ?<word> | analyze <word> -> analyze <word> as a candidate guess
   buckets [word] -> show score-bucket breakdown for [word] (or current guess)
   top [N] -> show the top N guesses by the active strategy (default 10)
+  pool [N] -> list remaining candidate words, most likely first if
+              weighted (else alphabetically); N caps how many are shown
   b [N] | back [N] -> undo N moves (default 1)
   r | restart -> restart the round
   q | quit -> quit
@@ -118,6 +127,7 @@ def parse_command(raw: str, n: int) -> Command | None:
       '?<word>' | 'analyze <word>' -> Analyze(word)
       'buckets [word]'             -> Buckets(word or None)
       'top [N]'                    -> Top(n=N or default 10)
+      'pool [N]'                   -> Pool(n=N or None for all)
       'b [N]' | 'back [N]'         -> Back(n=N or default 1)
       'r' | 'restart'              -> Restart()
       'q' | 'quit'                 -> Quit()
@@ -163,6 +173,15 @@ def parse_command(raw: str, n: int) -> Command | None:
             return Top(_DEFAULT_TOP_N)
         try:
             return Top(int(rest))
+        except ValueError:
+            return None
+
+    if head == "pool":
+        if rest is None:
+            return Pool(None)
+        try:
+            val = int(rest)
+            return Pool(val) if val > 0 else None
         except ValueError:
             return None
 
@@ -277,6 +296,13 @@ def play_one_round(engine, automatic, solution, threshold_display=3):
             ranked = engine.get_ranked_analyses()
             sys.stdout.write(
                 display.format_top_guesses(ranked, top_n=command.n, weighted=weighted) + "\n"
+            )
+            continue
+
+        if isinstance(command, Pool):
+            sys.stdout.write(
+                display.format_pool(engine.candidates, weights=engine.weights, limit=command.n)
+                + "\n"
             )
             continue
 
