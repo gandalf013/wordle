@@ -15,10 +15,13 @@ from pathlib import Path
 import pytest
 
 import analysis
+import scoring
 from analysis import GuessAnalysis
+from engine import RoundOutcome, SolverEngine
 from strategies import (
     EntropyStrategy,
     ExpectedPoolSizeStrategy,
+    MaxBinsBalanceStrategy,
     MinimaxStrategy,
     NumBinsStrategy,
     TwoPlyExpectimaxStrategy,
@@ -39,6 +42,7 @@ def _analysis(
     weighted_expected_size=None,
     solution_probability=None,
     bucket_counts=None,
+    bucket_masses=None,
 ):
     """Build a GuessAnalysis directly rather than deriving it from real word
     scoring, for tests that need specific (e.g. exactly-tied) field values
@@ -54,6 +58,7 @@ def _analysis(
         weighted_expected_size=weighted_expected_size,
         solution_probability=solution_probability,
         bucket_counts=bucket_counts,
+        bucket_masses=bucket_masses,
     )
 
 
@@ -281,6 +286,165 @@ class TestNumBinsStrategyRealWordList:
         ranked = NumBinsStrategy().rank(results)
         assert ranked[0].guess == "salet"
         assert len(ranked[0].bucket_counts) == 161
+
+
+class TestMaxBinsBalanceStrategy:
+    def test_prefers_matching_the_round_max_bucket_count_over_being_even_on_its_own(self):
+        # Pool of 100. "few" splits into 2 perfectly-even buckets (50/50)
+        # -- flawless relative to ITS OWN bucket count, which is exactly
+        # the degenerate measure this strategy deliberately avoids. "many"
+        # splits into 4 buckets (30/30/20/20) -- less even, but it's also
+        # the guess that sets k_target=4 this round, so it's compared
+        # against a uniform-over-4 target instead of uniform-over-2.
+        # EMD: few=100.0, many=20.0 (hand-verified against
+        # _emd_from_uniform directly before writing this assertion).
+        few = _analysis("aabb", entropy=1.0, bucket_counts=((0, 50), (1, 50)))
+        many = _analysis(
+            "ccdd", entropy=1.9, bucket_counts=((0, 30), (1, 30), (2, 20), (3, 20))
+        )
+        ranked = MaxBinsBalanceStrategy().rank([few, many])
+        assert ranked[0].guess == "ccdd"
+
+    def test_not_degenerate_for_a_single_bucket_guess(self):
+        # Regression check for the exact failure mode this design avoids
+        # (see class docstring): "useless" produces just 1 bucket
+        # (uninformative -- every candidate scores identically), which
+        # would trivially score a perfect 0 against a uniform-over-1
+        # target. Against the round's real k_target=3 (set by "useful",
+        # which splits the pool into 3 perfectly-even buckets), it scores
+        # a clearly worse 60.0 instead of tying with "useful"'s 0.0.
+        useless = _analysis("aaaa", entropy=0.0, bucket_counts=((0, 60),))
+        useful = _analysis(
+            "bcde", entropy=1.58, bucket_counts=((0, 20), (1, 20), (2, 20))
+        )
+        ranked = MaxBinsBalanceStrategy().rank([useless, useful])
+        assert ranked[0].guess == "bcde"
+
+    def test_weighted_mode_uses_masses_not_counts(self):
+        # "p" is perfectly even by raw count (2/2) but very uneven by
+        # mass (1.0/9.0); "q" is the reverse (1/3 by count, 5.0/5.0 by
+        # mass). Unweighted should prefer p (count_emd 0 vs 1); weighted
+        # should prefer q (mass_emd 0 vs 4) -- exactly the disagreement
+        # weighted=True exists to catch, same shape as
+        # TestEntropyStrategyWeighted's "dc"/"bb" pool.
+        p = _analysis(
+            "p", entropy=1.0, bucket_counts=((0, 2), (1, 2)), bucket_masses=((0, 1.0), (1, 9.0))
+        )
+        q = _analysis(
+            "q", entropy=0.8, bucket_counts=((0, 1), (1, 3)), bucket_masses=((0, 5.0), (1, 5.0))
+        )
+        assert MaxBinsBalanceStrategy(weighted=False).rank([p, q])[0].guess == "p"
+        assert MaxBinsBalanceStrategy(weighted=True).rank([p, q])[0].guess == "q"
+
+    def test_ties_broken_by_entropy(self):
+        low_entropy = _analysis("lo", entropy=1.0, bucket_counts=((0, 5), (1, 5)))
+        high_entropy = _analysis("hi", entropy=1.5, bucket_counts=((0, 5), (1, 5)))
+        ranked = MaxBinsBalanceStrategy().rank([low_entropy, high_entropy])
+        assert ranked[0].guess == "hi"
+
+    def test_ties_prefer_a_possible_solution(self):
+        non_candidate = _analysis(
+            "xy", entropy=1.0, bucket_counts=((0, 5), (1, 5)), is_possible_solution=False
+        )
+        candidate = _analysis(
+            "cd", entropy=1.0, bucket_counts=((0, 5), (1, 5)), is_possible_solution=True
+        )
+        ranked = MaxBinsBalanceStrategy().rank([non_candidate, candidate])
+        assert ranked[0].guess == "cd"
+
+    def test_weighted_tie_break_prefers_higher_solution_probability(self):
+        non_candidate = _analysis(
+            "xy", entropy=1.0, bucket_counts=((0, 5), (1, 5)), is_possible_solution=False
+        )
+        candidate_low = _analysis(
+            "lo",
+            entropy=1.0,
+            bucket_counts=((0, 5), (1, 5)),
+            is_possible_solution=True,
+            solution_probability=0.2,
+        )
+        candidate_high = _analysis(
+            "hi",
+            entropy=1.0,
+            bucket_counts=((0, 5), (1, 5)),
+            is_possible_solution=True,
+            solution_probability=0.8,
+        )
+        ranked = MaxBinsBalanceStrategy(weighted=True).rank(
+            [non_candidate, candidate_low, candidate_high]
+        )
+        assert ranked[0].guess == "hi"
+
+    def test_falls_back_to_buckets_when_bucket_counts_is_unset(self):
+        a = GuessAnalysis(
+            guess="fb",
+            buckets={0: ["aa"], 1: ["ab", "ac"]},
+            entropy=1.0,
+            worst_case_size=2,
+            expected_size=1.5,
+            is_possible_solution=False,
+        )
+        assert MaxBinsBalanceStrategy._counts_for(a) == ((0, 1), (1, 2))
+
+    def test_handles_empty_analyses_list(self):
+        assert MaxBinsBalanceStrategy().rank([]) == []
+
+    def test_requires_bucket_stats_flag_is_set(self):
+        assert MaxBinsBalanceStrategy.requires_bucket_stats is True
+
+
+@pytest.mark.slow
+class TestMaxBinsBalanceStrategyRealWordList:
+    @classmethod
+    def setup_class(cls):
+        with open(REPO_ROOT / "words.txt") as fp:
+            wl = parse_file(fp)
+        cls.guesses = sorted(set(wl.target) | set(wl.extra))
+        cls.targets = wl.target
+        cls.weights = wl.weights
+
+    def test_round_one_matches_measured_golden_value_unweighted(self):
+        results = analysis.analyze_all(
+            self.guesses, self.targets, use_cache=True, include_bucket_stats=True
+        )
+        ranked = MaxBinsBalanceStrategy().rank(results)
+        assert ranked[0].guess == "tarse"
+
+    def test_round_one_matches_measured_golden_value_weighted(self):
+        results = analysis.analyze_all(
+            self.guesses,
+            self.targets,
+            weights=self.weights,
+            use_cache=True,
+            include_bucket_stats=True,
+        )
+        ranked = MaxBinsBalanceStrategy(weighted=True).rank(results)
+        assert ranked[0].guess == "tarse"
+
+    def test_solves_the_known_hard_cluster_words_within_six_guesses(self):
+        # "fazed"/"hazed" are part of the same large, mostly floor-weighted
+        # "?a?ed" cluster that broke EntropyStrategy(weighted=True) and an
+        # unwrapped TwoPlyExpectimaxStrategy(weighted=True) earlier this
+        # session (see the ExactEndgameStrategy/endgame.py work, since
+        # reverted). Regression lock, not a coincidence check.
+        for weighted in [False, True]:
+            engine = SolverEngine(
+                self.guesses,
+                self.targets,
+                MaxBinsBalanceStrategy(weighted=weighted),
+                weights=self.weights,
+            )
+            for solution in ["fazed", "hazed"]:
+                engine.reset()
+                for _ in range(6):
+                    suggestion = engine.suggest()
+                    score = scoring.get_score(suggestion.guess, solution)
+                    result = engine.apply_score(suggestion.guess, score)
+                    if result.outcome == RoundOutcome.SOLVED:
+                        break
+                    assert result.outcome == RoundOutcome.CONTINUE
+                else:
+                    pytest.fail(f"weighted={weighted}: {solution} not solved within 6 guesses")
 
 
 class TestMinimaxStrategy:

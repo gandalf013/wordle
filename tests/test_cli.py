@@ -38,6 +38,7 @@ from engine import SolverEngine
 from strategies import (
     EntropyStrategy,
     ExpectedPoolSizeStrategy,
+    MaxBinsBalanceStrategy,
     MinimaxStrategy,
     NumBinsStrategy,
 )
@@ -348,6 +349,16 @@ class TestBuildStrategy:
         assert isinstance(strategy, NumBinsStrategy)
         assert "weighted" in caplog.text.lower()
 
+    def test_max_bins_balance_default_is_unweighted(self):
+        strategy = build_strategy("max-bins-balance", False)
+        assert isinstance(strategy, MaxBinsBalanceStrategy)
+        assert strategy.weighted is False
+
+    def test_max_bins_balance_weighted(self):
+        strategy = build_strategy("max-bins-balance", True)
+        assert isinstance(strategy, MaxBinsBalanceStrategy)
+        assert strategy.weighted is True
+
 
 class TestMainIntegration:
     def test_weighted_and_strategy_flags_run_end_to_end(self, tmp_path):
@@ -380,5 +391,22 @@ class TestMainIntegration:
                     "bb",
                     "--strategy",
                     "num-bins",
+                ]
+            )
+
+    def test_max_bins_balance_strategy_runs_end_to_end(self, tmp_path):
+        wordfile = tmp_path / "words.txt"
+        wordfile.write_text("aa 5\nab 1\nba 1\nbb 1\n")
+
+        with patch("builtins.input", side_effect=EOFError):
+            main(
+                [
+                    str(wordfile),
+                    "-a",
+                    "-s",
+                    "bb",
+                    "--strategy",
+                    "max-bins-balance",
+                    "--weighted",
                 ]
             )

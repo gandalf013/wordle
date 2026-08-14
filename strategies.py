@@ -181,6 +181,180 @@ class NumBinsStrategy:
         return _move_to_front(ordered, best)
 
 
+class MaxBinsBalanceStrategy:
+    """Minimize the Earth Mover's Distance (Wasserstein-1) between a
+    guess's own bucket-size histogram and a perfectly *uniform*
+    distribution over K bins -- where K is fixed for the whole round at
+    the largest bucket count any guess achieves this round (i.e. exactly
+    the guess NumBinsStrategy itself would pick), not the guess's own
+    bucket count. Ties broken by entropy, then toward a guess that's
+    itself a possible solution (and, when weighted, the higher
+    `solution_probability` among those).
+
+    The choice of what to compare against is the entire strategy, and it
+    was arrived at by first trying (and rejecting) the naive version:
+    comparing each guess's histogram to a uniform distribution over its
+    OWN bucket count is degenerate in two different ways --
+
+    1. A guess that produces exactly 1 bucket (completely uninformative --
+       every remaining candidate scores identically) trivially matches
+       "uniform over 1 bucket" perfectly (distance 0), the same score as
+       a genuinely excellent guess. In real play this isn't a rare edge
+       case: once the pool narrows to a same-scoring cluster (this repo's
+       weighted word list has one -- 2,110 of 3,209 targets share the same
+       weight), the naive version gets *stuck recommending that guess
+       forever*, since nothing rates it any worse than the guess that
+       produced it.
+    2. Even after separately excluding single-bucket guesses, the naive
+       version still has no way to prefer *more* buckets: a guess that
+       splits the pool into 2 perfectly-equal halves scores exactly as
+       well (distance 0) as one that splits it into 200 perfectly-equal
+       pieces, even though the second narrows the pool far more. "How
+       balanced are my buckets" and "how many buckets do I have" are
+       different axes, and a self-referential uniform target only ever
+       measures the first.
+
+    Anchoring K to the round's best achievable bucket count fixes both at
+    once, without needing an explicit exclusion rule for case 1: a guess
+    that only produces a handful of buckets is now correctly *far* from a
+    K-bucket uniform target (rather than getting a free pass for being
+    "even relative to itself"), and a guess is only rewarded for being
+    balanced *at the scale that's actually achievable this round*, not at
+    whatever smaller scale it happens to have settled for.
+
+    Measured on this repo's full 3,209-word target list (both branches:
+    worst case 6, zero games over budget):
+        unweighted: simple avg 3.5684, weighted avg 3.5415
+        weighted:   simple avg 3.5787, weighted avg 3.5374
+    Beats NumBinsStrategy (simple 3.5790, weighted 3.5530) on every one of
+    those numbers -- not a coincidence, since this strategy's K comes from
+    exactly the guess NumBinsStrategy would pick, and then asks a strictly
+    richer question about the whole round's candidates than "how many
+    buckets does each have": "how well is each guess's split actually
+    using the best bucket count anyone could achieve this round?"
+
+    `weighted=True` compares bucket *masses* (not raw counts) to a
+    uniform-mass-over-K target. K itself stays a structural, unweighted
+    fact about the partition either way (the round's max bucket count) --
+    same reasoning as NumBinsStrategy's own lack of a weighted mode: "how
+    many distinct outcomes are achievable" isn't a probability-weighted
+    quantity, only "how is the mass distributed across them" is.
+    """
+
+    requires_bucket_stats = True
+
+    def __init__(self, weighted: bool = False, tie_tol: float = 1e-9):
+        self.weighted = weighted
+        self.tie_tol = tie_tol
+
+    @staticmethod
+    def _counts_for(a: GuessAnalysis) -> tuple[tuple[int, int], ...] | None:
+        """Per-guess (score, count) pairs for non-empty buckets, falling
+        back to deriving them from `.buckets` -- same fallback
+        TwoPlyExpectimaxStrategy/NumBinsStrategy use."""
+        if a.bucket_counts is not None:
+            return a.bucket_counts
+        if a.buckets is not None:
+            return bucket_counts_from_buckets(a.buckets)
+        return None
+
+    def _sizes_and_total(self, a: GuessAnalysis) -> tuple[list[float], float] | None:
+        """This guess's own non-empty bucket sizes (word counts, or --
+        when weighted -- probability masses) and the total they sum to
+        (pool size, or total pool mass), the two things `_emd_from_uniform`
+        needs. None if neither bucket_masses nor bucket_counts/.buckets is
+        available to derive them from."""
+        if self.weighted and a.bucket_masses is not None:
+            masses = [m for _, m in a.bucket_masses]
+            return masses, sum(masses)
+        counts = self._counts_for(a)
+        if counts is None:
+            return None
+        sizes = [c for _, c in counts]
+        return sizes, float(sum(sizes))
+
+    @staticmethod
+    def _emd_from_uniform(sizes: list[float], total: float, k_target: int) -> float:
+        """Earth Mover's Distance between `sizes` (this guess's own
+        non-empty bucket sizes, any order) -- implicitly padded with
+        `k_target - len(sizes)` empty buckets -- and a perfectly uniform
+        distribution of `total` split evenly across `k_target` bins.
+
+        Closed form, not a general optimal-transport solve: for two 1D
+        distributions compared in sorted order against a *constant*
+        (uniform) target, EMD reduces to the sum of absolute differences
+        between cumulative sums at each rank -- sorting `sizes` ascending
+        and walking both cumulative sums together (the implicit empty
+        bins first, contributing 0 to `sizes`' side but a full
+        `total/k_target` to the uniform side each step) computes exactly
+        that in O(k_target), no external solver needed -- fast enough
+        (measured: 0.18s at k_target=161, round 1's own worst case, across
+        the full ~15k-word guess list) that this runs unrestricted against
+        every candidate guess every round, unlike TwoPlyExpectimaxStrategy,
+        which needs a beam to stay fast.
+        """
+        k = len(sizes)
+        if k == 0 or k_target <= 0:
+            return float("inf")
+        uniform_val = total / k_target
+        cumsum_actual = 0.0
+        cumsum_uniform = 0.0
+        emd = 0.0
+        for _ in range(k_target - k):
+            cumsum_uniform += uniform_val
+            emd += abs(cumsum_actual - cumsum_uniform)
+        for size in sorted(sizes):
+            cumsum_actual += size
+            cumsum_uniform += uniform_val
+            emd += abs(cumsum_actual - cumsum_uniform)
+        return emd
+
+    def rank(
+        self, analyses: list[GuessAnalysis], guesses_remaining: int | None = None
+    ) -> list[GuessAnalysis]:
+        if not analyses:
+            return []
+
+        # k_target = the largest bucket count ANY guess achieves this
+        # round -- the fixed target every guess is measured against, not
+        # each guess's own bucket count. See class docstring for why a
+        # self-referential target is degenerate.
+        k_target = 0
+        for a in analyses:
+            counts = self._counts_for(a)
+            if counts is not None:
+                k_target = max(k_target, len(counts))
+        if k_target <= 0:
+            return list(analyses)
+
+        scored = []
+        for a in analyses:
+            sizes_total = self._sizes_and_total(a)
+            if sizes_total is None:
+                scored.append((float("inf"), a))
+                continue
+            sizes, total = sizes_total
+            scored.append((self._emd_from_uniform(sizes, total, k_target), a))
+
+        scored.sort(key=lambda item: (item[0], -item[1].entropy))
+        best_emd, best = scored[0]
+
+        if not best.is_possible_solution:
+            tied = []
+            for emd, candidate in scored[1:]:
+                if not math.isclose(emd, best_emd, rel_tol=self.tie_tol, abs_tol=self.tie_tol):
+                    break
+                if candidate.is_possible_solution:
+                    tied.append(candidate)
+                    if not self.weighted:
+                        break
+            if tied:
+                best = max(tied, key=lambda a: a.solution_probability or 0.0)
+
+        ordered = [item[1] for item in scored]
+        return _move_to_front(ordered, best)
+
+
 class MinimaxStrategy:
     """Minimize the worst-case (largest) bucket -- classic Knuth-style
     solver. Deliberately has no weighted mode: "worst case" is an

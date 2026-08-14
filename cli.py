@@ -31,6 +31,7 @@ from engine import RoundOutcome, SolverEngine
 from strategies import (
     EntropyStrategy,
     ExpectedPoolSizeStrategy,
+    MaxBinsBalanceStrategy,
     MinimaxStrategy,
     NumBinsStrategy,
     Strategy,
@@ -352,6 +353,7 @@ def run_interactive(engine, automatic, solution, threshold_display=3):
 STRATEGIES: dict[str, type[Strategy]] = {
     "entropy": EntropyStrategy,
     "expected-pool-size": ExpectedPoolSizeStrategy,
+    "max-bins-balance": MaxBinsBalanceStrategy,
     "minimax": MinimaxStrategy,
     "num-bins": NumBinsStrategy,
     "two-ply-expectimax": TwoPlyExpectimaxStrategy,
