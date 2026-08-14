@@ -31,11 +31,33 @@ class Strategy(Protocol):
         ...
 
 
+class BaseStrategy:
+    """Base class for guess-ranking heuristics.
+
+    Provides a template method implementation of `rank` that guards against
+    empty `analyses` before delegating to `_rank`.
+    """
+
+    requires_bucket_stats: bool = False
+
+    def rank(
+        self, analyses: list[GuessAnalysis], guesses_remaining: int | None = None
+    ) -> list[GuessAnalysis]:
+        if not analyses:
+            return []
+        return self._rank(analyses, guesses_remaining)
+
+    def _rank(
+        self, analyses: list[GuessAnalysis], guesses_remaining: int | None = None
+    ) -> list[GuessAnalysis]:
+        raise NotImplementedError
+
+
 def _move_to_front(analyses: list[GuessAnalysis], winner: GuessAnalysis) -> list[GuessAnalysis]:
     return [winner] + [a for a in analyses if a is not winner]
 
 
-class EntropyStrategy:
+class EntropyStrategy(BaseStrategy):
     """Maximize information gain. If `weighted=True`, ranks by
     `weighted_entropy` (falling back to uniform `entropy` for any analysis
     where weights weren't supplied) instead of raw bucket-count entropy.
@@ -65,7 +87,7 @@ class EntropyStrategy:
             return analysis.weighted_entropy
         return analysis.entropy
 
-    def rank(
+    def _rank(
         self, analyses: list[GuessAnalysis], guesses_remaining: int | None = None
     ) -> list[GuessAnalysis]:
         ordered = sorted(analyses, key=self._key, reverse=True)
@@ -94,7 +116,7 @@ class EntropyStrategy:
         return _move_to_front(ordered, best)
 
 
-class ExpectedPoolSizeStrategy:
+class ExpectedPoolSizeStrategy(BaseStrategy):
     """Minimize the expected number of remaining candidates after this
     guess -- a 1-step-lookahead proxy for "minimize expected number of
     guesses". `weighted=True` uses `weighted_expected_size` (expected
@@ -113,13 +135,13 @@ class ExpectedPoolSizeStrategy:
             return analysis.weighted_expected_size
         return analysis.expected_size
 
-    def rank(
+    def _rank(
         self, analyses: list[GuessAnalysis], guesses_remaining: int | None = None
     ) -> list[GuessAnalysis]:
         return sorted(analyses, key=self._key)
 
 
-class NumBinsStrategy:
+class NumBinsStrategy(BaseStrategy):
     """Maximize the count of distinct non-empty score buckets a guess
     produces ("negnumbins" in Kalajdzievski, "Effective Wordle Heuristics",
     arXiv:2408.11730) -- a purely combinatorial measure (how finely does
@@ -160,7 +182,7 @@ class NumBinsStrategy:
     def _key(self, a: GuessAnalysis) -> tuple[int, float]:
         return (self._num_bins(a), a.entropy)
 
-    def rank(
+    def _rank(
         self, analyses: list[GuessAnalysis], guesses_remaining: int | None = None
     ) -> list[GuessAnalysis]:
         ordered = sorted(analyses, key=self._key, reverse=True)
@@ -181,7 +203,7 @@ class NumBinsStrategy:
         return _move_to_front(ordered, best)
 
 
-class MaxBinsBalanceStrategy:
+class MaxBinsBalanceStrategy(BaseStrategy):
     """Minimize the Earth Mover's Distance (Wasserstein-1) between a
     guess's own bucket-size histogram and a perfectly *uniform*
     distribution over K bins -- where K is fixed for the whole round at
@@ -309,12 +331,9 @@ class MaxBinsBalanceStrategy:
             emd += abs(cumsum_actual - cumsum_uniform)
         return emd
 
-    def rank(
+    def _rank(
         self, analyses: list[GuessAnalysis], guesses_remaining: int | None = None
     ) -> list[GuessAnalysis]:
-        if not analyses:
-            return []
-
         # k_target = the largest bucket count ANY guess achieves this
         # round -- the fixed target every guess is measured against, not
         # each guess's own bucket count. See class docstring for why a
@@ -355,7 +374,7 @@ class MaxBinsBalanceStrategy:
         return _move_to_front(ordered, best)
 
 
-class MinimaxStrategy:
+class MinimaxStrategy(BaseStrategy):
     """Minimize the worst-case (largest) bucket -- classic Knuth-style
     solver. Deliberately has no weighted mode: "worst case" is an
     adversarial guarantee, and weighting it would contradict the point --
@@ -364,13 +383,13 @@ class MinimaxStrategy:
 
     requires_bucket_stats = False
 
-    def rank(
+    def _rank(
         self, analyses: list[GuessAnalysis], guesses_remaining: int | None = None
     ) -> list[GuessAnalysis]:
         return sorted(analyses, key=lambda a: a.worst_case_size)
 
 
-class TwoPlyExpectimaxStrategy:
+class TwoPlyExpectimaxStrategy(BaseStrategy):
     """Two-ply expectimax strategy for Normal Mode Wordle.
 
     Evaluates how effectively candidate guesses split remaining candidate
@@ -470,12 +489,9 @@ class TwoPlyExpectimaxStrategy:
                     return float(denom)
         return 1.0
 
-    def rank(
+    def _rank(
         self, analyses: list[GuessAnalysis], guesses_remaining: int | None = None
     ) -> list[GuessAnalysis]:
-        if not analyses:
-            return []
-
         base_strategy = EntropyStrategy(weighted=self.weighted, tie_tol=self.tie_tol)
         initial_ranked = base_strategy.rank(analyses)
         beam = initial_ranked[: self.beam_width]

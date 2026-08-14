@@ -16,7 +16,13 @@ import time
 
 import scoring
 from engine import RoundOutcome, SolverEngine
-from strategies import EntropyStrategy, ExpectedPoolSizeStrategy, TwoPlyExpectimaxStrategy
+from strategies import (
+    EntropyStrategy,
+    ExpectedPoolSizeStrategy,
+    MaxBinsBalanceStrategy,
+    NumBinsStrategy,
+    TwoPlyExpectimaxStrategy,
+)
 from wordlists import parse_file
 
 
@@ -62,7 +68,7 @@ def run_benchmark(name, strategy, guesses, targets, weights, sample):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("infile", nargs="?", default="words.weighted.txt")
+    parser.add_argument("infile", nargs="?", default="words.txt")
     parser.add_argument("--sample-size", type=int, default=100)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--full", action="store_true", help="use every target word")
@@ -90,6 +96,22 @@ def main(argv=None):
     run_benchmark(
         "1-Ply ExpectedPoolSizeStrategy(weighted=True)",
         ExpectedPoolSizeStrategy(weighted=True),
+        guesses,
+        targets,
+        weights,
+        sample,
+    )
+    run_benchmark(
+        "1-Ply NumBinsStrategy()",
+        NumBinsStrategy(),
+        guesses,
+        targets,
+        weights,
+        sample,
+    )
+    run_benchmark(
+        "1-Ply MaxBinsBalanceStrategy(weighted=True)",
+        MaxBinsBalanceStrategy(weighted=True),
         guesses,
         targets,
         weights,

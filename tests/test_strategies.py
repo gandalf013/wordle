@@ -19,6 +19,7 @@ import scoring
 from analysis import GuessAnalysis
 from engine import RoundOutcome, SolverEngine
 from strategies import (
+    BaseStrategy,
     EntropyStrategy,
     ExpectedPoolSizeStrategy,
     MaxBinsBalanceStrategy,
@@ -60,6 +61,42 @@ def _analysis(
         bucket_counts=bucket_counts,
         bucket_masses=bucket_masses,
     )
+
+
+class TestBaseStrategy:
+    def test_empty_analyses_returns_empty_list(self):
+        class DummyStrategy(BaseStrategy):
+            def _rank(self, analyses, guesses_remaining=None):
+                raise AssertionError("_rank should not be called when analyses is empty")
+
+        assert DummyStrategy().rank([]) == []
+
+    def test_non_empty_analyses_delegates_to_subclass(self):
+        class DummyStrategy(BaseStrategy):
+            def _rank(self, analyses, guesses_remaining=None):
+                return list(reversed(analyses))
+
+        a1 = _analysis("a1")
+        a2 = _analysis("a2")
+        assert DummyStrategy().rank([a1, a2]) == [a2, a1]
+
+    def test_unimplemented_rank_raises(self):
+        with pytest.raises(NotImplementedError):
+            BaseStrategy().rank([_analysis("a")])
+
+    @pytest.mark.parametrize(
+        "strategy_cls",
+        [
+            EntropyStrategy,
+            ExpectedPoolSizeStrategy,
+            NumBinsStrategy,
+            MaxBinsBalanceStrategy,
+            MinimaxStrategy,
+            TwoPlyExpectimaxStrategy,
+        ],
+    )
+    def test_all_concrete_strategies_handle_empty_analyses(self, strategy_cls):
+        assert strategy_cls().rank([]) == []
 
 
 class TestEntropyStrategyMatchesGame:
