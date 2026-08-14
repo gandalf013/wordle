@@ -20,6 +20,7 @@ from strategies import (
     EntropyStrategy,
     ExpectedPoolSizeStrategy,
     MinimaxStrategy,
+    NumBinsStrategy,
     TwoPlyExpectimaxStrategy,
 )
 from wordlists import parse_file
@@ -37,6 +38,7 @@ def _analysis(
     weighted_entropy=None,
     weighted_expected_size=None,
     solution_probability=None,
+    bucket_counts=None,
 ):
     """Build a GuessAnalysis directly rather than deriving it from real word
     scoring, for tests that need specific (e.g. exactly-tied) field values
@@ -51,6 +53,7 @@ def _analysis(
         weighted_entropy=weighted_entropy,
         weighted_expected_size=weighted_expected_size,
         solution_probability=solution_probability,
+        bucket_counts=bucket_counts,
     )
 
 
@@ -193,6 +196,91 @@ class TestExpectedPoolSizeStrategy:
             ].guess
             == "sw"
         )
+
+
+class TestNumBinsStrategy:
+    def test_maximizes_distinct_bucket_count(self):
+        # "aa" splits ["aa","ab","ac"] into a 1-word and a 2-word bucket --
+        # 2 distinct buckets. "ax" reveals nothing -- 1 bucket. "aa" wins.
+        results = analysis.analyze_all(
+            ["ax", "aa"], ["aa", "ab", "ac"], include_bucket_stats=True
+        )
+        ranked = NumBinsStrategy().rank(results)
+        assert ranked[0].guess == "aa"
+
+    def test_prefers_more_bins_over_higher_entropy(self):
+        # Hand-built: "manybins" splits into 5 uneven buckets (96/1/1/1/1)
+        # -- low entropy (~0.32 bits) despite having more buckets than
+        # "fewbins", which splits into 3 near-even buckets (34/33/33) and
+        # has much higher entropy (~1.58 bits). NumBinsStrategy should
+        # still prefer manybins: entropy rewards *even* splits, this
+        # strategy only counts how many buckets exist at all -- that's
+        # the whole point of it being a different heuristic from entropy,
+        # not just entropy with extra steps.
+        manybins = _analysis(
+            "manybins", entropy=0.322, bucket_counts=((0, 96), (1, 1), (2, 1), (3, 1), (4, 1))
+        )
+        fewbins = _analysis(
+            "fewbins", entropy=1.585, bucket_counts=((0, 34), (1, 33), (2, 33))
+        )
+        ranked = NumBinsStrategy().rank([fewbins, manybins])
+        assert ranked[0].guess == "manybins"
+
+    def test_ties_on_bin_count_broken_by_entropy(self):
+        low_entropy = _analysis(
+            "lo", entropy=1.0, bucket_counts=((0, 8), (1, 1), (2, 1))
+        )
+        high_entropy = _analysis(
+            "hi", entropy=1.5, bucket_counts=((0, 5), (1, 4), (2, 1))
+        )
+        ranked = NumBinsStrategy().rank([low_entropy, high_entropy])
+        assert ranked[0].guess == "hi"
+
+    def test_ties_prefer_a_possible_solution(self):
+        non_candidate = _analysis(
+            "xy", entropy=1.0, bucket_counts=((0, 5), (1, 5)), is_possible_solution=False
+        )
+        candidate = _analysis(
+            "cd", entropy=1.0, bucket_counts=((0, 5), (1, 5)), is_possible_solution=True
+        )
+        ranked = NumBinsStrategy().rank([non_candidate, candidate])
+        assert ranked[0].guess == "cd"
+
+    def test_falls_back_to_buckets_when_bucket_counts_is_unset(self):
+        # analyze() (as opposed to analyze_all) always populates .buckets
+        # but only sometimes .bucket_counts -- NumBinsStrategy._num_bins
+        # must derive bin count from .buckets in that case, matching
+        # TwoPlyExpectimaxStrategy._counts_for's fallback.
+        a = GuessAnalysis(
+            guess="fb",
+            buckets={0: ["aa"], 1: ["ab", "ac"]},
+            entropy=1.0,
+            worst_case_size=2,
+            expected_size=1.5,
+            is_possible_solution=False,
+        )
+        assert NumBinsStrategy._num_bins(a) == 2
+
+    def test_requires_bucket_stats_flag_is_set(self):
+        assert NumBinsStrategy.requires_bucket_stats is True
+
+
+@pytest.mark.slow
+class TestNumBinsStrategyRealWordList:
+    def test_round_one_matches_measured_golden_value(self):
+        # "salet" is also the well-known Selby-optimal opener for the
+        # original (uniform, unweighted) NYT Wordle list -- a reassuring
+        # sign this heuristic surfaces genuinely strong openers, not an
+        # artifact of this repo's specific word list.
+        with open(REPO_ROOT / "words.txt") as fp:
+            wl = parse_file(fp)
+        guesses = sorted(set(wl.target) | set(wl.extra))
+        targets = wl.target
+
+        results = analysis.analyze_all(guesses, targets, use_cache=True, include_bucket_stats=True)
+        ranked = NumBinsStrategy().rank(results)
+        assert ranked[0].guess == "salet"
+        assert len(ranked[0].bucket_counts) == 161
 
 
 class TestMinimaxStrategy:

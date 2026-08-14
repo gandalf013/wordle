@@ -32,6 +32,7 @@ from strategies import (
     EntropyStrategy,
     ExpectedPoolSizeStrategy,
     MinimaxStrategy,
+    NumBinsStrategy,
     Strategy,
     TwoPlyExpectimaxStrategy,
 )
@@ -352,16 +353,22 @@ STRATEGIES: dict[str, type[Strategy]] = {
     "entropy": EntropyStrategy,
     "expected-pool-size": ExpectedPoolSizeStrategy,
     "minimax": MinimaxStrategy,
+    "num-bins": NumBinsStrategy,
     "two-ply-expectimax": TwoPlyExpectimaxStrategy,
 }
+
+# Strategies with no weighted mode: --weighted is accepted but ignored
+# (with a warning), rather than rejected, so switching -S doesn't also
+# require dropping -w.
+_UNWEIGHTED_STRATEGIES = (MinimaxStrategy, NumBinsStrategy)
 
 
 def build_strategy(name: str, weighted: bool) -> Strategy:
     cls = STRATEGIES[name]
-    if cls is MinimaxStrategy:
+    if cls in _UNWEIGHTED_STRATEGIES:
         if weighted:
-            logging.warning("minimax has no weighted mode; ignoring --weighted")
-        return MinimaxStrategy()
+            logging.warning(f"{name} has no weighted mode; ignoring --weighted")
+        return cls()
     return cls(weighted=weighted)
 
 
@@ -448,7 +455,7 @@ def main(argv=None):
         "--weighted",
         action="store_true",
         help="rank guesses using word-frequency weights from the word "
-        "list, when available (ignored by minimax)",
+        "list, when available (ignored by minimax and num-bins)",
     )
     parser.add_argument(
         "-D",

@@ -35,7 +35,12 @@ from cli import (
     run_interactive,
 )
 from engine import SolverEngine
-from strategies import EntropyStrategy, ExpectedPoolSizeStrategy, MinimaxStrategy
+from strategies import (
+    EntropyStrategy,
+    ExpectedPoolSizeStrategy,
+    MinimaxStrategy,
+    NumBinsStrategy,
+)
 
 
 def _score_digits(score: int, n: int) -> str:
@@ -333,6 +338,16 @@ class TestBuildStrategy:
         assert isinstance(strategy, MinimaxStrategy)
         assert "weighted" in caplog.text.lower()
 
+    def test_num_bins_default_is_built(self):
+        strategy = build_strategy("num-bins", False)
+        assert isinstance(strategy, NumBinsStrategy)
+
+    def test_num_bins_ignores_weighted_flag_with_a_warning(self, caplog):
+        with caplog.at_level("WARNING"):
+            strategy = build_strategy("num-bins", True)
+        assert isinstance(strategy, NumBinsStrategy)
+        assert "weighted" in caplog.text.lower()
+
 
 class TestMainIntegration:
     def test_weighted_and_strategy_flags_run_end_to_end(self, tmp_path):
@@ -349,5 +364,21 @@ class TestMainIntegration:
                     "--strategy",
                     "expected-pool-size",
                     "--weighted",
+                ]
+            )
+
+    def test_num_bins_strategy_runs_end_to_end(self, tmp_path):
+        wordfile = tmp_path / "words.txt"
+        wordfile.write_text("aa 5\nab 1\nba 1\nbb 1\n")
+
+        with patch("builtins.input", side_effect=EOFError):
+            main(
+                [
+                    str(wordfile),
+                    "-a",
+                    "-s",
+                    "bb",
+                    "--strategy",
+                    "num-bins",
                 ]
             )
