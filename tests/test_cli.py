@@ -359,8 +359,41 @@ class TestBuildStrategy:
         assert isinstance(strategy, MaxBinsBalanceStrategy)
         assert strategy.weighted is True
 
+    def test_decision_tree_strategy_build(self, tmp_path):
+        from strategies import DecisionTreeStrategy
+        tree_file = tmp_path / "tree.json"
+        tree_file.write_text('{"tree": {"guess": "aa", "branches": {"242": {"guess": "aa", "leaf": true}}}}')
+        strategy = build_strategy("decision-tree", False, tree_path=str(tree_file), target_list=["aa"])
+        assert isinstance(strategy, DecisionTreeStrategy)
+
+    def test_decision_tree_ignores_weighted_with_warning(self, tmp_path, caplog):
+        tree_file = tmp_path / "tree.json"
+        tree_file.write_text('{"tree": {"guess": "aa", "branches": {"242": {"guess": "aa", "leaf": true}}}}')
+        with caplog.at_level("WARNING"):
+            strategy = build_strategy("decision-tree", True, tree_path=str(tree_file), target_list=["aa"])
+        assert "weighted" in caplog.text.lower()
+
 
 class TestMainIntegration:
+    def test_decision_tree_runs_end_to_end(self, tmp_path):
+        wordfile = tmp_path / "words.txt"
+        wordfile.write_text("aa 5\nab 1\nba 1\nbb 1\n")
+        tree_file = tmp_path / "tree.json"
+        tree_file.write_text('{"tree": {"guess": "aa", "branches": {"242": {"guess": "aa", "leaf": true}, "0": {"guess": "bb", "leaf": true}}}}')
+
+        with patch("builtins.input", side_effect=EOFError):
+            main(
+                [
+                    str(wordfile),
+                    "-a",
+                    "-s",
+                    "aa",
+                    "--strategy",
+                    "decision-tree",
+                    "--tree-file",
+                    str(tree_file),
+                ]
+            )
     def test_weighted_and_strategy_flags_run_end_to_end(self, tmp_path):
         wordfile = tmp_path / "words.txt"
         wordfile.write_text("aa 5\nab 1\nba 1\nbb 1\n")

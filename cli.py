@@ -29,6 +29,7 @@ import display
 import scoring
 from engine import RoundOutcome, SolverEngine
 from strategies import (
+    DecisionTreeStrategy,
     EntropyStrategy,
     ExpectedPoolSizeStrategy,
     MaxBinsBalanceStrategy,
@@ -351,22 +352,34 @@ def run_interactive(engine, automatic, solution, threshold_display=3):
 
 
 STRATEGIES: dict[str, type[Strategy]] = {
+    "decision-tree": DecisionTreeStrategy,
     "entropy": EntropyStrategy,
     "expected-pool-size": ExpectedPoolSizeStrategy,
     "max-bins-balance": MaxBinsBalanceStrategy,
     "minimax": MinimaxStrategy,
     "num-bins": NumBinsStrategy,
+    "tree": DecisionTreeStrategy,
     "two-ply-expectimax": TwoPlyExpectimaxStrategy,
 }
 
 # Strategies with no weighted mode: --weighted is accepted but ignored
 # (with a warning), rather than rejected, so switching -S doesn't also
 # require dropping -w.
-_UNWEIGHTED_STRATEGIES = (MinimaxStrategy, NumBinsStrategy)
+_UNWEIGHTED_STRATEGIES = (DecisionTreeStrategy, MinimaxStrategy, NumBinsStrategy)
 
 
-def build_strategy(name: str, weighted: bool) -> Strategy:
+def build_strategy(
+    name: str,
+    weighted: bool,
+    tree_path: str | None = None,
+    target_list: list[str] | None = None,
+) -> Strategy:
     cls = STRATEGIES[name]
+    if cls is DecisionTreeStrategy:
+        path = tree_path or "optimal_tree.json"
+        if weighted:
+            logging.warning("decision-tree has no separate weighted mode; ignoring --weighted")
+        return DecisionTreeStrategy(tree_source=path, target_list=target_list)
     if cls in _UNWEIGHTED_STRATEGIES:
         if weighted:
             logging.warning(f"{name} has no weighted mode; ignoring --weighted")
@@ -389,7 +402,12 @@ def run(args):
     engine = SolverEngine(
         guesses,
         targets,
-        build_strategy(args.strategy, args.weighted),
+        build_strategy(
+            args.strategy,
+            args.weighted,
+            tree_path=args.tree_file,
+            target_list=targets,
+        ),
         weights=word_list.weights,
         initial_guess=args.initial_guess,
     )
@@ -453,11 +471,18 @@ def main(argv=None):
         help="heuristic used to rank candidate guesses (default: %(default)s)",
     )
     parser.add_argument(
+        "--tree-file",
+        "--tree",
+        default="optimal_tree.json",
+        help="path to precomputed decision tree JSON file when using "
+        "--strategy decision-tree (default: %(default)s)",
+    )
+    parser.add_argument(
         "-w",
         "--weighted",
         action="store_true",
         help="rank guesses using word-frequency weights from the word "
-        "list, when available (ignored by minimax and num-bins)",
+        "list, when available (ignored by minimax, num-bins, and decision-tree)",
     )
     parser.add_argument(
         "-D",

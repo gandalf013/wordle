@@ -554,3 +554,63 @@ class TwoPlyExpectimaxStrategy(BaseStrategy):
 
         ordered = [item[1] for item in scored_beam]
         return _move_to_front(ordered, best) + rest
+
+
+class DecisionTreeStrategy(BaseStrategy):
+    """Optimal solver strategy powered by a precomputed C solver JSON decision tree.
+
+    Navigates the decision tree in O(1) time by matching remaining candidate target words.
+    Falls back to `fallback_strategy` if the current candidate subset is not in the tree.
+    """
+
+    def __init__(
+        self,
+        tree_source: str | dict | None = None,
+        target_list: list[str] | None = None,
+        fallback_strategy: Strategy | None = None,
+    ):
+        self.fallback = fallback_strategy or EntropyStrategy()
+        self.tree_data: dict | None = None
+        self._target_set_map: dict[frozenset[str], str] = {}
+        if tree_source is not None:
+            self.load_tree(tree_source, target_list)
+
+    def load_tree(self, tree_source: str | dict, target_list: list[str] | None = None) -> None:
+        if isinstance(tree_source, str):
+            import json
+            with open(tree_source, "r", encoding="utf-8") as f:
+                self.tree_data = json.load(f)
+        else:
+            self.tree_data = tree_source
+
+        root = self.tree_data.get("tree", self.tree_data)
+        if target_list is not None:
+            import scoring
+            self._target_set_map.clear()
+            self._index_node(root, target_list, scoring)
+
+    def _index_node(self, node: dict, current_targets: list[str], scoring_mod) -> None:
+        guess = node.get("guess")
+        if not guess:
+            return
+        self._target_set_map[frozenset(current_targets)] = guess
+        branches = node.get("branches", {})
+        for score_str, child in branches.items():
+            score = int(score_str)
+            child_targets = [t for t in current_targets if scoring_mod.get_score(guess, t) == score]
+            if child.get("leaf"):
+                self._target_set_map[frozenset(child_targets)] = child["guess"]
+            else:
+                self._index_node(child, child_targets, scoring_mod)
+
+    def _rank(
+        self, analyses: list[GuessAnalysis], guesses_remaining: int | None = None
+    ) -> list[GuessAnalysis]:
+        current_candidates = frozenset(a.guess for a in analyses if a.is_possible_solution)
+        opt_guess = self._target_set_map.get(current_candidates)
+        if opt_guess is not None:
+            for a in analyses:
+                if a.guess == opt_guess:
+                    return _move_to_front(analyses, a)
+
+        return self.fallback.rank(analyses, guesses_remaining)

@@ -17,6 +17,7 @@ import time
 import scoring
 from engine import RoundOutcome, SolverEngine
 from strategies import (
+    DecisionTreeStrategy,
     EntropyStrategy,
     ExpectedPoolSizeStrategy,
     MaxBinsBalanceStrategy,
@@ -125,6 +126,18 @@ def main(argv=None):
         weights,
         sample,
     )
+
+    import os
+    tree_path = "optimal_tree.json"
+    if os.path.exists(tree_path):
+        run_benchmark(
+            "Optimal DecisionTreeStrategy(optimal_tree.json)",
+            DecisionTreeStrategy(tree_source=tree_path, target_list=targets),
+            guesses,
+            targets,
+            weights,
+            sample,
+        )
 
 
 if __name__ == "__main__":

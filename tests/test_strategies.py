@@ -517,3 +517,35 @@ class TestTwoPlyExpectimaxStrategy:
 
     def test_requires_bucket_stats_flag_is_set(self):
         assert TwoPlyExpectimaxStrategy.requires_bucket_stats is True
+
+
+class TestDecisionTreeStrategy:
+    def test_decision_tree_strategy_with_dict(self):
+        from strategies import DecisionTreeStrategy
+
+        tree = {
+            "tree": {
+                "guess": "tarse",
+                "branches": {
+                    "242": {"guess": "tarse", "leaf": True},
+                    "0": {
+                        "guess": "colin",
+                        "branches": {
+                            "242": {"guess": "colin", "leaf": True},
+                        },
+                    },
+                },
+            }
+        }
+        targets = ["tarse", "colin"]
+        strat = DecisionTreeStrategy(tree_source=tree, target_list=targets)
+
+        # At root with both targets
+        analyses = analysis.analyze_all(["tarse", "colin", "abcde"], targets)
+        ranked = strat.rank(analyses)
+        assert ranked[0].guess == "tarse"
+
+        # At branch with only "colin"
+        analyses_colin = analysis.analyze_all(["tarse", "colin", "abcde"], ["colin"])
+        ranked_colin = strat.rank(analyses_colin)
+        assert ranked_colin[0].guess == "colin"
