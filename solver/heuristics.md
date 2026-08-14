@@ -38,21 +38,61 @@ across root buckets of one opener, or across openers. See items 21-22.
 4. **Information-theoretic entropy bound**: Ω(log(candidates)/log(branching
    factor)) guesses needed — cheaper, more general admissible bound than the
    combinatorial one; usable as a first-pass check before the tighter
-   combinatorial bound. Missing. (Mastermind literature)
+   combinatorial bound. **Skipped, not just deferred:** our combinatorial
+   `lower_bound` table is already an O(1) lookup (precomputed closed form,
+   not a recursive/expensive computation), and is strictly tighter than
+   this bound in every case that matters here. A weaker O(1) bound gains
+   nothing when the tighter bound is equally cheap to consult -- there's no
+   "expensive tight bound, cheap loose pre-filter" tradeoff to exploit in
+   this codebase the way there might be elsewhere. Revisit only if the
+   combinatorial table ever stops being O(1) (e.g. item 25's bitmask work
+   or a future non-closed-form bound).
 5. **Dominance/subsumption pruning between candidate guesses** — if guess
    A's partition of the current subset strictly refines guess B's, B can be
    dropped outright, not merely deduped when identical (current code only
    dedups exact-identical partitions). Missing, generalizes existing dedup.
-6. **Fast single-pass perfect/near-perfect-split shortcuts** — O(n) check
-   for "this guess as-is splits everything into singletons" before doing
-   full bucket search. Missing, though `guess_lb >= current_best` partially
-   substitutes. (wordle.cpp)
-7. **Explicit closed-form base cases for tiny subsets** — `count==1` is
-   handled; `count==2` falls through to the full candidate loop. Cheap,
-   multiplies across huge numbers of near-leaf calls. Partial.
-8. **Reversible-move / Conway pruning** — skip a guess that doesn't change
-   the position at all (no new info, same test-word set). Missing.
-   (wordle.cpp)
+   Still deferred with 2/3 (see Tier 2) -- the refinement check itself is
+   straightforward (compare each candidate's per-target scores against the
+   TT-suggested/best-so-far guess's, using the score matrix already in
+   hand), but it's real new surface area and the priority notes' own
+   ordering ties its value to endgame clusters, which don't exist yet.
+6. **Fast single-pass perfect/near-perfect-split shortcuts** — **have**
+   (2026-08-14): `solve_subset` now detects, from the histogram alone
+   (`active_buckets == count && hist[EXACT_MATCH] > 0`), a guess that
+   exact-matches one live candidate and splits every other one into its
+   own singleton bucket. That guess's cost is exactly `lower_bound[count]`
+   -- not an estimate, since every singleton bucket's cost (1) is a base
+   case, not a recursive lower bound -- so it's unconditionally optimal
+   and the search stops immediately, without sorting/partitioning buckets
+   or recursing into any of them. Only the exact-match ("perfect self
+   split") case is handled; a perfect split by a guess *not* among the
+   live candidates is detectably exact too (no recursion needed) but isn't
+   proven globally optimal the same cheap way, so it's left to the normal
+   candidate loop -- lower expected value, not implemented.
+7. **Explicit closed-form base cases for tiny subsets** — **have**
+   (2026-08-14): `count==2` is now a direct base case (mirrors `count==1`),
+   returning `lower_bound[2] = 3` -- the only achievable outcome shape for
+   2 distinct candidates (guess one, free exact-match or a forced size-1
+   remainder), so no guess search is needed. Verified against
+   `reference_solver.py`'s independent brute-force oracle.
+8. **Reversible-move / Conway pruning** — **have** (2026-08-14): a
+   candidate guess with `active_buckets == 1` (every remaining target
+   scores identically) is skipped outright. It can never be optimal --
+   count >= 3 at this point (count <= 2 are base cases), and some other
+   candidate is always guaranteed to make real progress (any live target,
+   guessed, resolves itself for free) -- and, more sharply, recursing into
+   it would re-enter the *same* (hash, count) subset from within its own
+   still-executing call, which the TT can't shortcut since it only caches
+   completed results. This was a latent non-termination/stack-overflow
+   risk on any word list with a genuinely zero-information guess in the
+   candidate pool, not just a speed gap.
+
+All three (6, 7, 8) were checked against `reference_solver.py`'s
+independent oracle (`test_solver.py`'s `ORACLE_CASES`), under plain, ASan,
+and TSan builds, plus cross-build agreement on the larger stress fixtures
+-- see `test_solver.py`. Fixture-scale node-count reduction measured via
+`benchmark_solver.py --compare`: -52% (tiny), -35% (small), -33% (medium),
+with `exact_total_guesses` unchanged in every case.
 
 ## B. Move ordering (which guess to try first, to tighten beta fast)
 

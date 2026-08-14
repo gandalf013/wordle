@@ -422,6 +422,18 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
         if (out_guess) *out_guess = targets[0];
         return 1;
     }
+    if (count == 2) {
+        // Structurally forced, not a heuristic: with 2 distinct
+        // candidates, guessing either one always exact-matches itself
+        // (free) and leaves the other as a forced size-1 remainder (1
+        // more guess) -- the only possible outcome shape, achieving
+        // lower_bound[2] = 3 exactly. targets[i] doubles as a guess index
+        // here for i < num_targets, same as the count==1 case above (see
+        // load_wordlist: every target word is also appended to the guess
+        // list, in the same relative order).
+        if (out_guess) *out_guess = targets[0];
+        return 3;
+    }
 
     const uint32_t num_targets = game->num_targets;
     const uint32_t num_guesses = game->num_guesses;
@@ -544,6 +556,34 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
                 buckets[active_buckets].size = hist[s];
                 active_buckets++;
             }
+        }
+
+        // Reversible-move (Conway) pruning: a guess with a single active
+        // bucket carries zero information -- every remaining candidate
+        // scored identically, so the resulting subproblem is literally
+        // this node's own subset again. count >= 3 here (count <= 2 are
+        // base cases above), so some other candidate -- e.g. any
+        // still-live target used as the guess -- is guaranteed to resolve
+        // itself for free via an exact match, strictly outperforming this
+        // one. A zero-information guess can therefore never be optimal;
+        // skipping it also avoids ever recursing into an identical
+        // (hash, count) subset from within its own still-executing call.
+        if (active_buckets == 1) continue;
+
+        // Fast perfect-split shortcut: guess_lb == count + (count-1)*1 =
+        // 2*count-1 = lower_bound[count] exactly iff every OTHER
+        // candidate lands in its own singleton bucket and this guess
+        // itself exact-matches one of them (hist[EXACT_MATCH] > 0) --
+        // i.e. active_buckets == count. That's this node's admissible
+        // lower bound, achieved by a guess whose buckets are all size-1
+        // base cases (a real, exact cost of 1 each, not merely a bound),
+        // so no guess -- searched or not -- can beat it: unconditionally
+        // optimal, with nothing left to sort, partition, or recurse into.
+        if (active_buckets == count && hist[EXACT_MATCH] > 0) {
+            current_best = guess_lb;
+            best_g = g;
+            found_improvement = true;
+            break;
         }
 
         // Sound prune: this guess's own best possible outcome already
