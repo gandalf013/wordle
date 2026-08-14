@@ -3,3 +3,12 @@ __pycache__/
 .pytest_cache/
 .wordle_cache/
 .claude/
+
+# solver/: compiled binaries, debug symbols, and generated benchmark/test
+# artifacts -- all reproducible from wordle_claude.c + Makefile.
+solver/wordle_claude
+solver/wordle_claude_asan
+solver/wordle_claude_tsan
+solver/*.dSYM/
+solver/bench_wordlists/
+solver/benchmark_results.jsonl
