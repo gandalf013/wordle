@@ -221,3 +221,65 @@ class TestBack:
         second_analyses = engine.get_analyses()
         assert second_analyses is not first_analyses
 
+
+class _RecordingStrategy:
+    """Strategy stub that just records the guesses_remaining it was called
+    with and defers to EntropyStrategy for the actual ranking, so
+    SolverEngine's real narrowing/history behavior stays exercised."""
+
+    requires_bucket_stats = False
+
+    def __init__(self):
+        self.calls: list[int | None] = []
+        self._entropy = EntropyStrategy()
+
+    def rank(self, analyses, guesses_remaining=None):
+        self.calls.append(guesses_remaining)
+        return self._entropy.rank(analyses, guesses_remaining)
+
+
+class TestGuessesRemaining:
+    def test_defaults_to_six_max_guesses(self):
+        engine = SolverEngine(["aa", "ab", "ba", "bb"], ["aa", "ab", "ba", "bb"], EntropyStrategy())
+        assert engine.max_guesses == 6
+
+    def test_first_round_passes_the_full_budget(self):
+        strategy = _RecordingStrategy()
+        engine = SolverEngine(["aa", "ab", "ba", "bb"], ["aa", "ab", "ba", "bb"], strategy)
+        engine.suggest()
+        assert strategy.calls == [6]
+
+    def test_budget_decreases_by_one_each_round(self):
+        strategy = _RecordingStrategy()
+        engine = SolverEngine(["aa", "ab", "ba", "bb"], ["aa", "ab", "ba", "bb"], strategy)
+        engine.suggest()
+        engine.apply_score("aa", scoring.get_score("aa", "bb"))
+        engine.suggest()
+        assert strategy.calls == [6, 5]
+
+    def test_custom_max_guesses_is_respected(self):
+        strategy = _RecordingStrategy()
+        engine = SolverEngine(
+            ["aa", "ab", "ba", "bb"], ["aa", "ab", "ba", "bb"], strategy, max_guesses=3
+        )
+        engine.suggest()
+        assert strategy.calls == [3]
+
+    def test_back_restores_the_budget(self):
+        # Three rounds deep (budget 6, 5, 4) then undo two moves: the next
+        # suggest() should see the round-2 budget (5) again, not round-4's.
+        # (Round 1 itself is cached across back()/reset() and isn't
+        # re-requested from the strategy -- see SolverEngine.suggest.)
+        strategy = _RecordingStrategy()
+        guesses = targets = ["aa", "ab", "ba", "bb"]
+        engine = SolverEngine(guesses, targets, strategy)
+        engine.suggest()
+        engine.apply_score("aa", scoring.get_score("aa", "bb"))
+        engine.suggest()
+        engine.apply_score("bb", scoring.get_score("bb", "bb"))
+        assert strategy.calls == [6, 5]
+
+        engine.back(1)
+        engine.suggest()
+        assert strategy.calls == [6, 5, 5]
+

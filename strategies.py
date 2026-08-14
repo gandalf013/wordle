@@ -15,8 +15,19 @@ from analysis import GuessAnalysis, bucket_counts_from_buckets
 class Strategy(Protocol):
     requires_bucket_stats: bool = False
 
-    def rank(self, analyses: list[GuessAnalysis]) -> list[GuessAnalysis]:
-        """Return `analyses` sorted best-first."""
+    def rank(
+        self, analyses: list[GuessAnalysis], guesses_remaining: int | None = None
+    ) -> list[GuessAnalysis]:
+        """Return `analyses` sorted best-first.
+
+        `guesses_remaining` is how many guesses -- including the one being
+        chosen now -- are left in the current round, when the caller
+        (SolverEngine) tracks a budget; None if it isn't. Every strategy
+        but TwoPlyExpectimaxStrategy ignores it; a strategy that does use it
+        must still produce a normal ranking when it's None, since existing
+        callers (tests, REPL peeks via SolverEngine.analyze) aren't
+        required to supply it.
+        """
         ...
 
 
@@ -55,7 +66,7 @@ class EntropyStrategy:
         return analysis.entropy
 
     def rank(
-        self, analyses: list[GuessAnalysis]
+        self, analyses: list[GuessAnalysis], guesses_remaining: int | None = None
     ) -> list[GuessAnalysis]:
         ordered = sorted(analyses, key=self._key, reverse=True)
         best = ordered[0]
@@ -103,7 +114,7 @@ class ExpectedPoolSizeStrategy:
         return analysis.expected_size
 
     def rank(
-        self, analyses: list[GuessAnalysis]
+        self, analyses: list[GuessAnalysis], guesses_remaining: int | None = None
     ) -> list[GuessAnalysis]:
         return sorted(analyses, key=self._key)
 
@@ -118,7 +129,7 @@ class MinimaxStrategy:
     requires_bucket_stats = False
 
     def rank(
-        self, analyses: list[GuessAnalysis]
+        self, analyses: list[GuessAnalysis], guesses_remaining: int | None = None
     ) -> list[GuessAnalysis]:
         return sorted(analyses, key=lambda a: a.worst_case_size)
 
@@ -224,7 +235,7 @@ class TwoPlyExpectimaxStrategy:
         return 1.0
 
     def rank(
-        self, analyses: list[GuessAnalysis]
+        self, analyses: list[GuessAnalysis], guesses_remaining: int | None = None
     ) -> list[GuessAnalysis]:
         if not analyses:
             return []

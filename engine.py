@@ -43,6 +43,7 @@ class SolverEngine:
         strategy: Strategy,
         weights: dict[str, float] | None = None,
         initial_guess: str | None = None,
+        max_guesses: int = 6,
     ):
         self.guess_list = list(guess_list)
         self.target_list = list(target_list)
@@ -50,6 +51,7 @@ class SolverEngine:
         self.strategy = strategy
         self.weights = weights
         self.initial_guess = initial_guess
+        self.max_guesses = max_guesses
         self.n = len(self.guess_list[0])
         self.history: list[tuple[str, int]] = []
 
@@ -78,8 +80,13 @@ class SolverEngine:
         return self._cached_analyses
 
     def get_ranked_analyses(self) -> list[GuessAnalysis]:
-        """Return analyses for the current candidate pool ranked by strategy."""
-        return self.strategy.rank(self.get_analyses())
+        """Return analyses for the current candidate pool ranked by strategy.
+
+        `guesses_remaining` counts the guess about to be chosen too (so it's
+        `max_guesses` on a fresh round, not `max_guesses - 1`), matching what
+        Strategy.rank documents."""
+        guesses_remaining = self.max_guesses - len(self.history)
+        return self.strategy.rank(self.get_analyses(), guesses_remaining=guesses_remaining)
 
     def suggest(self) -> GuessAnalysis:
         """Best guess for the current candidate pool, per self.strategy,
