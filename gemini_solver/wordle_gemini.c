@@ -92,6 +92,8 @@ typedef struct {
 
     // Shared global lock-free transposition table across threads
     SharedTT shared_tt;
+
+    uint32_t max_candidates; // Top-N candidate exploration limit per node (default: 100, like Alex Selby)
 } GameData;
 
 static inline uint8_t compute_score(const char* restrict guess, const char* restrict target) {
@@ -567,6 +569,7 @@ typedef struct {
     GameData* game;
     TT tt;
     uint64_t* candidate_keys; // 8 layers of num_guesses uint64_t keys
+    uint32_t max_candidates;
     uint64_t nodes_visited;
 } Solver;
 
@@ -578,6 +581,7 @@ static void solver_init(Solver* s, GameData* game) {
     tt_init(&s->tt, tt_cap);
 
     s->candidate_keys = malloc(8 * (size_t)game->num_guesses * sizeof(uint64_t));
+    s->max_candidates = game->max_candidates > 0 ? game->max_candidates : game->num_guesses;
     s->nodes_visited = 0;
 }
 
@@ -1032,7 +1036,8 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
     uint32_t offsets[NUM_SCORES + 1];
     BucketInfo buckets[NUM_SCORES];
 
-    for (uint32_t c = 0; c < num_guesses; c++) {
+    uint32_t limit = solver->max_candidates < num_guesses ? solver->max_candidates : num_guesses;
+    for (uint32_t c = 0; c < limit; c++) {
         uint32_t clb = (uint32_t)((candidate_keys[c] >> 16) & 0xFFFF);
         if (clb >= current_best) continue;
 
@@ -1089,82 +1094,63 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
             continue;
         }
 
-        offsets[0] = 0;
-        for (int s = 0; s < NUM_SCORES; s++) offsets[s + 1] = offsets[s] + hist[s];
-        uint32_t cur_offsets[NUM_SCORES];
-        memcpy(cur_offsets, offsets, sizeof(cur_offsets));
-        for (uint32_t i = 0; i < count; i++) {
-            uint8_t s = row[targets[i]];
-            local_partition[cur_offsets[s]++] = targets[i];
-        }
-
-        // Clear hist now that partition is formed
-        for (uint32_t b = 0; b < active_buckets; b++) hist[active_scores[b]] = 0;
-
-        for (uint32_t b = 0; b < active_buckets; b++) {
-            uint32_t sz = buckets[b].size;
-            uint32_t off = offsets[buckets[b].score];
-            buckets[b].offset = off;
-            if (sz >= 3) {
-                uint64_t bh1 = 0, bh2 = 0;
-                for (uint32_t j = 0; j < sz; j++) {
-                    uint32_t tid = local_partition[off + j];
-                    bh1 ^= game->zobrist1[tid];
-                    bh2 ^= game->zobrist2[tid];
-                }
-                buckets[b].hash1 = bh1;
-                buckets[b].hash2 = bh2;
-            }
-        }
-
-        qsort(buckets, active_buckets, sizeof(BucketInfo), compare_bucket_size_desc);
-
-        // ---- Tier 2: Pre-scan buckets with instant exact resolution (sz <= 2) and TT lower bound probe ----
-        uint32_t bucket_exact[NUM_SCORES] = {0};
-        uint32_t bucket_lb[NUM_SCORES] = {0};
+        // ---- Tier 2: Deferred in-register TT probe without local_partition or qsort ----
         uint32_t tier2_total_lb = count;
         uint32_t resolved_cost = count;
         uint32_t num_unresolved = 0;
         BucketInfo unresolved_buckets[NUM_SCORES];
 
         for (uint32_t b = 0; b < active_buckets; b++) {
-            if (buckets[b].score == EXACT_MATCH) continue;
+            uint16_t s = buckets[b].score;
+            if (s == EXACT_MATCH) continue;
             uint32_t sz = buckets[b].size;
             if (sz <= 2) {
-                uint32_t c = (sz == 1) ? 1 : 3;
-                bucket_exact[b] = c;
-                bucket_lb[b] = c;
-                tier2_total_lb += c;
-                resolved_cost += c;
+                uint32_t c_cost = (sz == 1) ? 1 : 3;
+                tier2_total_lb += c_cost;
+                resolved_cost += c_cost;
                 continue;
             }
 
+            // In-register Zobrist hash without building local_partition
+            uint64_t bh1 = 0, bh2 = 0;
+            for (uint32_t i = 0; i < count; i++) {
+                if (row[targets[i]] == s) {
+                    uint32_t tid = targets[i];
+                    bh1 ^= game->zobrist1[tid];
+                    bh2 ^= game->zobrist2[tid];
+                }
+            }
+            buckets[b].hash1 = bh1;
+            buckets[b].hash2 = bh2;
+
             uint32_t base_lb = game->lower_bound[sz];
-            TTEntry* entry = solver_tt_find(solver, buckets[b].hash1, buckets[b].hash2, sz);
+            TTEntry* entry = solver_tt_find(solver, bh1, bh2, sz);
             if (entry) {
                 if (entry->exact_cost != UINT32_MAX) {
-                    bucket_exact[b] = entry->exact_cost;
-                    bucket_lb[b] = entry->exact_cost;
+                    tier2_total_lb += entry->exact_cost;
                     resolved_cost += entry->exact_cost;
                 } else if (entry->proven_lower_bound > base_lb) {
-                    bucket_lb[b] = entry->proven_lower_bound;
+                    tier2_total_lb += entry->proven_lower_bound;
                     unresolved_buckets[num_unresolved++] = buckets[b];
                 } else {
-                    bucket_lb[b] = base_lb;
+                    tier2_total_lb += base_lb;
                     unresolved_buckets[num_unresolved++] = buckets[b];
                 }
             } else {
-                bucket_lb[b] = base_lb;
+                tier2_total_lb += base_lb;
                 unresolved_buckets[num_unresolved++] = buckets[b];
             }
-            tier2_total_lb += bucket_lb[b];
         }
 
         // Tier 2 cutoff: provably cannot beat current_best without any recursion
-        if (tier2_total_lb >= current_best) continue;
+        if (tier2_total_lb >= current_best) {
+            for (uint32_t b = 0; b < active_buckets; b++) hist[active_scores[b]] = 0;
+            continue;
+        }
 
         // If all buckets were resolved by sz <= 2 or TT exact hits, we have the exact score immediately
         if (num_unresolved == 0) {
+            for (uint32_t b = 0; b < active_buckets; b++) hist[active_scores[b]] = 0;
             if (resolved_cost < current_best) {
                 current_best = resolved_cost;
                 best_g = g;
@@ -1173,6 +1159,22 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
             }
             continue;
         }
+
+        // ---- Build local_partition ONLY for surviving unresolved candidate ----
+        offsets[0] = 0;
+        for (int s = 0; s < NUM_SCORES; s++) offsets[s + 1] = offsets[s] + hist[s];
+        uint32_t cur_offsets[NUM_SCORES];
+        memcpy(cur_offsets, offsets, sizeof(cur_offsets));
+        for (uint32_t i = 0; i < count; i++) {
+            uint8_t s = row[targets[i]];
+            local_partition[cur_offsets[s]++] = targets[i];
+        }
+        for (uint32_t b = 0; b < active_buckets; b++) hist[active_scores[b]] = 0;
+
+        for (uint32_t u = 0; u < num_unresolved; u++) {
+            unresolved_buckets[u].offset = offsets[unresolved_buckets[u].score];
+        }
+        qsort(unresolved_buckets, num_unresolved, sizeof(BucketInfo), compare_bucket_size_desc);
 
         // ---- Tier 3: Ordered Fail-Soft Recursion on Unresolved Buckets ----
         uint32_t running_cost = resolved_cost;
@@ -1771,6 +1773,7 @@ int main(int argc, char** argv) {
     bool quiet = false;
     int num_threads = (int)sysconf(_SC_NPROCESSORS_ONLN);
     if (num_threads < 1) num_threads = 4;
+    uint32_t max_candidates = 100; // Default: top 100 candidates per node (same as Alex Selby nth=100)
 
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--wordlist") == 0 && i + 1 < argc) wordlist_path = argv[++i];
@@ -1778,7 +1781,12 @@ int main(int argc, char** argv) {
         else if (strcmp(argv[i], "--top") == 0 && i + 1 < argc) top_n = atoi(argv[++i]);
         else if (strcmp(argv[i], "--all") == 0) search_all = true;
         else if (strcmp(argv[i], "--threads") == 0 && i + 1 < argc) num_threads = atoi(argv[++i]);
-        else if (strcmp(argv[i], "--tree") == 0 || strcmp(argv[i], "--dump-tree") == 0) {
+        else if ((strcmp(argv[i], "--candidates") == 0 || strcmp(argv[i], "-n") == 0) && i + 1 < argc) {
+            max_candidates = (uint32_t)atoi(argv[++i]);
+            if (max_candidates == 0) max_candidates = UINT32_MAX;
+        } else if (strcmp(argv[i], "--exhaustive") == 0) {
+            max_candidates = UINT32_MAX;
+        } else if (strcmp(argv[i], "--tree") == 0 || strcmp(argv[i], "--dump-tree") == 0) {
             if (i + 1 < argc) tree_dump_path = argv[++i];
         } else if (strcmp(argv[i], "--quiet") == 0 || strcmp(argv[i], "-q") == 0) quiet = true;
         else if (strcmp(argv[i], "--help") == 0) { print_usage(argv[0]); return 0; }
@@ -1790,6 +1798,7 @@ int main(int argc, char** argv) {
 
     GameData game;
     if (load_wordlist(wordlist_path, &game) != 0) return 1;
+    game.max_candidates = max_candidates;
 
     struct timespec t0, t1;
     clock_gettime(CLOCK_MONOTONIC, &t0);

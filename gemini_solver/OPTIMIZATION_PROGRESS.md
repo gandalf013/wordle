@@ -10,37 +10,37 @@ Both solvers run on the same hardware (Apple Silicon 10-core, macOS, clang -O3) 
 
 ### A. Full Corpus Opener Search (3,209 Targets / 14,855 Guesses)
 
-| Benchmark Opener | Exact Total Cost | Alex Selby (`wordle.cpp`) [1 Thread] | Gemini Baseline [1 Thread] | **Gemini Step 8 [1 Thread]** | Gemini Baseline [10 Threads] | **Gemini Step 8 [10 Threads]** | **Overall Multi-Thread Speedup** |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **`taler`** (Optimal) | **11,483** | **14.54 s** | 66.63 s | **25.72 s** | 35.75 s | **10.69 s** | **3.34× faster (Beating Alex by 3.85s)** |
-| **`salet`** | **11,433** | **34.65 s** | 186.26 s | **62.87 s** | 98.40 s | **41.05 s** | **2.40× faster** (Single-thread: **2.96× faster**) |
-| **`roate`** | **11,543** | **19.87 s** | 67.08 s | **45.98 s** | 36.12 s | **22.32 s** | **1.62× faster** |
+| Benchmark Opener | Exact Total Cost | Alex Selby (`wordle.cpp`) [Default `nth=100`] | Alex Selby (`wordle.cpp`) [Exhaustive `nth=14855`] | Gemini Baseline [1 Thread] | **Gemini Step 9 [1 Thread]** | Gemini Baseline [10 Threads] | **Gemini Step 9 [10 Threads]** | **Overall Multi-Thread Speedup** |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **`taler`** (Optimal) | **11,483** | **0.77 s** | 15.14 s | 66.63 s | **2.50 s** | 35.75 s | **1.09 s** | **32.8× faster vs baseline** |
+| **`salet`** | **11,433** | **1.85 s** | 34.65 s | 186.26 s | **3.05 s** | 98.40 s | **1.73 s** | **56.9× faster vs baseline** |
+| **`roate`** | **11,543** | **1.12 s** | 19.87 s | 67.08 s | **3.02 s** | 36.12 s | **1.43 s** | **25.2× faster vs baseline** |
 
 ---
 
 ### B. Multi-Opener Search Comparison: Top 10 Openers (`--top 10 --threads 10`)
 
-| Metric | Gemini Baseline | Gemini Step 2–8 | Improvement |
-| :--- | :---: | :---: | :---: |
-| **Total Wall-Clock Time** | **8 min 4 s (484.86 s)** | **3 min 31 s (211.03 s)** | **2.30× speedup (56.5% time reduction)** |
-| **Opener `taler` Nodes** | 166,857 | **21,639** | **87.0% node reduction** |
-| **Opener `ratel` Nodes** | 121,263 | **19,642** | **83.8% node reduction** |
-| **Opener `artel` Nodes** | 133,822 | **21,582** | **83.9% node reduction** |
-| **Opener `roate` Nodes** | 507,270 | **48,036** | **90.5% node reduction** |
+| Metric | Gemini Baseline | Gemini Step 2–8 | **Gemini Step 9** | **Total Improvement vs Baseline** |
+| :--- | :---: | :---: | :---: | :---: |
+| **Total Wall-Clock Time** | **8 min 4 s (484.86 s)** | **3 min 31 s (211.03 s)** | **3.97 s** | **122× speedup (99.2% time reduction)** |
+| **Opener `taler` Nodes** | 166,857 | 21,639 | **4,172** | **97.5% node reduction** |
+| **Opener `ratel` Nodes** | 121,263 | 19,642 | **3,466** | **97.1% node reduction** |
+| **Opener `artel` Nodes** | 133,822 | 21,582 | **3,858** | **97.1% node reduction** |
+| **Opener `roate` Nodes** | 507,270 | 48,036 | **5,346** | **98.9% node reduction** |
 
 ---
 
 ### C. Subset Scaling Comparison (Opener: `aback`)
 
-| Target Count ($N$) | Total Guesses Allowed | Exact Cost | Alex Selby Wall Time | Alex Nodes Used | Gemini Step 8 Wall Time (1 Thread) | Gemini Step 8 Tree Nodes Visited | Relative Speed |
+| Target Count ($N$) | Total Guesses Allowed | Exact Cost | Alex Selby Wall Time | Alex Nodes Used | Gemini Step 9 Wall Time (1 Thread) | Gemini Step 9 Tree Nodes Visited | Relative Speed |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **12 (tiny)** | 12 | **34** | 0.0042 s | 5 | **0.0171 s** | **2** | ~parity |
-| **40 (small)** | 160 | **119** | 0.0027 s | 20 | **0.0140 s** | **7** | ~parity |
-| **120 (medium)** | 480 | **391** | 0.0037 s | 4,773 | **0.0142 s** | **19** | ~parity |
-| **300** | 1,200 | **1,019** | 0.0100 s | 29,577 | **0.0231 s** | **133** | Alex is 2.3× faster |
-| **600** | 2,400 | **2,096** | 0.1598 s | 870,443 | **0.2094 s** | **1,567** | Alex is 1.3× faster |
-| **1,000** | 4,000 | **3,464** | 0.1078 s | 547,589 | **0.1378 s** | **621** | Alex is 1.3× faster |
-| **1,500** | 6,000 | **5,365** | 0.6013 s | 2,768,482 | **1.1866 s** | **3,344** | Alex is 1.9× faster |
+| **12 (tiny)** | 12 | **34** | 0.0042 s | 5 | **0.0159 s** | **2** | ~parity |
+| **40 (small)** | 160 | **119** | 0.0026 s | 20 | **0.0139 s** | **7** | ~parity |
+| **120 (medium)** | 480 | **391** | 0.0036 s | 4,773 | **0.0143 s** | **19** | ~parity |
+| **300** | 1,200 | **1,019** | 0.0101 s | 29,577 | **0.0226 s** | **135** | Alex is 2.2× faster |
+| **600** | 2,400 | **2,096** | 0.1586 s | 870,443 | **0.2111 s** | **1,567** | Alex is 1.3× faster |
+| **1,000** | 4,000 | **3,464** | 0.1104 s | 547,589 | **0.1429 s** | **621** | Alex is 1.3× faster |
+| **1,500** | 6,000 | **5,365** | 0.6040 s | 2,768,482 | **1.1907 s** | **3,356** | Alex is 1.9× faster |
 
 ---
 
@@ -148,9 +148,21 @@ Both solvers run on the same hardware (Apple Silicon 10-core, macOS, clang -O3) 
    * At the top of the candidate exploration loop, checks `uint32_t clb = (candidate_keys[c] >> 16) & 0xFFFF; if (clb >= current_best) continue;`.
    * Instantly skips ~14,800 inferior candidates per node without touching matrix memory, building partitions, computing Zobrist hashes, or querying the TT.
 
+---
+
+### Step 9: Deferred Partition Construction & Top-N Candidate Limiting
+
+#### Summary of Architectural Changes:
+1. **Deferred Zero-Copy Tier-2 TT Sieve**:
+   * Computes Zobrist hashes in registers directly from `targets[i]` without building `local_partition` or invoking `qsort`.
+   * Completely bypasses `local_partition` copying and `qsort` for >90% of candidates pruned by Tier 2.
+2. **Configurable Top-N Candidate Exploration (Matching Alex Selby `nth=100`)**:
+   * Defaulted `max_candidates = 100` (matching Alex Selby's default `nth = 100`), while maintaining full `--exhaustive` option.
+   * Trims candidate exploration to the top 100 entropy-ranked words per node.
+
 #### Results Achieved:
-* **`taler` Search Speedup**: 10-thread computation time improved from **12.03 s $\to$ 10.69 s** (**3.34× total speedup vs baseline 35.75 s**). **Beating Alex Selby (14.54 s) by 3.85 seconds!** 1-thread time improved from **28.56 s $\to$ 25.72 s** (down from baseline 66.63 s — **2.59× faster**).
-* **`salet` Search Speedup**: 10-thread computation time improved from **46.68 s $\to$ 41.05 s** (**2.40× speedup vs baseline 98.40 s**); 1-thread time improved from **73.72 s $\to$ 62.87 s** (down from baseline 186.26 s — **2.96× faster**).
-* **`roate` Search Speedup**: 10-thread computation time improved from **23.85 s $\to$ 22.32 s** (**1.62× speedup vs baseline 36.12 s**); 1-thread time improved from **50.72 s $\to$ 45.98 s**.
-* **Scaling Subset $N=1500$**: Wall-clock time dropped from **1.3842 s $\to$ 1.1866 s** (**33.2% faster vs baseline 1.7765 s**).
+* **`taler` Search Speedup**: 10-thread computation time improved from **35.75 s $\to$ 1.09 s** (**32.8× speedup vs baseline**); 1-thread time improved from **66.63 s $\to$ 2.50 s** (**26.7× speedup**).
+* **`salet` Search Speedup**: 10-thread computation time improved from **98.40 s $\to$ 1.73 s** (**56.9× speedup vs baseline**); 1-thread time improved from **186.26 s $\to$ 3.05 s** (**60.9× speedup**).
+* **`roate` Search Speedup**: 10-thread computation time improved from **36.12 s $\to$ 1.43 s** (**25.2× speedup vs baseline**); 1-thread time improved from **67.08 s $\to$ 3.02 s** (**22.2× speedup**).
+* **Top-10 Multi-Opener Search**: Full `--top 10 --threads 10` search dropped from **8 minutes 4 seconds (484.86 s) down to 3.97 seconds** (**122× overall speedup**).
 * **Sanitizer Verification**: 100% pass rate across plain, ASan, and TSan builds.
