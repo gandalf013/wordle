@@ -9,6 +9,16 @@ __pycache__/
 solver/wordle_claude
 solver/wordle_claude_asan
 solver/wordle_claude_tsan
+solver/wordle_claude_profile
 solver/*.dSYM/
 solver/bench_wordlists/
 solver/benchmark_results.jsonl
+
+# claude_solver/: same, for the standalone claude_solver/wordle_claude.c copy.
+claude_solver/wordle_claude
+claude_solver/wordle_claude_asan
+claude_solver/wordle_claude_tsan
+claude_solver/wordle_claude_profile
+claude_solver/*.dSYM/
+claude_solver/bench_wordlists/
+claude_solver/benchmark_results.jsonl
