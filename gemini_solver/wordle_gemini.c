@@ -958,7 +958,7 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
                 }
             }
 
-            candidate_keys[g] = ((uint64_t)(2 * sum_sq + count * guess_lb) << 32) | (uint64_t)g;
+            candidate_keys[g] = ((uint64_t)(2 * sum_sq + count * guess_lb) << 32) | ((uint64_t)(guess_lb & 0xFFFF) << 16) | (uint64_t)g;
         }
     } else {
         const uint8_t* cols[count];
@@ -993,7 +993,7 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
                 best_exact_g = g;
             }
 
-            candidate_keys[g] = ((uint64_t)(2 * sum_sq + count * guess_lb) << 32) | (uint64_t)g;
+            candidate_keys[g] = ((uint64_t)(2 * sum_sq + count * guess_lb) << 32) | ((uint64_t)(guess_lb & 0xFFFF) << 16) | (uint64_t)g;
         }
     }
 
@@ -1014,7 +1014,7 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
 
     if (suggested_guess != UINT32_MAX) {
         for (uint32_t r = 0; r < num_guesses; r++) {
-            if ((uint32_t)candidate_keys[r] == suggested_guess) {
+            if ((uint32_t)(candidate_keys[r] & 0xFFFF) == suggested_guess) {
                 uint64_t tmp = candidate_keys[0];
                 candidate_keys[0] = candidate_keys[r];
                 candidate_keys[r] = tmp;
@@ -1025,7 +1025,7 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
 
     // ---- Main Branch-and-Bound Loop ----
     uint32_t current_best = beta;
-    uint32_t best_g = (uint32_t)candidate_keys[0];
+    uint32_t best_g = (uint32_t)(candidate_keys[0] & 0xFFFF);
     bool found_improvement = false;
 
     uint32_t local_partition[count];
@@ -1033,7 +1033,10 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
     BucketInfo buckets[NUM_SCORES];
 
     for (uint32_t c = 0; c < num_guesses; c++) {
-        uint32_t g = (uint32_t)candidate_keys[c];
+        uint32_t clb = (uint32_t)((candidate_keys[c] >> 16) & 0xFFFF);
+        if (clb >= current_best) continue;
+
+        uint32_t g = (uint32_t)(candidate_keys[c] & 0xFFFF);
         const uint8_t* row = matrix + (size_t)g * num_targets;
 
         uint32_t active_buckets = 0;
