@@ -456,9 +456,9 @@ static void solver_free(Solver* s) {
 static int compare_ranked_desc(const void* a, const void* b) {
     const RankedCandidate* ra = (const RankedCandidate*)a;
     const RankedCandidate* rb = (const RankedCandidate*)b;
+    if (ra->sum_sq != rb->sum_sq) return (ra->sum_sq < rb->sum_sq) ? -1 : 1;
     if (ra->lb != rb->lb) return (ra->lb < rb->lb) ? -1 : 1;
     if (ra->active_buckets != rb->active_buckets) return (ra->active_buckets > rb->active_buckets) ? -1 : 1;
-    if (ra->sum_sq != rb->sum_sq) return (ra->sum_sq < rb->sum_sq) ? -1 : 1;
     return (ra->guess_idx < rb->guess_idx) ? -1 : (ra->guess_idx > rb->guess_idx ? 1 : 0);
 }
 
@@ -700,17 +700,23 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
     uint32_t global_ub1 = UINT32_MAX;
     uint32_t best_exact_g = UINT32_MAX;
 
+    uint32_t hist[NUM_SCORES] = {0};
+    uint16_t active_scores[count + 1];
+
     for (uint32_t g = 0; g < num_guesses; g++) {
         const uint8_t* row = matrix + (size_t)g * num_targets;
 
         uint64_t ph1 = 1469598103934665603ULL;
         uint64_t ph2 = 1099511628211ULL;
-        uint32_t hist[NUM_SCORES] = {0};
+        uint32_t num_active = 0;
 
         for (uint32_t i = 0; i < count; i++) {
             uint8_t sc = row[targets[i]];
             ph1 = (ph1 ^ sc) * 1099511628211ULL;
             ph2 = (ph2 ^ sc) * 1469598103934665603ULL;
+            if (hist[sc] == 0) {
+                active_scores[num_active++] = sc;
+            }
             hist[sc]++;
         }
 
@@ -723,7 +729,10 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
             }
             idx = (idx + 1) & dedup_mask;
         }
-        if (duplicate) continue;
+        if (duplicate) {
+            for (uint32_t k = 0; k < num_active; k++) hist[active_scores[k]] = 0;
+            continue;
+        }
 
         solver->dedup_stamp[idx] = call_id;
         solver->dedup_hash1[idx] = ph1;
@@ -731,17 +740,17 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
         solver->dedup_guess[idx] = g;
         solver->representatives[rep_count] = g;
 
-        uint32_t active = 0, sum_sq = 0;
+        uint32_t sum_sq = 0;
         uint32_t guess_lb = count;
         bool max_bucket_le_2 = true;
 
-        for (int s = 0; s < NUM_SCORES; s++) {
-            if (hist[s] > 0) {
-                active++;
-                sum_sq += hist[s] * hist[s];
-                if (s != EXACT_MATCH) guess_lb += game->lower_bound[hist[s]];
-                if (hist[s] > 2) max_bucket_le_2 = false;
-            }
+        for (uint32_t k = 0; k < num_active; k++) {
+            uint16_t s = active_scores[k];
+            uint32_t sz = hist[s];
+            sum_sq += sz * sz;
+            if (s != EXACT_MATCH) guess_lb += game->lower_bound[sz];
+            if (sz > 2) max_bucket_le_2 = false;
+            hist[s] = 0; // Clear for next candidate
         }
 
         if (guess_lb < global_lb1) global_lb1 = guess_lb;
@@ -752,7 +761,7 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
 
         ranked[rep_count] = (RankedCandidate){
             .guess_idx = g,
-            .active_buckets = active,
+            .active_buckets = num_active,
             .sum_sq = sum_sq,
             .lb = guess_lb,
             .is_exact_lb = max_bucket_le_2
@@ -800,7 +809,6 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
     bool found_improvement = false;
 
     uint32_t local_partition[count];
-    uint32_t hist[NUM_SCORES];
     uint32_t offsets[NUM_SCORES + 1];
     BucketInfo buckets[NUM_SCORES];
 
@@ -808,24 +816,34 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
         uint32_t g = rep_guesses[c];
         const uint8_t* row = matrix + (size_t)g * num_targets;
 
-        memset(hist, 0, NUM_SCORES * sizeof(uint32_t));
-        for (uint32_t i = 0; i < count; i++) hist[row[targets[i]]]++;
-
-        uint32_t guess_lb = count;
         uint32_t active_buckets = 0;
-        for (int s = 0; s < NUM_SCORES; s++) {
-            if (hist[s] > 0) {
-                if (s != EXACT_MATCH) guess_lb += game->lower_bound[hist[s]];
-                buckets[active_buckets].score = (uint16_t)s;
-                buckets[active_buckets].size = hist[s];
-                active_buckets++;
+        uint32_t guess_lb = count;
+
+        for (uint32_t i = 0; i < count; i++) {
+            uint8_t sc = row[targets[i]];
+            if (hist[sc] == 0) {
+                active_scores[active_buckets++] = sc;
             }
+            hist[sc]++;
         }
 
-        if (active_buckets == 1) continue; // Zero-info move prune
+        bool has_exact = (hist[EXACT_MATCH] > 0);
+        for (uint32_t b = 0; b < active_buckets; b++) {
+            uint16_t s = active_scores[b];
+            uint32_t sz = hist[s];
+            if (s != EXACT_MATCH) guess_lb += game->lower_bound[sz];
+            buckets[b].score = s;
+            buckets[b].size = sz;
+        }
+
+        if (active_buckets == 1) {
+            for (uint32_t b = 0; b < active_buckets; b++) hist[active_scores[b]] = 0;
+            continue; // Zero-info move prune
+        }
 
         // Perfect split shortcut (2n - 1)
-        if (active_buckets == count && hist[EXACT_MATCH] > 0) {
+        if (active_buckets == count && has_exact) {
+            for (uint32_t b = 0; b < active_buckets; b++) hist[active_scores[b]] = 0;
             current_best = guess_lb;
             best_g = g;
             found_improvement = true;
@@ -833,7 +851,8 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
         }
 
         // Non-candidate singleton split shortcut (2n)
-        if (active_buckets == count && hist[EXACT_MATCH] == 0) {
+        if (active_buckets == count && !has_exact) {
+            for (uint32_t b = 0; b < active_buckets; b++) hist[active_scores[b]] = 0;
             if (2 * count < current_best) {
                 current_best = 2 * count;
                 best_g = g;
@@ -842,7 +861,10 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
             continue;
         }
 
-        if (guess_lb >= current_best) continue;
+        if (guess_lb >= current_best) {
+            for (uint32_t b = 0; b < active_buckets; b++) hist[active_scores[b]] = 0;
+            continue;
+        }
 
         offsets[0] = 0;
         for (int s = 0; s < NUM_SCORES; s++) offsets[s + 1] = offsets[s] + hist[s];
@@ -852,6 +874,9 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
             uint8_t s = row[targets[i]];
             local_partition[cur_offsets[s]++] = targets[i];
         }
+
+        // Clear hist now that partition is formed
+        for (uint32_t b = 0; b < active_buckets; b++) hist[active_scores[b]] = 0;
 
         for (uint32_t b = 0; b < active_buckets; b++) {
             uint32_t off = offsets[buckets[b].score];
@@ -868,19 +893,74 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
 
         qsort(buckets, active_buckets, sizeof(BucketInfo), compare_bucket_size_desc);
 
-        uint32_t running_cost = count;
-        uint32_t remaining_lb = 0;
-        for (uint32_t b = 0; b < active_buckets; b++) {
-            if (buckets[b].score != EXACT_MATCH) remaining_lb += game->lower_bound[buckets[b].size];
-        }
-
-        bool pruned = false;
-        uint32_t bucket_costs[active_buckets];
-        memset(bucket_costs, 0, sizeof(bucket_costs));
+        // ---- Tier 2: Pre-scan buckets with instant exact resolution (sz <= 2) and TT lower bound probe ----
+        uint32_t bucket_exact[NUM_SCORES] = {0};
+        uint32_t bucket_lb[NUM_SCORES] = {0};
+        uint32_t tier2_total_lb = count;
+        uint32_t resolved_cost = count;
+        uint32_t num_unresolved = 0;
+        BucketInfo unresolved_buckets[NUM_SCORES];
 
         for (uint32_t b = 0; b < active_buckets; b++) {
             if (buckets[b].score == EXACT_MATCH) continue;
-            remaining_lb -= game->lower_bound[buckets[b].size];
+            uint32_t sz = buckets[b].size;
+            if (sz <= 2) {
+                uint32_t c = (sz == 1) ? 1 : 3;
+                bucket_exact[b] = c;
+                bucket_lb[b] = c;
+                tier2_total_lb += c;
+                resolved_cost += c;
+                continue;
+            }
+
+            uint32_t base_lb = game->lower_bound[sz];
+            TTEntry* entry = tt_find(&solver->tt, buckets[b].hash1, buckets[b].hash2, sz);
+            if (entry) {
+                if (entry->exact_cost != UINT32_MAX) {
+                    bucket_exact[b] = entry->exact_cost;
+                    bucket_lb[b] = entry->exact_cost;
+                    resolved_cost += entry->exact_cost;
+                } else if (entry->proven_lower_bound > base_lb) {
+                    bucket_lb[b] = entry->proven_lower_bound;
+                    unresolved_buckets[num_unresolved++] = buckets[b];
+                } else {
+                    bucket_lb[b] = base_lb;
+                    unresolved_buckets[num_unresolved++] = buckets[b];
+                }
+            } else {
+                bucket_lb[b] = base_lb;
+                unresolved_buckets[num_unresolved++] = buckets[b];
+            }
+            tier2_total_lb += bucket_lb[b];
+        }
+
+        // Tier 2 cutoff: provably cannot beat current_best without any recursion
+        if (tier2_total_lb >= current_best) continue;
+
+        // If all buckets were resolved by sz <= 2 or TT exact hits, we have the exact score immediately
+        if (num_unresolved == 0) {
+            if (resolved_cost < current_best) {
+                current_best = resolved_cost;
+                best_g = g;
+                found_improvement = true;
+                if (current_best <= node_lb) break;
+            }
+            continue;
+        }
+
+        // ---- Tier 3: Ordered Fail-Soft Recursion on Unresolved Buckets ----
+        uint32_t running_cost = resolved_cost;
+        uint32_t remaining_lb = 0;
+        for (uint32_t u = 0; u < num_unresolved; u++) {
+            remaining_lb += game->lower_bound[unresolved_buckets[u].size];
+        }
+
+        bool pruned = false;
+        uint32_t u_costs[NUM_SCORES] = {0};
+
+        for (uint32_t u = 0; u < num_unresolved; u++) {
+            uint32_t sz = unresolved_buckets[u].size;
+            remaining_lb -= game->lower_bound[sz];
 
             if (running_cost + remaining_lb >= current_best) {
                 pruned = true;
@@ -888,26 +968,26 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
             }
 
             uint32_t bucket_beta = current_best - running_cost - remaining_lb;
-            uint32_t bucket_cost = solve_subset(solver, &local_partition[buckets[b].offset], buckets[b].size,
-                                                 buckets[b].hash1, buckets[b].hash2, bucket_beta, NULL);
+            uint32_t bucket_cost = solve_subset(solver, &local_partition[unresolved_buckets[u].offset], sz,
+                                                 unresolved_buckets[u].hash1, unresolved_buckets[u].hash2, bucket_beta, NULL);
             if (bucket_cost >= bucket_beta) {
                 pruned = true;
                 break;
             }
-            bucket_costs[b] = bucket_cost;
+            u_costs[u] = bucket_cost;
             running_cost += bucket_cost;
         }
 
         // Easy-mode disjoint-union bound propagation on cutoff
-        if (pruned && active_buckets >= 2) {
-            for (uint32_t b1 = 0; b1 < active_buckets; b1++) {
-                if (bucket_costs[b1] == 0) continue;
-                for (uint32_t b2 = b1 + 1; b2 < active_buckets; b2++) {
-                    if (bucket_costs[b2] == 0) continue;
-                    uint64_t mh1 = buckets[b1].hash1 ^ buckets[b2].hash1;
-                    uint64_t mh2 = buckets[b1].hash2 ^ buckets[b2].hash2;
-                    uint32_t msize = buckets[b1].size + buckets[b2].size;
-                    uint32_t mlb = bucket_costs[b1] + bucket_costs[b2];
+        if (pruned && num_unresolved >= 2) {
+            for (uint32_t u1 = 0; u1 < num_unresolved; u1++) {
+                if (u_costs[u1] == 0) continue;
+                for (uint32_t u2 = u1 + 1; u2 < num_unresolved; u2++) {
+                    if (u_costs[u2] == 0) continue;
+                    uint64_t mh1 = unresolved_buckets[u1].hash1 ^ unresolved_buckets[u2].hash1;
+                    uint64_t mh2 = unresolved_buckets[u1].hash2 ^ unresolved_buckets[u2].hash2;
+                    uint32_t msize = unresolved_buckets[u1].size + unresolved_buckets[u2].size;
+                    uint32_t mlb = u_costs[u1] + u_costs[u2];
                     TTEntry* me = tt_find_or_claim(&solver->tt, mh1, mh2, msize);
                     if (me && mlb > me->proven_lower_bound) me->proven_lower_bound = mlb;
                 }
