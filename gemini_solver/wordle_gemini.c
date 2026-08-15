@@ -850,70 +850,137 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
     uint32_t hist[NUM_SCORES] = {0};
     uint16_t active_scores[count + 1];
 
-    for (uint32_t g = 0; g < num_guesses; g++) {
-        const uint8_t* row = matrix + (size_t)g * num_targets;
+    if (count <= 8) {
+        uint32_t t0 = targets[0], t1 = targets[1], t2 = (count > 2) ? targets[2] : 0;
+        uint32_t t3 = (count > 3) ? targets[3] : 0, t4 = (count > 4) ? targets[4] : 0;
+        uint32_t t5 = (count > 5) ? targets[5] : 0, t6 = (count > 6) ? targets[6] : 0, t7 = (count > 7) ? targets[7] : 0;
 
-        uint64_t ph1 = 1469598103934665603ULL;
-        uint64_t ph2 = 1099511628211ULL;
-        uint32_t num_active = 0;
+        for (uint32_t g = 0; g < num_guesses; g++) {
+            const uint8_t* row = matrix + (size_t)g * num_targets;
+            uint64_t sig = (uint64_t)row[t0] | ((uint64_t)row[t1] << 8);
+            if (count > 2) sig |= ((uint64_t)row[t2] << 16);
+            if (count > 3) sig |= ((uint64_t)row[t3] << 24);
+            if (count > 4) sig |= ((uint64_t)row[t4] << 32);
+            if (count > 5) sig |= ((uint64_t)row[t5] << 40);
+            if (count > 6) sig |= ((uint64_t)row[t6] << 48);
+            if (count > 7) sig |= ((uint64_t)row[t7] << 56);
 
-        for (uint32_t i = 0; i < count; i++) {
-            uint8_t sc = row[targets[i]];
-            ph1 = (ph1 ^ sc) * 1099511628211ULL;
-            ph2 = (ph2 ^ sc) * 1469598103934665603ULL;
-            if (hist[sc] == 0) {
-                active_scores[num_active++] = sc;
+            uint64_t idx = (sig ^ (sig >> 17) ^ (sig >> 33)) & dedup_mask;
+            bool duplicate = false;
+            while (solver->dedup_stamp[idx] == call_id) {
+                if (solver->dedup_hash1[idx] == sig) {
+                    duplicate = true;
+                    break;
+                }
+                idx = (idx + 1) & dedup_mask;
             }
-            hist[sc]++;
-        }
+            if (duplicate) continue;
 
-        uint64_t idx = (ph1 ^ ph2) & dedup_mask;
-        bool duplicate = false;
-        while (solver->dedup_stamp[idx] == call_id) {
-            if (solver->dedup_hash1[idx] == ph1 && solver->dedup_hash2[idx] == ph2) {
-                duplicate = true;
-                break;
+            solver->dedup_stamp[idx] = call_id;
+            solver->dedup_hash1[idx] = sig;
+            solver->dedup_guess[idx] = g;
+            solver->representatives[rep_count] = g;
+
+            uint32_t num_active = 0;
+            for (uint32_t i = 0; i < count; i++) {
+                uint8_t sc = (uint8_t)(sig >> (i * 8));
+                if (hist[sc] == 0) active_scores[num_active++] = sc;
+                hist[sc]++;
             }
-            idx = (idx + 1) & dedup_mask;
+
+            uint32_t sum_sq = 0;
+            uint32_t guess_lb = count;
+            bool max_bucket_le_2 = true;
+
+            for (uint32_t k = 0; k < num_active; k++) {
+                uint16_t s = active_scores[k];
+                uint32_t sz = hist[s];
+                sum_sq += sz * sz;
+                if (s != EXACT_MATCH) guess_lb += game->lower_bound[sz];
+                if (sz > 2) max_bucket_le_2 = false;
+                hist[s] = 0; // Reset
+            }
+
+            if (guess_lb < global_lb1) global_lb1 = guess_lb;
+            if (max_bucket_le_2 && guess_lb < global_ub1) {
+                global_ub1 = guess_lb;
+                best_exact_g = g;
+            }
+
+            ranked[rep_count] = (RankedCandidate){
+                .guess_idx = g,
+                .active_buckets = num_active,
+                .sum_sq = sum_sq,
+                .lb = guess_lb,
+                .is_exact_lb = max_bucket_le_2
+            };
+            rep_count++;
         }
-        if (duplicate) {
-            for (uint32_t k = 0; k < num_active; k++) hist[active_scores[k]] = 0;
-            continue;
+    } else {
+        for (uint32_t g = 0; g < num_guesses; g++) {
+            const uint8_t* row = matrix + (size_t)g * num_targets;
+
+            uint64_t ph1 = 1469598103934665603ULL;
+            uint64_t ph2 = 1099511628211ULL;
+
+            for (uint32_t i = 0; i < count; i++) {
+                uint8_t sc = row[targets[i]];
+                ph1 = (ph1 ^ sc) * 1099511628211ULL;
+                ph2 = (ph2 ^ sc) * 1469598103934665603ULL;
+            }
+
+            uint64_t idx = (ph1 ^ ph2) & dedup_mask;
+            bool duplicate = false;
+            while (solver->dedup_stamp[idx] == call_id) {
+                if (solver->dedup_hash1[idx] == ph1 && solver->dedup_hash2[idx] == ph2) {
+                    duplicate = true;
+                    break;
+                }
+                idx = (idx + 1) & dedup_mask;
+            }
+            if (duplicate) continue;
+
+            solver->dedup_stamp[idx] = call_id;
+            solver->dedup_hash1[idx] = ph1;
+            solver->dedup_hash2[idx] = ph2;
+            solver->dedup_guess[idx] = g;
+            solver->representatives[rep_count] = g;
+
+            uint32_t num_active = 0;
+            for (uint32_t i = 0; i < count; i++) {
+                uint8_t sc = row[targets[i]];
+                if (hist[sc] == 0) active_scores[num_active++] = sc;
+                hist[sc]++;
+            }
+
+            uint32_t sum_sq = 0;
+            uint32_t guess_lb = count;
+            bool max_bucket_le_2 = true;
+
+            for (uint32_t k = 0; k < num_active; k++) {
+                uint16_t s = active_scores[k];
+                uint32_t sz = hist[s];
+                sum_sq += sz * sz;
+                if (s != EXACT_MATCH) guess_lb += game->lower_bound[sz];
+                if (sz > 2) max_bucket_le_2 = false;
+                hist[s] = 0; // Reset
+            }
+
+            if (guess_lb < global_lb1) global_lb1 = guess_lb;
+            if (max_bucket_le_2 && guess_lb < global_ub1) {
+                global_ub1 = guess_lb;
+                best_exact_g = g;
+            }
+
+            ranked[rep_count] = (RankedCandidate){
+                .guess_idx = g,
+                .active_buckets = num_active,
+                .sum_sq = sum_sq,
+                .lb = guess_lb,
+                .is_exact_lb = max_bucket_le_2
+            };
+            rep_count++;
         }
-
-        solver->dedup_stamp[idx] = call_id;
-        solver->dedup_hash1[idx] = ph1;
-        solver->dedup_hash2[idx] = ph2;
-        solver->dedup_guess[idx] = g;
-        solver->representatives[rep_count] = g;
-
-        uint32_t sum_sq = 0;
-        uint32_t guess_lb = count;
-        bool max_bucket_le_2 = true;
-
-        for (uint32_t k = 0; k < num_active; k++) {
-            uint16_t s = active_scores[k];
-            uint32_t sz = hist[s];
-            sum_sq += sz * sz;
-            if (s != EXACT_MATCH) guess_lb += game->lower_bound[sz];
-            if (sz > 2) max_bucket_le_2 = false;
-            hist[s] = 0; // Clear for next candidate
-        }
-
-        if (guess_lb < global_lb1) global_lb1 = guess_lb;
-        if (max_bucket_le_2 && guess_lb < global_ub1) {
-            global_ub1 = guess_lb;
-            best_exact_g = g;
-        }
-
-        ranked[rep_count] = (RankedCandidate){
-            .guess_idx = g,
-            .active_buckets = num_active,
-            .sum_sq = sum_sq,
-            .lb = guess_lb,
-            .is_exact_lb = max_bucket_le_2
-        };
-        rep_count++;
     }
 
     // Sound fail-soft cutoff if lb1 >= beta
@@ -1021,16 +1088,19 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
         for (uint32_t b = 0; b < active_buckets; b++) hist[active_scores[b]] = 0;
 
         for (uint32_t b = 0; b < active_buckets; b++) {
+            uint32_t sz = buckets[b].size;
             uint32_t off = offsets[buckets[b].score];
-            uint64_t bh1 = 0, bh2 = 0;
-            for (uint32_t j = 0; j < buckets[b].size; j++) {
-                uint32_t tid = local_partition[off + j];
-                bh1 ^= game->zobrist1[tid];
-                bh2 ^= game->zobrist2[tid];
-            }
-            buckets[b].hash1 = bh1;
-            buckets[b].hash2 = bh2;
             buckets[b].offset = off;
+            if (sz >= 3) {
+                uint64_t bh1 = 0, bh2 = 0;
+                for (uint32_t j = 0; j < sz; j++) {
+                    uint32_t tid = local_partition[off + j];
+                    bh1 ^= game->zobrist1[tid];
+                    bh2 ^= game->zobrist2[tid];
+                }
+                buckets[b].hash1 = bh1;
+                buckets[b].hash2 = bh2;
+            }
         }
 
         qsort(buckets, active_buckets, sizeof(BucketInfo), compare_bucket_size_desc);
