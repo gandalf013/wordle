@@ -10,3 +10,6 @@
 {"label": "step1_sieve", "case": "tiny", "opener": "aback", "timestamp": 1786812347.5674932, "exact_total_guesses": 34, "avg_guesses": 2.83333, "solver_time_sec": 0.001, "nodes": 2, "wall_sec": 0.0039751529693603516}
 {"label": "step1_sieve", "case": "small", "opener": "aback", "timestamp": 1786812347.573639, "exact_total_guesses": 119, "avg_guesses": 2.975, "solver_time_sec": 0.001, "nodes": 7, "wall_sec": 0.005724191665649414}
 {"label": "step1_sieve", "case": "medium", "opener": "aback", "timestamp": 1786812347.579602, "exact_total_guesses": 391, "avg_guesses": 3.25833, "solver_time_sec": 0.002, "nodes": 37, "wall_sec": 0.005529165267944336}
+{"label": "step2_shared_tt", "case": "tiny", "opener": "aback", "timestamp": 1786814806.4858382, "exact_total_guesses": 34, "avg_guesses": 2.83333, "solver_time_sec": 0.001, "nodes": 2, "wall_sec": 0.020402193069458008}
+{"label": "step2_shared_tt", "case": "small", "opener": "aback", "timestamp": 1786814806.5030558, "exact_total_guesses": 119, "avg_guesses": 2.975, "solver_time_sec": 0.001, "nodes": 7, "wall_sec": 0.016833066940307617}
+{"label": "step2_shared_tt", "case": "medium", "opener": "aback", "timestamp": 1786814806.520739, "exact_total_guesses": 391, "avg_guesses": 3.25833, "solver_time_sec": 0.001, "nodes": 37, "wall_sec": 0.017241954803466797}

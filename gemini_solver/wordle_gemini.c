@@ -43,10 +43,34 @@ typedef struct {
     uint32_t letter_mask;       // bitmask of (c - 'a') present in this endgame
 } Endgame;
 
+// -------------------------------------------------------------
+// 128-Bit Lock-Free Shared Transposition Table
+// -------------------------------------------------------------
+
+#define TT_EMPTY_HASH UINT64_MAX
+
+typedef struct {
+    _Atomic uint64_t hash1;
+    _Atomic uint64_t hash2;
+    _Atomic uint32_t size;
+    _Atomic uint32_t exact_cost;
+    _Atomic uint32_t proven_lower_bound;
+    _Atomic uint32_t best_guess;
+} SharedTTEntry;
+
+typedef struct {
+    SharedTTEntry* entries;
+    uint64_t mask;
+} SharedTT;
+
+static void shared_tt_init(SharedTT* stt, uint64_t capacity_pow2);
+static void shared_tt_free(SharedTT* stt);
+
 typedef struct {
     Word* targets;
-    Word* guesses;
     uint32_t num_targets;
+
+    Word* guesses;
     uint32_t num_guesses;
 
     // score_matrix[g * num_targets + t]
@@ -63,6 +87,9 @@ typedef struct {
     uint32_t num_endgames;
     uint32_t* target_endgame_counts; // [num_targets]
     uint32_t** target_endgames;      // [num_targets][count]
+
+    // Shared global lock-free transposition table across threads
+    SharedTT shared_tt;
 } GameData;
 
 static inline uint8_t compute_score(const char* restrict guess, const char* restrict target) {
@@ -316,9 +343,11 @@ static void init_game_data(GameData* game, int num_threads) {
 
     compute_lower_bound_table(game);
     init_endgames(game);
+    shared_tt_init(&game->shared_tt, 1u << 22);
 }
 
 static void free_game_data(GameData* game) {
+    shared_tt_free(&game->shared_tt);
     free(game->targets);
     free(game->guesses);
     free(game->score_matrix);
@@ -337,7 +366,7 @@ static void free_game_data(GameData* game) {
 }
 
 // -------------------------------------------------------------
-// 128-Bit Transposition Table
+// 128-Bit Transposition Table (Thread-Local L1 + Global Shared L2)
 // -------------------------------------------------------------
 
 typedef struct {
@@ -348,8 +377,6 @@ typedef struct {
     uint32_t proven_lower_bound;
     uint32_t best_guess;
 } TTEntry;
-
-#define TT_EMPTY_HASH UINT64_MAX
 
 typedef struct {
     TTEntry* entries;
@@ -395,6 +422,90 @@ static inline TTEntry* tt_find_or_claim(TT* tt, uint64_t h1, uint64_t h2, uint32
         idx = (idx + 1) & tt->mask;
     }
     return NULL;
+}
+
+static void shared_tt_init(SharedTT* stt, uint64_t capacity_pow2) {
+    stt->entries = calloc(capacity_pow2, sizeof(SharedTTEntry));
+    stt->mask = capacity_pow2 - 1;
+    for (uint64_t i = 0; i < capacity_pow2; i++) {
+        atomic_init(&stt->entries[i].hash1, TT_EMPTY_HASH);
+        atomic_init(&stt->entries[i].hash2, TT_EMPTY_HASH);
+        atomic_init(&stt->entries[i].size, 0);
+        atomic_init(&stt->entries[i].exact_cost, UINT32_MAX);
+        atomic_init(&stt->entries[i].proven_lower_bound, 0);
+        atomic_init(&stt->entries[i].best_guess, UINT32_MAX);
+    }
+}
+
+static void shared_tt_free(SharedTT* stt) {
+    if (stt->entries) {
+        free(stt->entries);
+        stt->entries = NULL;
+    }
+}
+
+static inline bool shared_tt_find(SharedTT* stt, uint64_t h1, uint64_t h2, uint32_t size,
+                                  uint32_t* out_exact, uint32_t* out_lb, uint32_t* out_guess) {
+    if (!stt || !stt->entries) return false;
+    uint64_t idx = (h1 ^ h2) & stt->mask;
+    for (uint64_t probe = 0; probe < 16; probe++) {
+        SharedTTEntry* e = &stt->entries[(idx + probe) & stt->mask];
+        uint64_t eh1 = atomic_load_explicit(&e->hash1, memory_order_acquire);
+        if (eh1 == TT_EMPTY_HASH) return false;
+        if (eh1 == h1) {
+            uint64_t eh2 = atomic_load_explicit(&e->hash2, memory_order_acquire);
+            uint32_t esz = atomic_load_explicit(&e->size, memory_order_acquire);
+            if (eh2 == h2 && esz == size) {
+                if (out_exact) *out_exact = atomic_load_explicit(&e->exact_cost, memory_order_relaxed);
+                if (out_lb) *out_lb = atomic_load_explicit(&e->proven_lower_bound, memory_order_relaxed);
+                if (out_guess) *out_guess = atomic_load_explicit(&e->best_guess, memory_order_relaxed);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+static inline void shared_tt_store(SharedTT* stt, uint64_t h1, uint64_t h2, uint32_t size,
+                                   uint32_t exact_cost, uint32_t proven_lb, uint32_t best_guess) {
+    if (!stt || !stt->entries) return;
+    uint64_t idx = (h1 ^ h2) & stt->mask;
+    for (uint64_t probe = 0; probe < 16; probe++) {
+        SharedTTEntry* e = &stt->entries[(idx + probe) & stt->mask];
+        uint64_t eh1 = atomic_load_explicit(&e->hash1, memory_order_acquire);
+        if (eh1 == TT_EMPTY_HASH) {
+            uint64_t expected = TT_EMPTY_HASH;
+            if (atomic_compare_exchange_strong_explicit(&e->hash1, &expected, h1,
+                                                       memory_order_acq_rel, memory_order_acquire)) {
+                atomic_store_explicit(&e->hash2, h2, memory_order_release);
+                atomic_store_explicit(&e->size, size, memory_order_release);
+                atomic_store_explicit(&e->exact_cost, exact_cost, memory_order_release);
+                atomic_store_explicit(&e->proven_lower_bound, proven_lb, memory_order_release);
+                atomic_store_explicit(&e->best_guess, best_guess, memory_order_release);
+                return;
+            }
+            eh1 = atomic_load_explicit(&e->hash1, memory_order_acquire);
+        }
+        if (eh1 == h1) {
+            uint64_t eh2 = atomic_load_explicit(&e->hash2, memory_order_acquire);
+            uint32_t esz = atomic_load_explicit(&e->size, memory_order_acquire);
+            if (eh2 == h2 && esz == size) {
+                if (exact_cost != UINT32_MAX) {
+                    atomic_store_explicit(&e->exact_cost, exact_cost, memory_order_release);
+                }
+                if (proven_lb > 0) {
+                    uint32_t cur_lb = atomic_load_explicit(&e->proven_lower_bound, memory_order_relaxed);
+                    while (proven_lb > cur_lb && !atomic_compare_exchange_weak_explicit(
+                               &e->proven_lower_bound, &cur_lb, proven_lb,
+                               memory_order_release, memory_order_relaxed)) {}
+                }
+                if (best_guess != UINT32_MAX) {
+                    atomic_store_explicit(&e->best_guess, best_guess, memory_order_release);
+                }
+                return;
+            }
+        }
+    }
 }
 
 // -------------------------------------------------------------
@@ -451,6 +562,46 @@ static void solver_free(Solver* s) {
     free(s->dedup_guess);
     free(s->representatives);
     free(s->ranked);
+}
+
+static inline TTEntry* solver_tt_find(Solver* solver, uint64_t h1, uint64_t h2, uint32_t size) {
+    TTEntry* entry = tt_find(&solver->tt, h1, h2, size);
+    if (entry) return entry;
+    if (solver->game && solver->game->shared_tt.entries) {
+        uint32_t s_exact = UINT32_MAX, s_lb = 0, s_guess = UINT32_MAX;
+        if (shared_tt_find(&solver->game->shared_tt, h1, h2, size, &s_exact, &s_lb, &s_guess)) {
+            TTEntry* e = tt_find_or_claim(&solver->tt, h1, h2, size);
+            if (e) {
+                e->exact_cost = s_exact;
+                e->proven_lower_bound = s_lb;
+                e->best_guess = s_guess;
+                return e;
+            }
+        }
+    }
+    return NULL;
+}
+
+static inline void solver_tt_store_exact(Solver* solver, uint64_t h1, uint64_t h2, uint32_t size, uint32_t exact_cost, uint32_t best_guess) {
+    TTEntry* e = tt_find_or_claim(&solver->tt, h1, h2, size);
+    if (e) {
+        e->exact_cost = exact_cost;
+        if (best_guess != UINT32_MAX) e->best_guess = best_guess;
+    }
+    if (solver->game && solver->game->shared_tt.entries) {
+        shared_tt_store(&solver->game->shared_tt, h1, h2, size, exact_cost, exact_cost, best_guess);
+    }
+}
+
+static inline void solver_tt_store_lb(Solver* solver, uint64_t h1, uint64_t h2, uint32_t size, uint32_t lb, uint32_t best_guess) {
+    TTEntry* e = tt_find_or_claim(&solver->tt, h1, h2, size);
+    if (e) {
+        if (lb > e->proven_lower_bound) e->proven_lower_bound = lb;
+        if (best_guess != UINT32_MAX && e->best_guess == UINT32_MAX) e->best_guess = best_guess;
+    }
+    if (solver->game && solver->game->shared_tt.entries) {
+        shared_tt_store(&solver->game->shared_tt, h1, h2, size, UINT32_MAX, lb, best_guess);
+    }
 }
 
 static int compare_ranked_desc(const void* a, const void* b) {
@@ -588,7 +739,7 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
 
     uint32_t node_lb = game->lower_bound[count];
 
-    TTEntry* entry = tt_find(&solver->tt, h1, h2, count);
+    TTEntry* entry = solver_tt_find(solver, h1, h2, count);
     uint32_t suggested_guess = UINT32_MAX;
     if (entry) {
         if (entry->exact_cost != UINT32_MAX) {
@@ -600,9 +751,7 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
     }
 
     if (node_lb >= beta) {
-        TTEntry* e = tt_find_or_claim(&solver->tt, h1, h2, count);
-        if (e && node_lb > e->proven_lower_bound) e->proven_lower_bound = node_lb;
-        if (e && e->best_guess == UINT32_MAX && suggested_guess != UINT32_MAX) e->best_guess = suggested_guess;
+        solver_tt_store_lb(solver, h1, h2, count, node_lb, suggested_guess);
         return node_lb;
     }
 
@@ -666,8 +815,7 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
 
             if (live_count - 1 > sum_coverage) {
                 // Static coverage cutoff: provably cannot distinguish live_count words in remaining moves
-                TTEntry* e = tt_find_or_claim(&solver->tt, h1, h2, count);
-                if (e && beta > e->proven_lower_bound) e->proven_lower_bound = beta;
+                solver_tt_store_lb(solver, h1, h2, count, beta, UINT32_MAX);
                 return beta;
             }
 
@@ -681,8 +829,7 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
                 }
                 uint32_t eg_cost = solve_subset(solver, live_eg, live_count, lh1, lh2, beta, NULL);
                 if (eg_cost >= beta) {
-                    TTEntry* e = tt_find_or_claim(&solver->tt, h1, h2, count);
-                    if (e && eg_cost > e->proven_lower_bound) e->proven_lower_bound = eg_cost;
+                    solver_tt_store_lb(solver, h1, h2, count, eg_cost, UINT32_MAX);
                     return eg_cost;
                 }
             }
@@ -771,18 +918,13 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
 
     // Sound fail-soft cutoff if lb1 >= beta
     if (global_lb1 >= beta) {
-        TTEntry* e = tt_find_or_claim(&solver->tt, h1, h2, count);
-        if (e && global_lb1 > e->proven_lower_bound) e->proven_lower_bound = global_lb1;
+        solver_tt_store_lb(solver, h1, h2, count, global_lb1, UINT32_MAX);
         return global_lb1;
     }
 
     // Exact resolution if ub1 == lb1 (optimal move found without recursion)
     if (global_ub1 == global_lb1 && best_exact_g != UINT32_MAX && global_lb1 < beta) {
-        TTEntry* e = tt_find_or_claim(&solver->tt, h1, h2, count);
-        if (e) {
-            e->exact_cost = global_lb1;
-            e->best_guess = best_exact_g;
-        }
+        solver_tt_store_exact(solver, h1, h2, count, global_lb1, best_exact_g);
         if (out_guess) *out_guess = best_exact_g;
         return global_lb1;
     }
@@ -914,7 +1056,7 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
             }
 
             uint32_t base_lb = game->lower_bound[sz];
-            TTEntry* entry = tt_find(&solver->tt, buckets[b].hash1, buckets[b].hash2, sz);
+            TTEntry* entry = solver_tt_find(solver, buckets[b].hash1, buckets[b].hash2, sz);
             if (entry) {
                 if (entry->exact_cost != UINT32_MAX) {
                     bucket_exact[b] = entry->exact_cost;
@@ -988,8 +1130,7 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
                     uint64_t mh2 = unresolved_buckets[u1].hash2 ^ unresolved_buckets[u2].hash2;
                     uint32_t msize = unresolved_buckets[u1].size + unresolved_buckets[u2].size;
                     uint32_t mlb = u_costs[u1] + u_costs[u2];
-                    TTEntry* me = tt_find_or_claim(&solver->tt, mh1, mh2, msize);
-                    if (me && mlb > me->proven_lower_bound) me->proven_lower_bound = mlb;
+                    solver_tt_store_lb(solver, mh1, mh2, msize, mlb, UINT32_MAX);
                 }
             }
         }
@@ -1002,17 +1143,12 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
         }
     }
 
-    TTEntry* e = tt_find_or_claim(&solver->tt, h1, h2, count);
     if (found_improvement) {
-        if (e) {
-            e->exact_cost = current_best;
-            e->best_guess = best_g;
-        }
+        solver_tt_store_exact(solver, h1, h2, count, current_best, best_g);
         if (out_guess) *out_guess = best_g;
         return current_best;
     } else {
-        if (e && beta > e->proven_lower_bound) e->proven_lower_bound = beta;
-        if (e && e->best_guess == UINT32_MAX) e->best_guess = best_g;
+        solver_tt_store_lb(solver, h1, h2, count, beta, best_g);
         if (out_guess) *out_guess = best_g;
         return beta;
     }
