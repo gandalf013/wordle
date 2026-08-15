@@ -75,6 +75,8 @@ typedef struct {
 
     // score_matrix[g * num_targets + t]
     uint8_t* score_matrix;
+    // score_matrix_transposed[t * num_guesses + g]
+    uint8_t* score_matrix_transposed;
 
     // 128-bit Zobrist hashes
     uint64_t* zobrist1;
@@ -332,6 +334,17 @@ static void init_game_data(GameData* game, int num_threads) {
     free(threads);
     free(args);
 
+    game->score_matrix_transposed = malloc(total_cells * sizeof(uint8_t));
+    if (!game->score_matrix_transposed) {
+        fprintf(stderr, "Fatal: Out of memory allocating transposed score matrix\n");
+        exit(1);
+    }
+    for (size_t g = 0; g < game->num_guesses; g++) {
+        for (size_t t = 0; t < game->num_targets; t++) {
+            game->score_matrix_transposed[t * game->num_guesses + g] = game->score_matrix[g * game->num_targets + t];
+        }
+    }
+
     uint64_t seed1 = 0x853c49e6748fea9bULL;
     uint64_t seed2 = 0xda3e39cb94b95bdbULL;
     game->zobrist1 = malloc(game->num_targets * sizeof(uint64_t));
@@ -351,6 +364,7 @@ static void free_game_data(GameData* game) {
     free(game->targets);
     free(game->guesses);
     free(game->score_matrix);
+    free(game->score_matrix_transposed);
     free(game->zobrist1);
     free(game->zobrist2);
     free(game->lower_bound);
@@ -892,19 +906,23 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
     uint16_t active_scores[count + 1];
 
     if (count <= 8) {
-        uint32_t t0 = targets[0], t1 = targets[1], t2 = (count > 2) ? targets[2] : 0;
-        uint32_t t3 = (count > 3) ? targets[3] : 0, t4 = (count > 4) ? targets[4] : 0;
-        uint32_t t5 = (count > 5) ? targets[5] : 0, t6 = (count > 6) ? targets[6] : 0, t7 = (count > 7) ? targets[7] : 0;
+        const uint8_t* col0 = game->score_matrix_transposed + (size_t)targets[0] * num_guesses;
+        const uint8_t* col1 = game->score_matrix_transposed + (size_t)targets[1] * num_guesses;
+        const uint8_t* col2 = (count > 2) ? game->score_matrix_transposed + (size_t)targets[2] * num_guesses : NULL;
+        const uint8_t* col3 = (count > 3) ? game->score_matrix_transposed + (size_t)targets[3] * num_guesses : NULL;
+        const uint8_t* col4 = (count > 4) ? game->score_matrix_transposed + (size_t)targets[4] * num_guesses : NULL;
+        const uint8_t* col5 = (count > 5) ? game->score_matrix_transposed + (size_t)targets[5] * num_guesses : NULL;
+        const uint8_t* col6 = (count > 6) ? game->score_matrix_transposed + (size_t)targets[6] * num_guesses : NULL;
+        const uint8_t* col7 = (count > 7) ? game->score_matrix_transposed + (size_t)targets[7] * num_guesses : NULL;
 
         for (uint32_t g = 0; g < num_guesses; g++) {
-            const uint8_t* row = matrix + (size_t)g * num_targets;
-            uint64_t sig = (uint64_t)row[t0] | ((uint64_t)row[t1] << 8);
-            if (count > 2) sig |= ((uint64_t)row[t2] << 16);
-            if (count > 3) sig |= ((uint64_t)row[t3] << 24);
-            if (count > 4) sig |= ((uint64_t)row[t4] << 32);
-            if (count > 5) sig |= ((uint64_t)row[t5] << 40);
-            if (count > 6) sig |= ((uint64_t)row[t6] << 48);
-            if (count > 7) sig |= ((uint64_t)row[t7] << 56);
+            uint64_t sig = (uint64_t)col0[g] | ((uint64_t)col1[g] << 8);
+            if (count > 2) sig |= ((uint64_t)col2[g] << 16);
+            if (count > 3) sig |= ((uint64_t)col3[g] << 24);
+            if (count > 4) sig |= ((uint64_t)col4[g] << 32);
+            if (count > 5) sig |= ((uint64_t)col5[g] << 40);
+            if (count > 6) sig |= ((uint64_t)col6[g] << 48);
+            if (count > 7) sig |= ((uint64_t)col7[g] << 56);
 
             uint64_t idx = (sig ^ (sig >> 17) ^ (sig >> 33)) & dedup_mask;
             bool duplicate = false;
@@ -958,14 +976,17 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
             rep_count++;
         }
     } else {
-        for (uint32_t g = 0; g < num_guesses; g++) {
-            const uint8_t* row = matrix + (size_t)g * num_targets;
+        const uint8_t* cols[count];
+        for (uint32_t i = 0; i < count; i++) {
+            cols[i] = game->score_matrix_transposed + (size_t)targets[i] * num_guesses;
+        }
 
+        for (uint32_t g = 0; g < num_guesses; g++) {
             uint64_t ph1 = 1469598103934665603ULL;
             uint64_t ph2 = 1099511628211ULL;
 
             for (uint32_t i = 0; i < count; i++) {
-                uint8_t sc = row[targets[i]];
+                uint8_t sc = cols[i][g];
                 ph1 = (ph1 ^ sc) * 1099511628211ULL;
                 ph2 = (ph2 ^ sc) * 1469598103934665603ULL;
             }
@@ -989,7 +1010,7 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
 
             uint32_t num_active = 0;
             for (uint32_t i = 0; i < count; i++) {
-                uint8_t sc = row[targets[i]];
+                uint8_t sc = cols[i][g];
                 if (hist[sc] == 0) active_scores[num_active++] = sc;
                 hist[sc]++;
             }
