@@ -836,6 +836,47 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
         }
     }
 
+    // ---- O(|H|^2) Target-Only Instant Resolution Pre-Check ----
+    // Tests only the |H| candidate targets first. If any target achieves a perfect
+    // split (2n-1) or single-pair split (2n), it is provably optimal across all 14,855
+    // allowable guesses, allowing complete bypass of the candidate sweep.
+    uint32_t good_target = UINT32_MAX;
+    uint32_t t_counts[NUM_SCORES] = {0};
+    uint16_t t_active[count + 1];
+
+    for (uint32_t i = 0; i < count; i++) {
+        uint32_t t = targets[i];
+        const uint8_t* row = matrix + (size_t)t * num_targets;
+        uint32_t bad = 0;
+        uint32_t n_act = 0;
+        for (uint32_t j = 0; j < count; j++) {
+            uint8_t sc = row[targets[j]];
+            if (t_counts[sc] == 0) t_active[n_act++] = sc;
+            t_counts[sc]++;
+            if (t_counts[sc] >= 2) bad++;
+        }
+        for (uint32_t k = 0; k < n_act; k++) t_counts[t_active[k]] = 0;
+
+        if (bad == 0) {
+            uint32_t cost = 2 * count - 1;
+            solver_tt_store_exact(solver, h1, h2, count, cost, t);
+            if (out_guess) *out_guess = t;
+            return cost;
+        }
+        if (bad == 1 && good_target == UINT32_MAX) {
+            good_target = t;
+        }
+    }
+
+    if (good_target != UINT32_MAX) {
+        uint32_t cost = 2 * count;
+        if (cost < beta) {
+            solver_tt_store_exact(solver, h1, h2, count, cost, good_target);
+            if (out_guess) *out_guess = good_target;
+            return cost;
+        }
+    }
+
     // ---- Fused Dedup + Histogram + Move Ordering + lb1 Computation ----
     solver->call_id++;
     uint64_t call_id = solver->call_id;
