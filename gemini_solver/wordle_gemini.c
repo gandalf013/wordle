@@ -523,30 +523,50 @@ static inline void shared_tt_store(SharedTT* stt, uint64_t h1, uint64_t h2, uint
 }
 
 // -------------------------------------------------------------
-// Solver Context
+// Fast Inlined 64-bit Introsort (Zero Function Pointers)
 // -------------------------------------------------------------
 
-typedef struct {
-    uint32_t guess_idx;
-    uint32_t active_buckets;
-    uint32_t sum_sq;
-    uint32_t lb;
-    bool is_exact_lb;
-} RankedCandidate;
+static inline void sort64_asc(uint64_t* a, size_t n) {
+    while (n > 16) {
+        size_t mid = n / 2;
+        if (a[0] > a[mid]) { uint64_t t = a[0]; a[0] = a[mid]; a[mid] = t; }
+        if (a[0] > a[n - 1]) { uint64_t t = a[0]; a[0] = a[n - 1]; a[n - 1] = t; }
+        if (a[mid] > a[n - 1]) { uint64_t t = a[mid]; a[mid] = a[n - 1]; a[n - 1] = t; }
+
+        uint64_t pivot = a[mid];
+        size_t i = 0, j = n - 1;
+        while (1) {
+            while (a[i] < pivot) i++;
+            while (a[j] > pivot) j--;
+            if (i >= j) break;
+            uint64_t t = a[i]; a[i] = a[j]; a[j] = t;
+            i++;
+            j--;
+        }
+        if (i < n - i) {
+            sort64_asc(a, i);
+            a += i;
+            n -= i;
+        } else {
+            sort64_asc(a + i, n - i);
+            n = i;
+        }
+    }
+    for (size_t i = 1; i < n; i++) {
+        uint64_t key = a[i];
+        size_t j = i;
+        while (j > 0 && a[j - 1] > key) {
+            a[j] = a[j - 1];
+            j--;
+        }
+        a[j] = key;
+    }
+}
 
 typedef struct {
     GameData* game;
     TT tt;
-
-    // 128-bit Dedup scratch
-    uint64_t* dedup_stamp;
-    uint64_t* dedup_hash1;
-    uint64_t* dedup_hash2;
-    uint32_t* dedup_guess;
-    uint64_t call_id;
-
-    uint32_t* representatives;
-    RankedCandidate* ranked;
+    uint64_t* candidate_keys; // 8 layers of num_guesses uint64_t keys
     uint64_t nodes_visited;
 } Solver;
 
@@ -557,25 +577,13 @@ static void solver_init(Solver* s, GameData* game) {
     if (tt_cap > (1u << 24)) tt_cap = 1u << 24;
     tt_init(&s->tt, tt_cap);
 
-    uint64_t dedup_cap = next_pow2((uint64_t)game->num_guesses * 2);
-    s->dedup_stamp = calloc(dedup_cap, sizeof(uint64_t));
-    s->dedup_hash1 = malloc(dedup_cap * sizeof(uint64_t));
-    s->dedup_hash2 = malloc(dedup_cap * sizeof(uint64_t));
-    s->dedup_guess = malloc(dedup_cap * sizeof(uint32_t));
-    s->call_id = 0;
-    s->representatives = malloc((size_t)game->num_guesses * sizeof(uint32_t));
-    s->ranked = malloc(8 * (size_t)game->num_guesses * sizeof(RankedCandidate));
+    s->candidate_keys = malloc(8 * (size_t)game->num_guesses * sizeof(uint64_t));
     s->nodes_visited = 0;
 }
 
 static void solver_free(Solver* s) {
     tt_free(&s->tt);
-    free(s->dedup_stamp);
-    free(s->dedup_hash1);
-    free(s->dedup_hash2);
-    free(s->dedup_guess);
-    free(s->representatives);
-    free(s->ranked);
+    free(s->candidate_keys);
 }
 
 static inline TTEntry* solver_tt_find(Solver* solver, uint64_t h1, uint64_t h2, uint32_t size) {
@@ -616,15 +624,6 @@ static inline void solver_tt_store_lb(Solver* solver, uint64_t h1, uint64_t h2, 
     if (solver->game && solver->game->shared_tt.entries) {
         shared_tt_store(&solver->game->shared_tt, h1, h2, size, UINT32_MAX, lb, best_guess);
     }
-}
-
-static int compare_ranked_desc(const void* a, const void* b) {
-    const RankedCandidate* ra = (const RankedCandidate*)a;
-    const RankedCandidate* rb = (const RankedCandidate*)b;
-    if (ra->sum_sq != rb->sum_sq) return (ra->sum_sq < rb->sum_sq) ? -1 : 1;
-    if (ra->lb != rb->lb) return (ra->lb < rb->lb) ? -1 : 1;
-    if (ra->active_buckets != rb->active_buckets) return (ra->active_buckets > rb->active_buckets) ? -1 : 1;
-    return (ra->guess_idx < rb->guess_idx) ? -1 : (ra->guess_idx > rb->guess_idx ? 1 : 0);
 }
 
 typedef struct {
@@ -891,13 +890,8 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
         }
     }
 
-    // ---- Fused Dedup + Histogram + Move Ordering + lb1 Computation ----
-    solver->call_id++;
-    uint64_t call_id = solver->call_id;
-    uint64_t dedup_mask = next_pow2((uint64_t)num_guesses * 2) - 1;
-    uint32_t rep_count = 0;
-
-    RankedCandidate* ranked = solver->ranked + (size_t)(depth < 7 ? depth : 7) * num_guesses;
+    // ---- Fast Move Ordering & lb1 Computation ----
+    uint64_t* candidate_keys = solver->candidate_keys + (size_t)(depth < 7 ? depth : 7) * num_guesses;
     uint32_t global_lb1 = UINT32_MAX;
     uint32_t global_ub1 = UINT32_MAX;
     uint32_t best_exact_g = UINT32_MAX;
@@ -923,22 +917,6 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
             if (count > 5) sig |= ((uint64_t)col5[g] << 40);
             if (count > 6) sig |= ((uint64_t)col6[g] << 48);
             if (count > 7) sig |= ((uint64_t)col7[g] << 56);
-
-            uint64_t idx = (sig ^ (sig >> 17) ^ (sig >> 33)) & dedup_mask;
-            bool duplicate = false;
-            while (solver->dedup_stamp[idx] == call_id) {
-                if (solver->dedup_hash1[idx] == sig) {
-                    duplicate = true;
-                    break;
-                }
-                idx = (idx + 1) & dedup_mask;
-            }
-            if (duplicate) continue;
-
-            solver->dedup_stamp[idx] = call_id;
-            solver->dedup_hash1[idx] = sig;
-            solver->dedup_guess[idx] = g;
-            solver->representatives[rep_count] = g;
 
             uint32_t num_active = 0;
             for (uint32_t i = 0; i < count; i++) {
@@ -966,14 +944,21 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
                 best_exact_g = g;
             }
 
-            ranked[rep_count] = (RankedCandidate){
-                .guess_idx = g,
-                .active_buckets = num_active,
-                .sum_sq = sum_sq,
-                .lb = guess_lb,
-                .is_exact_lb = max_bucket_le_2
-            };
-            rep_count++;
+            if (sum_sq == count) {
+                if (hist[EXACT_MATCH] > 0) {
+                    uint32_t cost = 2 * count - 1;
+                    solver_tt_store_exact(solver, h1, h2, count, cost, g);
+                    if (out_guess) *out_guess = g;
+                    return cost;
+                }
+                if (2 * count < beta) {
+                    solver_tt_store_exact(solver, h1, h2, count, 2 * count, g);
+                    if (out_guess) *out_guess = g;
+                    return 2 * count;
+                }
+            }
+
+            candidate_keys[g] = ((uint64_t)(2 * sum_sq + count * guess_lb) << 32) | (uint64_t)g;
         }
     } else {
         const uint8_t* cols[count];
@@ -982,32 +967,6 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
         }
 
         for (uint32_t g = 0; g < num_guesses; g++) {
-            uint64_t ph1 = 1469598103934665603ULL;
-            uint64_t ph2 = 1099511628211ULL;
-
-            for (uint32_t i = 0; i < count; i++) {
-                uint8_t sc = cols[i][g];
-                ph1 = (ph1 ^ sc) * 1099511628211ULL;
-                ph2 = (ph2 ^ sc) * 1469598103934665603ULL;
-            }
-
-            uint64_t idx = (ph1 ^ ph2) & dedup_mask;
-            bool duplicate = false;
-            while (solver->dedup_stamp[idx] == call_id) {
-                if (solver->dedup_hash1[idx] == ph1 && solver->dedup_hash2[idx] == ph2) {
-                    duplicate = true;
-                    break;
-                }
-                idx = (idx + 1) & dedup_mask;
-            }
-            if (duplicate) continue;
-
-            solver->dedup_stamp[idx] = call_id;
-            solver->dedup_hash1[idx] = ph1;
-            solver->dedup_hash2[idx] = ph2;
-            solver->dedup_guess[idx] = g;
-            solver->representatives[rep_count] = g;
-
             uint32_t num_active = 0;
             for (uint32_t i = 0; i < count; i++) {
                 uint8_t sc = cols[i][g];
@@ -1034,14 +993,7 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
                 best_exact_g = g;
             }
 
-            ranked[rep_count] = (RankedCandidate){
-                .guess_idx = g,
-                .active_buckets = num_active,
-                .sum_sq = sum_sq,
-                .lb = guess_lb,
-                .is_exact_lb = max_bucket_le_2
-            };
-            rep_count++;
+            candidate_keys[g] = ((uint64_t)(2 * sum_sq + count * guess_lb) << 32) | (uint64_t)g;
         }
     }
 
@@ -1058,14 +1010,14 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
         return global_lb1;
     }
 
-    qsort(ranked, rep_count, sizeof(RankedCandidate), compare_ranked_desc);
+    sort64_asc(candidate_keys, num_guesses);
 
     if (suggested_guess != UINT32_MAX) {
-        for (uint32_t r = 0; r < rep_count; r++) {
-            if (ranked[r].guess_idx == suggested_guess) {
-                RankedCandidate tmp = ranked[0];
-                ranked[0] = ranked[r];
-                ranked[r] = tmp;
+        for (uint32_t r = 0; r < num_guesses; r++) {
+            if ((uint32_t)candidate_keys[r] == suggested_guess) {
+                uint64_t tmp = candidate_keys[0];
+                candidate_keys[0] = candidate_keys[r];
+                candidate_keys[r] = tmp;
                 break;
             }
         }
@@ -1073,25 +1025,15 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
 
     // ---- Main Branch-and-Bound Loop ----
     uint32_t current_best = beta;
-    uint32_t best_g = ranked[0].guess_idx;
+    uint32_t best_g = (uint32_t)candidate_keys[0];
     bool found_improvement = false;
 
     uint32_t local_partition[count];
     uint32_t offsets[NUM_SCORES + 1];
     BucketInfo buckets[NUM_SCORES];
 
-    for (uint32_t c = 0; c < rep_count; c++) {
-        uint32_t g = ranked[c].guess_idx;
-        if (ranked[c].lb >= current_best) continue;
-
-        if (ranked[c].is_exact_lb) {
-            current_best = ranked[c].lb;
-            best_g = g;
-            found_improvement = true;
-            if (current_best <= node_lb) break;
-            continue;
-        }
-
+    for (uint32_t c = 0; c < num_guesses; c++) {
+        uint32_t g = (uint32_t)candidate_keys[c];
         const uint8_t* row = matrix + (size_t)g * num_targets;
 
         uint32_t active_buckets = 0;
