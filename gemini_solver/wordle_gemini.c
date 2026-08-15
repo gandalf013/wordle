@@ -772,87 +772,6 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
         return node_lb;
     }
 
-    // ---- Endgame Cluster Static Analysis ----
-    if (count >= MIN_ENDGAME_COUNT) {
-        uint32_t eg_counts[MAX_ENDGAMES] = {0};
-        uint32_t max_eg_count = 0;
-        int biggest_eg = -1;
-
-        for (uint32_t i = 0; i < count; i++) {
-            uint32_t tid = targets[i];
-            uint32_t eg_cnt = game->target_endgame_counts[tid];
-            for (uint32_t k = 0; k < eg_cnt; k++) {
-                uint32_t eg_id = game->target_endgames[tid][k];
-                eg_counts[eg_id]++;
-                if (eg_counts[eg_id] > max_eg_count) {
-                    max_eg_count = eg_counts[eg_id];
-                    biggest_eg = (int)eg_id;
-                }
-            }
-        }
-
-        if (biggest_eg >= 0 && max_eg_count >= MIN_ENDGAME_COUNT) {
-            // Live endgame target indices
-            uint32_t live_eg[128];
-            uint32_t live_count = 0;
-
-            for (uint32_t i = 0; i < count; i++) {
-                uint32_t tid = targets[i];
-                for (uint32_t k = 0; k < game->target_endgame_counts[tid]; k++) {
-                    if (game->target_endgames[tid][k] == (uint32_t)biggest_eg) {
-                        live_eg[live_count++] = tid;
-                        break;
-                    }
-                }
-            }
-
-            // Exact Selby letter distinguishability coverage analysis
-            uint32_t mult[6] = {0};
-            for (uint32_t g = 0; g < num_guesses; g++) {
-                const uint8_t* row = matrix + (size_t)g * num_targets;
-                uint8_t seen[NUM_SCORES] = {0};
-                uint32_t n_distinct = 0;
-                for (uint32_t j = 0; j < live_count; j++) {
-                    uint8_t sc = row[live_eg[j]];
-                    if (!seen[sc]) {
-                        seen[sc] = 1;
-                        n_distinct++;
-                    }
-                }
-                if (n_distinct >= 1 && n_distinct <= 6) mult[n_distinct - 1]++;
-            }
-
-            uint32_t sum_coverage = 0;
-            uint32_t r = 5;
-            for (int n = 5; n > 0 && r > 0; n--) {
-                uint32_t r1 = (r < mult[n]) ? r : mult[n];
-                sum_coverage += r1 * (uint32_t)n;
-                r -= r1;
-            }
-
-            if (live_count - 1 > sum_coverage) {
-                // Static coverage cutoff: provably cannot distinguish live_count words in remaining moves
-                solver_tt_store_lb(solver, h1, h2, count, beta, UINT32_MAX);
-                return beta;
-            }
-
-            int32_t heuristic = (int32_t)5 - (int32_t)(sum_coverage - (live_count - 1));
-            // Live endgame subsearch with Selby heuristic gating
-            if (heuristic > 0 && live_count < count) {
-                uint64_t lh1 = 0, lh2 = 0;
-                for (uint32_t j = 0; j < live_count; j++) {
-                    lh1 ^= game->zobrist1[live_eg[j]];
-                    lh2 ^= game->zobrist2[live_eg[j]];
-                }
-                uint32_t eg_cost = solve_subset(solver, live_eg, live_count, lh1, lh2, beta, NULL, depth + 1);
-                if (eg_cost >= beta) {
-                    solver_tt_store_lb(solver, h1, h2, count, eg_cost, UINT32_MAX);
-                    return eg_cost;
-                }
-            }
-        }
-    }
-
     // ---- O(|H|^2) Target-Only Instant Resolution Pre-Check ----
     // Tests only the |H| candidate targets first. If any target achieves a perfect
     // split (2n-1) or single-pair split (2n), it is provably optimal across all 14,855
@@ -900,8 +819,7 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
     uint32_t global_ub1 = UINT32_MAX;
     uint32_t best_exact_g = UINT32_MAX;
 
-    uint32_t hist[NUM_SCORES] = {0};
-    uint16_t active_scores[count + 1];
+    uint8_t counts[NUM_SCORES] = {0};
 
     if (count <= 8) {
         const uint8_t* col0 = game->score_matrix_transposed + (size_t)targets[0] * num_guesses;
@@ -914,33 +832,29 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
         const uint8_t* col7 = (count > 7) ? game->score_matrix_transposed + (size_t)targets[7] * num_guesses : NULL;
 
         for (uint32_t g = 0; g < num_guesses; g++) {
-            uint64_t sig = (uint64_t)col0[g] | ((uint64_t)col1[g] << 8);
-            if (count > 2) sig |= ((uint64_t)col2[g] << 16);
-            if (count > 3) sig |= ((uint64_t)col3[g] << 24);
-            if (count > 4) sig |= ((uint64_t)col4[g] << 32);
-            if (count > 5) sig |= ((uint64_t)col5[g] << 40);
-            if (count > 6) sig |= ((uint64_t)col6[g] << 48);
-            if (count > 7) sig |= ((uint64_t)col7[g] << 56);
-
-            uint32_t num_active = 0;
-            for (uint32_t i = 0; i < count; i++) {
-                uint8_t sc = (uint8_t)(sig >> (i * 8));
-                if (hist[sc] == 0) active_scores[num_active++] = sc;
-                hist[sc]++;
-            }
-
-            uint32_t sum_sq = 0;
+            uint32_t s2 = 0;
             uint32_t guess_lb = count;
             bool max_bucket_le_2 = true;
 
-            for (uint32_t k = 0; k < num_active; k++) {
-                uint16_t s = active_scores[k];
-                uint32_t sz = hist[s];
-                sum_sq += sz * sz;
-                if (s != EXACT_MATCH) guess_lb += game->lower_bound[sz];
-                if (sz > 2) max_bucket_le_2 = false;
-                hist[s] = 0; // Reset
-            }
+            uint8_t sc0 = col0[g]; uint8_t c0 = ++counts[sc0]; s2 += 2 * c0 - 1; guess_lb += 2 - (c0 == 1); max_bucket_le_2 &= (c0 <= 2);
+            uint8_t sc1 = col1[g]; uint8_t c1 = ++counts[sc1]; s2 += 2 * c1 - 1; guess_lb += 2 - (c1 == 1); max_bucket_le_2 &= (c1 <= 2);
+            uint8_t sc2 = 0, sc3 = 0, sc4 = 0, sc5 = 0, sc6 = 0, sc7 = 0;
+            if (count > 2) { sc2 = col2[g]; uint8_t c2 = ++counts[sc2]; s2 += 2 * c2 - 1; guess_lb += 2 - (c2 == 1); max_bucket_le_2 &= (c2 <= 2); }
+            if (count > 3) { sc3 = col3[g]; uint8_t c3 = ++counts[sc3]; s2 += 2 * c3 - 1; guess_lb += 2 - (c3 == 1); max_bucket_le_2 &= (c3 <= 2); }
+            if (count > 4) { sc4 = col4[g]; uint8_t c4 = ++counts[sc4]; s2 += 2 * c4 - 1; guess_lb += 2 - (c4 == 1); max_bucket_le_2 &= (c4 <= 2); }
+            if (count > 5) { sc5 = col5[g]; uint8_t c5 = ++counts[sc5]; s2 += 2 * c5 - 1; guess_lb += 2 - (c5 == 1); max_bucket_le_2 &= (c5 <= 2); }
+            if (count > 6) { sc6 = col6[g]; uint8_t c6 = ++counts[sc6]; s2 += 2 * c6 - 1; guess_lb += 2 - (c6 == 1); max_bucket_le_2 &= (c6 <= 2); }
+            if (count > 7) { sc7 = col7[g]; uint8_t c7 = ++counts[sc7]; s2 += 2 * c7 - 1; guess_lb += 2 - (c7 == 1); max_bucket_le_2 &= (c7 <= 2); }
+
+            guess_lb -= counts[EXACT_MATCH];
+
+            counts[sc0] = 0; counts[sc1] = 0;
+            if (count > 2) counts[sc2] = 0;
+            if (count > 3) counts[sc3] = 0;
+            if (count > 4) counts[sc4] = 0;
+            if (count > 5) counts[sc5] = 0;
+            if (count > 6) counts[sc6] = 0;
+            if (count > 7) counts[sc7] = 0;
 
             if (guess_lb < global_lb1) global_lb1 = guess_lb;
             if (max_bucket_le_2 && guess_lb < global_ub1) {
@@ -948,8 +862,11 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
                 best_exact_g = g;
             }
 
-            if (sum_sq == count) {
-                if (hist[EXACT_MATCH] > 0) {
+            if (s2 == count) {
+                if (sc0 == EXACT_MATCH || sc1 == EXACT_MATCH || (count > 2 && sc2 == EXACT_MATCH) ||
+                    (count > 3 && sc3 == EXACT_MATCH) || (count > 4 && sc4 == EXACT_MATCH) ||
+                    (count > 5 && sc5 == EXACT_MATCH) || (count > 6 && sc6 == EXACT_MATCH) ||
+                    (count > 7 && sc7 == EXACT_MATCH)) {
                     uint32_t cost = 2 * count - 1;
                     solver_tt_store_exact(solver, h1, h2, count, cost, g);
                     if (out_guess) *out_guess = g;
@@ -962,7 +879,7 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
                 }
             }
 
-            candidate_keys[g] = ((uint64_t)(2 * sum_sq + count * guess_lb) << 32) | ((uint64_t)(guess_lb & 0xFFFF) << 16) | (uint64_t)g;
+            candidate_keys[g] = ((uint64_t)(2 * s2 + count * guess_lb) << 32) | ((uint64_t)(guess_lb & 0xFFFF) << 16) | (uint64_t)g;
         }
     } else {
         const uint8_t* cols[count];
@@ -971,25 +888,21 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
         }
 
         for (uint32_t g = 0; g < num_guesses; g++) {
-            uint32_t num_active = 0;
-            for (uint32_t i = 0; i < count; i++) {
-                uint8_t sc = cols[i][g];
-                if (hist[sc] == 0) active_scores[num_active++] = sc;
-                hist[sc]++;
-            }
-
-            uint32_t sum_sq = 0;
+            uint32_t s2 = 0;
             uint32_t guess_lb = count;
             bool max_bucket_le_2 = true;
 
-            for (uint32_t k = 0; k < num_active; k++) {
-                uint16_t s = active_scores[k];
-                uint32_t sz = hist[s];
-                sum_sq += sz * sz;
-                if (s != EXACT_MATCH) guess_lb += game->lower_bound[sz];
-                if (sz > 2) max_bucket_le_2 = false;
-                hist[s] = 0; // Reset
+            for (uint32_t i = 0; i < count; i++) {
+                uint8_t sc = cols[i][g];
+                uint8_t c = ++counts[sc];
+                s2 += 2 * c - 1;
+                guess_lb += 2 - (c == 1);
+                if (c > 2) max_bucket_le_2 = false;
             }
+
+            guess_lb -= counts[EXACT_MATCH];
+
+            for (uint32_t i = 0; i < count; i++) counts[cols[i][g]] = 0;
 
             if (guess_lb < global_lb1) global_lb1 = guess_lb;
             if (max_bucket_le_2 && guess_lb < global_ub1) {
@@ -997,7 +910,7 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
                 best_exact_g = g;
             }
 
-            candidate_keys[g] = ((uint64_t)(2 * sum_sq + count * guess_lb) << 32) | ((uint64_t)(guess_lb & 0xFFFF) << 16) | (uint64_t)g;
+            candidate_keys[g] = ((uint64_t)(2 * s2 + count * guess_lb) << 32) | ((uint64_t)(guess_lb & 0xFFFF) << 16) | (uint64_t)g;
         }
     }
 
@@ -1035,6 +948,8 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
     uint32_t local_partition[count];
     uint32_t offsets[NUM_SCORES + 1];
     BucketInfo buckets[NUM_SCORES];
+    uint32_t hist[NUM_SCORES] = {0};
+    uint16_t active_scores[count + 1];
 
     uint32_t limit = solver->max_candidates < num_guesses ? solver->max_candidates : num_guesses;
     for (uint32_t c = 0; c < limit; c++) {
