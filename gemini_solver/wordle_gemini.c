@@ -7,7 +7,7 @@
 // 2. Fast 1-Ply Greedy Aspiration Seeding for root beta bounds.
 // 3. Fused single-pass candidate loop (dedup + histogram + variance + lb1/ub1).
 // 4. Node-level lb1 fail-soft cutoffs and ub1==lb1 exact resolutions.
-// 5. Precomputed wildcard endgame clusters and static coverage bounds.
+// 5. Inlined 64-bit Introsort and 1-cycle register lower bound branch pruning.
 // 6. Easy-mode disjoint-union bound propagation.
 // 7. Correct per-bucket node count reporting in parallel mode.
 // 8. Decision tree JSON export compatible with strategies.py.
@@ -550,11 +550,17 @@ static uint32_t solve_greedy_tree(GameData* game, const uint32_t* targets, uint3
             }
         }
 
+        if (active <= 1) continue; // Zero-info guess
+
         if (sum_sq < min_sum_sq || (sum_sq == min_sum_sq && active > max_active)) {
             min_sum_sq = sum_sq;
             max_active = active;
             best_g = g;
         }
+    }
+
+    if (best_g == UINT32_MAX) {
+        best_g = targets[0]; // Fallback to first target
     }
 
     const uint8_t* row = game->score_matrix + (size_t)best_g * game->num_targets;
@@ -1620,14 +1626,24 @@ int main(int argc, char** argv) {
         printf("Evaluating opener: '%s' to exact mathematical optimality...\n", game.guesses[opener_idx].word);
         OpenerResult res = evaluate_opener_parallel(&game, opener_idx, num_threads);
 
-        printf("\n======================= EXACT RESULT =======================\n");
-        printf("  Opener:               %-5s\n", game.guesses[opener_idx].word);
-        printf("  Total Target Words:   %u\n", game.num_targets);
-        printf("  Exact Total Guesses:  %u\n", res.exact_total_cost);
-        printf("  Exact Average Score:  %.5f guesses/game\n", res.avg_guesses);
-        printf("  Computation Time:     %.3f seconds\n", res.time_sec);
-        printf("  Tree Nodes Visited:   %llu\n", (unsigned long long)res.nodes);
-        printf("============================================================\n");
+        if (res.is_exact) {
+            printf("\n======================= EXACT RESULT =======================\n");
+            printf("  Opener:               %-5s\n", game.guesses[opener_idx].word);
+            printf("  Total Target Words:   %u\n", game.num_targets);
+            printf("  Exact Total Guesses:  %u\n", res.exact_total_cost);
+            printf("  Exact Average Score:  %.5f guesses/game\n", res.avg_guesses);
+            printf("  Computation Time:     %.3f seconds\n", res.time_sec);
+            printf("  Tree Nodes Visited:   %llu\n", (unsigned long long)res.nodes);
+            printf("============================================================\n");
+        } else {
+            printf("\n====================== PRUNED RESULT =======================\n");
+            printf("  Opener:               %-5s (Pruned)\n", game.guesses[opener_idx].word);
+            printf("  Total Target Words:   %u\n", game.num_targets);
+            printf("  Status:               Exceeds Aspiration Bound\n");
+            printf("  Computation Time:     %.3f seconds\n", res.time_sec);
+            printf("  Tree Nodes Visited:   %llu\n", (unsigned long long)res.nodes);
+            printf("============================================================\n");
+        }
 
         if (tree_dump_path) {
             printf("\nBuilding full decision tree for opener '%s'...\n", game.guesses[opener_idx].word);
