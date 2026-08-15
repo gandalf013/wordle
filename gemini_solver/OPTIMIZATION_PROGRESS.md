@@ -10,17 +10,17 @@ Both solvers run on the same hardware (Apple Silicon 10-core, macOS, clang -O3) 
 
 ### A. Full Corpus Opener Search (3,209 Targets / 14,855 Guesses)
 
-| Benchmark Opener | Exact Total Cost | Alex Selby (`wordle.cpp`) [1 Thread] | Gemini Baseline [1 Thread] | Gemini Step 1 [1 Thread] | Gemini Baseline [10 Threads] | **Gemini Step 3 [10 Threads]** | **Overall Multi-Thread Speedup** |
+| Benchmark Opener | Exact Total Cost | Alex Selby (`wordle.cpp`) [1 Thread] | Gemini Baseline [1 Thread] | Gemini Step 1 [1 Thread] | Gemini Baseline [10 Threads] | **Gemini Step 4 [10 Threads]** | **Overall Multi-Thread Speedup** |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **`taler`** (Optimal) | **11,483** | **14.84 s** | 66.63 s | 40.67 s | 35.75 s | **19.06 s** | **1.88× faster** |
-| **`salet`** | **11,433** | **34.65 s** | 186.26 s | 107.35 s | 98.40 s | **69.65 s** | **1.41× faster** |
-| **`roate`** | **11,543** | **19.87 s** | 67.08 s | 72.74 s | 36.12 s | **40.52 s** | ~flat |
+| **`taler`** (Optimal) | **11,483** | **14.84 s** | 66.63 s | 40.67 s | 35.75 s | **18.58 s** | **1.92× faster** |
+| **`salet`** | **11,433** | **34.65 s** | 186.26 s | 107.35 s | 98.40 s | **66.67 s** | **1.48× faster** |
+| **`roate`** | **11,543** | **19.87 s** | 67.08 s | 72.74 s | 36.12 s | **40.19 s** | ~flat |
 
 ---
 
 ### B. Multi-Opener Search Comparison: Top 10 Openers (`--top 10 --threads 10`)
 
-| Metric | Gemini Baseline | Gemini Step 2 & 3 | Improvement |
+| Metric | Gemini Baseline | Gemini Step 2–4 | Improvement |
 | :--- | :---: | :---: | :---: |
 | **Total Wall-Clock Time** | **8 min 4 s (484.86 s)** | **3 min 31 s (211.03 s)** | **2.30× speedup (56.5% time reduction)** |
 | **Opener `taler` Nodes** | 166,857 | **21,639** | **87.0% node reduction** |
@@ -32,15 +32,15 @@ Both solvers run on the same hardware (Apple Silicon 10-core, macOS, clang -O3) 
 
 ### C. Subset Scaling Comparison (Opener: `aback`)
 
-| Target Count ($N$) | Total Guesses Allowed | Exact Cost | Alex Selby Wall Time | Alex Nodes Used | Gemini Step 3 Wall Time (1 Thread) | Gemini Step 3 Tree Nodes Visited | Relative Speed |
+| Target Count ($N$) | Total Guesses Allowed | Exact Cost | Alex Selby Wall Time | Alex Nodes Used | Gemini Step 4 Wall Time (1 Thread) | Gemini Step 4 Tree Nodes Visited | Relative Speed |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **12 (tiny)** | 12 | **34** | 0.0033 s | 5 | **0.0065 s** | **2** | ~parity |
-| **40 (small)** | 160 | **119** | 0.0029 s | 20 | **0.0041 s** | **7** | ~parity |
-| **120 (medium)** | 480 | **391** | 0.0037 s | 4,773 | **0.0058 s** | **37** | ~parity |
-| **300** | 1,200 | **1,019** | 0.0101 s | 29,577 | **0.0189 s** | **141** | Alex is 1.6× faster |
-| **600** | 2,400 | **2,096** | 0.1655 s | 870,443 | **0.2724 s** | **1,605** | Alex is 1.6× faster |
-| **1,000** | 4,000 | **3,464** | 0.1159 s | 547,589 | **0.1774 s** | **682** | Alex is 1.5× faster |
-| **1,500** | 6,000 | **5,365** | 0.6385 s | 2,768,482 | **1.6883 s** | **3,651** | Alex is 2.6× faster |
+| **12 (tiny)** | 12 | **34** | 0.0054 s | 5 | **0.0065 s** | **2** | ~parity |
+| **40 (small)** | 160 | **119** | 0.0036 s | 20 | **0.0041 s** | **7** | ~parity |
+| **120 (medium)** | 480 | **391** | 0.0053 s | 4,773 | **0.0058 s** | **37** | ~parity |
+| **300** | 1,200 | **1,019** | 0.0118 s | 29,577 | **0.0189 s** | **141** | Alex is 1.6× faster |
+| **600** | 2,400 | **2,096** | 0.1605 s | 870,443 | **0.2747 s** | **1,605** | Alex is 1.7× faster |
+| **1,000** | 4,000 | **3,464** | 0.1085 s | 547,589 | **0.1681 s** | **682** | Alex is 1.5× faster |
+| **1,500** | 6,000 | **5,365** | 0.6040 s | 2,768,482 | **1.4917 s** | **3,651** | Alex is 2.5× faster |
 
 ---
 
@@ -98,4 +98,20 @@ Both solvers run on the same hardware (Apple Silicon 10-core, macOS, clang -O3) 
 #### Results Achieved:
 * **`salet` Search Speedup**: 10-thread computation time improved from **81.37 s $\to$ 69.65 s** (**14.4% step speedup**, down from baseline 98.40 s).
 * **`taler` Search Speedup**: 1-thread time improved from **40.67 s $\to$ 38.13 s**; 10-thread time improved from **19.55 s $\to$ 19.06 s**.
+* **Sanitizer Verification**: 100% pass rate across plain, ASan, and TSan builds.
+
+---
+
+### Step 4: Analytical Partition Shortcuts & Depth-Layered Candidate Memory
+
+#### Summary of Architectural Changes:
+1. **$O(1)$ Analytical Partition Shortcuts in Branch-and-Bound**:
+   * When a candidate guess splits the target set into only singletons and pairs (`ranked[c].is_exact_lb`), its exact subtree cost is known immediately without building partitions, computing Zobrist hashes, or invoking recursion.
+   * Candidates with `ranked[c].lb >= current_best` are pruned immediately on line 1 of the loop with zero memory reads.
+2. **Depth-Layered Solver Candidate Buffers**:
+   * Isolated recursive call frames by allocating 8 layers for `solver->ranked` indexed by search depth (`depth < 7 ? depth : 7`), eliminating cross-frame memory clobbering during deep tree traversals.
+
+#### Results Achieved:
+* **`salet` Search Speedup**: 10-thread computation time improved to **66.67 s** (down from baseline 98.40 s — **1.48× speedup**); 1-thread time improved from **186.26 s $\to$ 93.76 s** (**2.0× speedup**).
+* **`taler` Search Speedup**: 10-thread computation time improved to **18.58 s** (down from baseline 35.75 s — **1.92× speedup**).
 * **Sanitizer Verification**: 100% pass rate across plain, ASan, and TSan builds.

@@ -550,7 +550,7 @@ static void solver_init(Solver* s, GameData* game) {
     s->dedup_guess = malloc(dedup_cap * sizeof(uint32_t));
     s->call_id = 0;
     s->representatives = malloc((size_t)game->num_guesses * sizeof(uint32_t));
-    s->ranked = malloc((size_t)game->num_guesses * sizeof(RankedCandidate));
+    s->ranked = malloc(8 * (size_t)game->num_guesses * sizeof(RankedCandidate));
     s->nodes_visited = 0;
 }
 
@@ -719,7 +719,7 @@ static uint32_t compute_opener_greedy_upper_bound(GameData* game, uint32_t opene
 // -------------------------------------------------------------
 
 static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t count,
-                              uint64_t h1, uint64_t h2, uint32_t beta, uint32_t* out_guess) {
+                              uint64_t h1, uint64_t h2, uint32_t beta, uint32_t* out_guess, uint32_t depth) {
     solver->nodes_visited++;
     GameData* game = solver->game;
 
@@ -827,7 +827,7 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
                     lh1 ^= game->zobrist1[live_eg[j]];
                     lh2 ^= game->zobrist2[live_eg[j]];
                 }
-                uint32_t eg_cost = solve_subset(solver, live_eg, live_count, lh1, lh2, beta, NULL);
+                uint32_t eg_cost = solve_subset(solver, live_eg, live_count, lh1, lh2, beta, NULL, depth + 1);
                 if (eg_cost >= beta) {
                     solver_tt_store_lb(solver, h1, h2, count, eg_cost, UINT32_MAX);
                     return eg_cost;
@@ -842,7 +842,7 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
     uint64_t dedup_mask = next_pow2((uint64_t)num_guesses * 2) - 1;
     uint32_t rep_count = 0;
 
-    RankedCandidate* ranked = solver->ranked;
+    RankedCandidate* ranked = solver->ranked + (size_t)(depth < 7 ? depth : 7) * num_guesses;
     uint32_t global_lb1 = UINT32_MAX;
     uint32_t global_ub1 = UINT32_MAX;
     uint32_t best_exact_g = UINT32_MAX;
@@ -1009,12 +1009,9 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
         }
     }
 
-    uint32_t rep_guesses[rep_count];
-    for (uint32_t r = 0; r < rep_count; r++) rep_guesses[r] = ranked[r].guess_idx;
-
     // ---- Main Branch-and-Bound Loop ----
     uint32_t current_best = beta;
-    uint32_t best_g = rep_guesses[0];
+    uint32_t best_g = ranked[0].guess_idx;
     bool found_improvement = false;
 
     uint32_t local_partition[count];
@@ -1022,7 +1019,17 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
     BucketInfo buckets[NUM_SCORES];
 
     for (uint32_t c = 0; c < rep_count; c++) {
-        uint32_t g = rep_guesses[c];
+        uint32_t g = ranked[c].guess_idx;
+        if (ranked[c].lb >= current_best) continue;
+
+        if (ranked[c].is_exact_lb) {
+            current_best = ranked[c].lb;
+            best_g = g;
+            found_improvement = true;
+            if (current_best <= node_lb) break;
+            continue;
+        }
+
         const uint8_t* row = matrix + (size_t)g * num_targets;
 
         uint32_t active_buckets = 0;
@@ -1181,7 +1188,7 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
 
             uint32_t bucket_beta = current_best - running_cost - remaining_lb;
             uint32_t bucket_cost = solve_subset(solver, &local_partition[unresolved_buckets[u].offset], sz,
-                                                 unresolved_buckets[u].hash1, unresolved_buckets[u].hash2, bucket_beta, NULL);
+                                                 unresolved_buckets[u].hash1, unresolved_buckets[u].hash2, bucket_beta, NULL, depth + 1);
             if (bucket_cost >= bucket_beta) {
                 pruned = true;
                 break;
@@ -1301,7 +1308,7 @@ static void* bucket_worker(void* arg) {
         uint64_t start_nodes = solver.nodes_visited;
         uint32_t beta = pool->bucket_betas ? pool->bucket_betas[idx] : UINT32_MAX;
         uint32_t cost = solve_subset(&solver, &pool->local_partition[bkt->offset], bkt->size,
-                                      bkt->hash1, bkt->hash2, beta, &best_guess);
+                                      bkt->hash1, bkt->hash2, beta, &best_guess, 0);
         pool->out_costs[idx] = cost;
         pool->out_guesses[idx] = best_guess;
         pool->out_nodes[idx] = solver.nodes_visited - start_nodes; // Fix: record bucket delta
@@ -1439,7 +1446,7 @@ static OpenerResult evaluate_opener_sequential(Solver* solver, uint32_t opener_i
         }
         uint32_t bucket_beta = (ceiling == UINT32_MAX) ? UINT32_MAX : (ceiling - running_cost - remaining_lb);
         uint32_t cost = solve_subset(solver, &local_partition[buckets[b].offset], buckets[b].size,
-                                      buckets[b].hash1, buckets[b].hash2, bucket_beta, NULL);
+                                      buckets[b].hash1, buckets[b].hash2, bucket_beta, NULL, 0);
         if (cost >= bucket_beta) {
             pruned = true;
             break;
@@ -1527,7 +1534,7 @@ static TreeNode* build_subtree_node(Solver* solver, const uint32_t* targets, uin
     if (count == 0) return NULL;
     if (count == 1) return make_leaf(solver->game, targets[0]);
     uint32_t best_g;
-    solve_subset(solver, targets, count, h1, h2, UINT32_MAX, &best_g);
+    solve_subset(solver, targets, count, h1, h2, UINT32_MAX, &best_g, 0);
     return build_subtree_node_with_guess(solver, targets, count, best_g);
 }
 
