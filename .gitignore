@@ -22,3 +22,14 @@ claude_solver/wordle_claude_profile
 claude_solver/*.dSYM/
 claude_solver/bench_wordlists/
 claude_solver/benchmark_results.jsonl
+
+# gemini_solver/: compiled binaries and debug symbols
+gemini_solver/wordle_gemini
+gemini_solver/wordle_gemini_asan
+gemini_solver/wordle_gemini_tsan
+gemini_solver/wordle_gemini_profile
+gemini_solver/*.dSYM/
+gemini_solver/bench_wordlists/
+solver/claude_plan.md
+solver/findings.md
+solver/gemini_plan.md
