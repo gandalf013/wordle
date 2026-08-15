@@ -28,20 +28,9 @@
 #define WORD_LEN 5
 #define NUM_SCORES 243
 #define EXACT_MATCH 242
-#define MAX_ENDGAMES 2048
-#define MIN_ENDGAME_COUNT 4
-
 typedef struct {
     char word[WORD_LEN + 1];
 } Word;
-
-typedef struct {
-    char pattern[WORD_LEN + 1]; // e.g. ".ound"
-    uint32_t* targets;          // indices of targets matching this pattern
-    uint32_t count;
-    uint32_t wildcard_pos;
-    uint32_t letter_mask;       // bitmask of (c - 'a') present in this endgame
-} Endgame;
 
 // -------------------------------------------------------------
 // 128-Bit Lock-Free Shared Transposition Table
@@ -83,12 +72,6 @@ typedef struct {
     uint64_t* zobrist2;
 
     uint32_t* lower_bound; // [num_targets + 1]
-
-    // Endgame tables
-    Endgame* endgames;
-    uint32_t num_endgames;
-    uint32_t* target_endgame_counts; // [num_targets]
-    uint32_t** target_endgames;      // [num_targets][count]
 
     // Shared global lock-free transposition table across threads
     SharedTT shared_tt;
@@ -219,99 +202,6 @@ static void compute_lower_bound_table(GameData* game) {
     }
 }
 
-static void init_endgames(GameData* game) {
-    uint32_t T = game->num_targets;
-    game->endgames = malloc(MAX_ENDGAMES * sizeof(Endgame));
-    game->num_endgames = 0;
-
-    game->target_endgame_counts = calloc(T, sizeof(uint32_t));
-    game->target_endgames = calloc(T, sizeof(uint32_t*));
-
-    typedef struct {
-        char pattern[WORD_LEN + 1];
-        uint32_t wildcard_pos;
-        uint32_t count;
-        uint32_t target_indices[128];
-    } PatternGroup;
-
-    uint32_t group_cap = 4096;
-    PatternGroup* groups = calloc(group_cap, sizeof(PatternGroup));
-    uint32_t num_groups = 0;
-
-    for (uint32_t t = 0; t < T; t++) {
-        const char* tw = game->targets[t].word;
-        for (int p = 0; p < WORD_LEN; p++) {
-            char pat[WORD_LEN + 1];
-            strcpy(pat, tw);
-            pat[p] = '.';
-
-            int found_idx = -1;
-            for (uint32_t g = 0; g < num_groups; g++) {
-                if (strcmp(groups[g].pattern, pat) == 0) {
-                    found_idx = (int)g;
-                    break;
-                }
-            }
-
-            if (found_idx == -1) {
-                if (num_groups >= group_cap) {
-                    group_cap *= 2;
-                    groups = realloc(groups, group_cap * sizeof(PatternGroup));
-                }
-                found_idx = (int)num_groups++;
-                strcpy(groups[found_idx].pattern, pat);
-                groups[found_idx].wildcard_pos = p;
-                groups[found_idx].count = 0;
-            }
-
-            if (groups[found_idx].count < 128) {
-                groups[found_idx].target_indices[groups[found_idx].count++] = t;
-            }
-        }
-    }
-
-    for (uint32_t g = 0; g < num_groups; g++) {
-        if (groups[g].count >= MIN_ENDGAME_COUNT && game->num_endgames < MAX_ENDGAMES) {
-            uint32_t eg_idx = game->num_endgames++;
-            Endgame* eg = &game->endgames[eg_idx];
-            strcpy(eg->pattern, groups[g].pattern);
-            eg->count = groups[g].count;
-            eg->wildcard_pos = groups[g].wildcard_pos;
-            eg->targets = malloc(eg->count * sizeof(uint32_t));
-            memcpy(eg->targets, groups[g].target_indices, eg->count * sizeof(uint32_t));
-            eg->letter_mask = 0;
-
-            for (uint32_t i = 0; i < eg->count; i++) {
-                uint32_t tid = eg->targets[i];
-                char c = game->targets[tid].word[eg->wildcard_pos];
-                eg->letter_mask |= (1u << (c - 'a'));
-            }
-        }
-    }
-
-    free(groups);
-
-    // Map each target to its endgames
-    for (uint32_t t = 0; t < T; t++) {
-        uint32_t matched[64];
-        uint32_t mcount = 0;
-        for (uint32_t e = 0; e < game->num_endgames; e++) {
-            Endgame* eg = &game->endgames[e];
-            for (uint32_t i = 0; i < eg->count; i++) {
-                if (eg->targets[i] == t) {
-                    if (mcount < 64) matched[mcount++] = e;
-                    break;
-                }
-            }
-        }
-        game->target_endgame_counts[t] = mcount;
-        if (mcount > 0) {
-            game->target_endgames[t] = malloc(mcount * sizeof(uint32_t));
-            memcpy(game->target_endgames[t], matched, mcount * sizeof(uint32_t));
-        }
-    }
-}
-
 static void init_game_data(GameData* game, int num_threads) {
     size_t total_cells = (size_t)game->num_guesses * game->num_targets;
     game->score_matrix = malloc(total_cells * sizeof(uint8_t));
@@ -357,7 +247,6 @@ static void init_game_data(GameData* game, int num_threads) {
     }
 
     compute_lower_bound_table(game);
-    init_endgames(game);
     shared_tt_init(&game->shared_tt, 1u << 22);
 }
 
@@ -370,15 +259,6 @@ static void free_game_data(GameData* game) {
     free(game->zobrist1);
     free(game->zobrist2);
     free(game->lower_bound);
-    for (uint32_t e = 0; e < game->num_endgames; e++) {
-        free(game->endgames[e].targets);
-    }
-    free(game->endgames);
-    for (uint32_t t = 0; t < game->num_targets; t++) {
-        if (game->target_endgames[t]) free(game->target_endgames[t]);
-    }
-    free(game->target_endgame_counts);
-    free(game->target_endgames);
 }
 
 // -------------------------------------------------------------
@@ -471,10 +351,10 @@ static inline bool shared_tt_find(SharedTT* stt, uint64_t h1, uint64_t h2, uint3
         if (eh1 == h1) {
             uint64_t eh2 = atomic_load_explicit(&e->hash2, memory_order_acquire);
             uint32_t esz = atomic_load_explicit(&e->size, memory_order_acquire);
-            if (eh2 == h2 && esz == size) {
-                if (out_exact) *out_exact = atomic_load_explicit(&e->exact_cost, memory_order_relaxed);
-                if (out_lb) *out_lb = atomic_load_explicit(&e->proven_lower_bound, memory_order_relaxed);
-                if (out_guess) *out_guess = atomic_load_explicit(&e->best_guess, memory_order_relaxed);
+            if (eh2 == h2 && esz == size && size > 0) {
+                if (out_exact) *out_exact = atomic_load_explicit(&e->exact_cost, memory_order_acquire);
+                if (out_lb) *out_lb = atomic_load_explicit(&e->proven_lower_bound, memory_order_acquire);
+                if (out_guess) *out_guess = atomic_load_explicit(&e->best_guess, memory_order_acquire);
                 return true;
             }
         }
@@ -484,7 +364,7 @@ static inline bool shared_tt_find(SharedTT* stt, uint64_t h1, uint64_t h2, uint3
 
 static inline void shared_tt_store(SharedTT* stt, uint64_t h1, uint64_t h2, uint32_t size,
                                    uint32_t exact_cost, uint32_t proven_lb, uint32_t best_guess) {
-    if (!stt || !stt->entries) return;
+    if (!stt || !stt->entries || size == 0) return;
     uint64_t idx = (h1 ^ h2) & stt->mask;
     for (uint64_t probe = 0; probe < 16; probe++) {
         SharedTTEntry* e = &stt->entries[(idx + probe) & stt->mask];
@@ -494,10 +374,10 @@ static inline void shared_tt_store(SharedTT* stt, uint64_t h1, uint64_t h2, uint
             if (atomic_compare_exchange_strong_explicit(&e->hash1, &expected, h1,
                                                        memory_order_acq_rel, memory_order_acquire)) {
                 atomic_store_explicit(&e->hash2, h2, memory_order_release);
-                atomic_store_explicit(&e->size, size, memory_order_release);
                 atomic_store_explicit(&e->exact_cost, exact_cost, memory_order_release);
                 atomic_store_explicit(&e->proven_lower_bound, proven_lb, memory_order_release);
                 atomic_store_explicit(&e->best_guess, best_guess, memory_order_release);
+                atomic_store_explicit(&e->size, size, memory_order_release); // Published last
                 return;
             }
             eh1 = atomic_load_explicit(&e->hash1, memory_order_acquire);
@@ -505,7 +385,7 @@ static inline void shared_tt_store(SharedTT* stt, uint64_t h1, uint64_t h2, uint
         if (eh1 == h1) {
             uint64_t eh2 = atomic_load_explicit(&e->hash2, memory_order_acquire);
             uint32_t esz = atomic_load_explicit(&e->size, memory_order_acquire);
-            if (eh2 == h2 && esz == size) {
+            if (eh2 == h2 && esz == size && size > 0) {
                 if (exact_cost != UINT32_MAX) {
                     atomic_store_explicit(&e->exact_cost, exact_cost, memory_order_release);
                 }
@@ -887,6 +767,7 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
             cols[i] = game->score_matrix_transposed + (size_t)targets[i] * num_guesses;
         }
 
+        uint16_t big_counts[NUM_SCORES] = {0};
         for (uint32_t g = 0; g < num_guesses; g++) {
             uint32_t s2 = 0;
             uint32_t guess_lb = count;
@@ -894,15 +775,15 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
 
             for (uint32_t i = 0; i < count; i++) {
                 uint8_t sc = cols[i][g];
-                uint8_t c = ++counts[sc];
+                uint16_t c = ++big_counts[sc];
                 s2 += 2 * c - 1;
-                guess_lb += 2 - (c == 1);
+                guess_lb += (c == 1) ? 1 : (c <= 243 ? 2 : 3);
                 if (c > 2) max_bucket_le_2 = false;
             }
 
-            guess_lb -= counts[EXACT_MATCH];
+            guess_lb -= big_counts[EXACT_MATCH];
 
-            for (uint32_t i = 0; i < count; i++) counts[cols[i][g]] = 0;
+            for (uint32_t i = 0; i < count; i++) big_counts[cols[i][g]] = 0;
 
             if (guess_lb < global_lb1) global_lb1 = guess_lb;
             if (max_bucket_le_2 && guess_lb < global_ub1) {
@@ -1277,6 +1158,7 @@ static OpenerResult evaluate_opener_parallel(GameData* game, uint32_t opener_idx
     if (num_threads < 1) num_threads = 1;
     uint32_t total_cost = count;
     uint64_t total_nodes = 0;
+    bool failed = false;
 
     if (active_buckets > 0) {
         BucketPool pool = {
@@ -1298,6 +1180,7 @@ static OpenerResult evaluate_opener_parallel(GameData* game, uint32_t opener_idx
 
         for (uint32_t b = 0; b < active_buckets; b++) {
             if (pool.buckets[b].score == EXACT_MATCH) continue;
+            if (pool.out_costs[b] >= bucket_betas[b]) failed = true;
             total_cost += pool.out_costs[b];
             total_nodes += pool.out_nodes[b];
         }
@@ -1314,9 +1197,9 @@ static OpenerResult evaluate_opener_parallel(GameData* game, uint32_t opener_idx
 
     OpenerResult res;
     res.opener_idx = opener_idx;
-    res.exact_total_cost = total_cost;
-    res.avg_guesses = (double)total_cost / (double)count;
-    res.is_exact = true;
+    res.exact_total_cost = failed ? UINT32_MAX : total_cost;
+    res.avg_guesses = failed ? 99.0 : ((double)total_cost / (double)count);
+    res.is_exact = !failed;
     res.time_sec = (t1.tv_sec - t0.tv_sec) + (t1.tv_nsec - t0.tv_nsec) * 1e-9;
     res.nodes = total_nodes;
     (void)greedy_upper_bound;
@@ -1720,10 +1603,9 @@ int main(int argc, char** argv) {
     printf("Precomputing %u x %u score matrix using %d threads...\n", game.num_guesses, game.num_targets, num_threads);
     init_game_data(&game, num_threads);
     clock_gettime(CLOCK_MONOTONIC, &t1);
-    printf("Ready in %.3f seconds (%.1f MB matrix, %u endgames precomputed).\n\n",
+    printf("Ready in %.3f seconds (%.1f MB matrix).\n\n",
            (t1.tv_sec - t0.tv_sec) + (t1.tv_nsec - t0.tv_nsec) * 1e-9,
-           (double)((size_t)game.num_guesses * game.num_targets) / (1024.0 * 1024.0),
-           game.num_endgames);
+           (double)((size_t)game.num_guesses * game.num_targets) / (1024.0 * 1024.0));
 
     if (single_opener) {
         uint32_t opener_idx = UINT32_MAX;
