@@ -51,6 +51,43 @@ objective has now been tried and measured, so closing more of the gap
 would mean a different kind of approach, not another port from
 wordle.cpp.
 
+**Root cause found, and one more real (if modest) win landed.**
+Prompted by "why is wordle.cpp still faster given we ported its
+techniques," read `wordle.cpp`'s actual main recursion (`minoverwords`,
+not just the endgame-specific code) for the first time this session:
+it's built around a hard per-word depth budget (`remdepth<=k ->
+infinity`, `maxguesses` defaults to 6, matching real Wordle's rule),
+used pervasively at every node — not confined to the endgame special
+case Phase 4/5 targeted. This explains the whole pattern above: the
+special case was ported without the general mechanism that gives it
+most of its power. Worked through porting the general mechanism
+directly and found it doesn't have a form that's both safe (a hard cap
+risks silently wrong answers if it ever binds) and non-vacuous (a
+safe-fallback version reduces to a no-op, since it doesn't carry
+information our existing `lower_bound[]`/`lb1` machinery doesn't
+already have) for this solver's *unbounded* total-cost objective —
+unlike `wordle.cpp`'s own depth-*bounded* one, where the same
+information is a genuinely new, valid fact. See PROGRESS.md's
+"Post-Phase-5 investigation" section for the full argument.
+
+Redirected that energy into the one place a "better, still provably
+safe" real strategy was already explicitly sanctioned: widened
+`greedy_pick`'s search from the live candidate pool to the full guess
+list (matching how the exact solver itself always searches). Verified
+safe (same "always achieves a real strategy" contract as the existing
+aspiration-seeding mechanism), verified correct (full test suite green,
+fixture cross-checks match). Measured: tightened the salet aspiration
+ceiling from 12013 to 11746 (true optimum 11433) — real, but not tight
+enough to move the full exact search's node count or wall-clock beyond
+the established noise band. Kept anyway (no measured downside, genuine
+improvement to a real number).
+
+**Where this leaves things**: every technique from `wordle.cpp`'s
+playbook that has a safe, non-vacuous translation to this solver's
+objective has now been tried. The remaining gap looks structural (tied
+to the objective difference itself, not a missing technique), not
+closable by further porting.
+
 ## Scope (unchanged)
 
 - Easy mode only. No item depends on `wordle.cpp`'s `oktestwords`-style

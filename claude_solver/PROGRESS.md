@@ -369,6 +369,103 @@ correctly post-revert (medium fixture: same "6 considered, 0 useful" and
 same exact result as before Phase 5 was ever added). Items 6, Phase 3,
 and Phase 4 remain in the shipped file.
 
+## Post-Phase-5 investigation: why the gap doesn't close (root cause found)
+
+Prompted by the user asking, essentially, "how is wordle.cpp so much
+faster on the same machine if we've ported its own techniques" — this
+deserved a real answer, not more incremental tuning. Read `wordle.cpp`'s
+actual core recursion (`minoverwords`, lines 775-905) for the first time
+this session, rather than only the endgame-specific code claude_plan.md
+had scoped Phase 4/5 around.
+
+**Finding**: `wordle.cpp` is built around a hard per-word depth budget
+(`remdepth = maxguesses - depth`, `maxguesses` defaults to 6, the real
+Wordle rule). `if (remdepth <= 0) return infinity;` and similar
+`remdepth<=1`/`remdepth<=2` shortcuts fire at *every* node of the main
+recursion, not just inside the endgame-cluster special case — a cheap,
+unconditional "this subtree cannot possibly finish in time" cutoff that
+needs no histogram-building, no guess-ranking, no recursion. Our solver
+has no equivalent concept: it computes the true *unbounded* minimum
+total cost, so nothing is ever "impossible," only more or less costly.
+
+This is confirmed, not speculated: `solver/claude_plan.md:27-29`
+(written before this session started) already recorded that `wordle.cpp`
+with its default `maxguesses=6` reports **11433** for salet on this exact
+word list — identical to our uncapped solver. That match is only
+possible because the depth-6 constraint never actually binds for this
+word list's true optimum, which is exactly what lets `wordle.cpp` use
+the `remdepth` shortcut so aggressively without it changing the answer.
+`solver/findings.md` had attributed the gap to "endgame-cluster coverage
+cutoff + live-endgame subsearch" specifically (calling it "the two
+orders of magnitude") — but that's the depth-budget mechanism's
+narrowest special case, not the general mechanism itself, which is woven
+through the whole recursion. That explains, in hindsight, why this
+session's Phase 4 (0 useful hits) and Phase 5 (21/179,792) measured so
+little: the special case was ported without the general mechanism that
+gives it most of its power.
+
+**Why a direct port isn't safe, and isn't free either.** Worked through
+what porting `remdepth`-style hard cutoffs into our own recursion would
+actually require, in detail, before writing any code:
+- A hard cutoff (mirroring `wordle.cpp` exactly: return early whenever
+  the depth budget is exhausted) is only *correct* if the depth cap
+  provably never binds. If it ever did — a bug, or a different word
+  list — the solver would silently report a wrong total. That directly
+  contradicts this file's own stated design goal #1 ("provable
+  correctness"), so this was rejected as a real, not just theoretical,
+  risk.
+- A "safe" version that falls back to the normal algorithm whenever the
+  cap would bind was worked through as an alternative — and it reduces
+  to a no-op: whenever the shortcut's condition is never triggered
+  (which is required for correctness), the search behaves *identically*
+  to today's code, since the extra check is a no-op precisely then. The
+  cheap `remdepth` comparison doesn't carry information our
+  `lower_bound[]`/`lb1` machinery doesn't already have — it's a cheaper
+  way to notice the *same* fact, and an untaken shortcut saves nothing.
+
+So this technique doesn't have a form that's both safe and non-vacuous
+for this solver's objective, unlike everything landed earlier this
+session.
+
+## Improved greedy aspiration seed (widened guess search) — DONE
+
+Redirected the investigation toward a place where a *tighter, still
+provably-safe* real strategy is already explicitly permitted:
+`greedy_pick`/`greedy_upper_bound` (the beta-seeding heuristic used by
+`evaluate_opener_parallel`). Its existing contract already guarantees
+"the returned total is always something some real strategy achieves" —
+so improving *how good* that real strategy is can only ever tighten the
+seed, never invalidate the safety argument.
+
+**Change**: `greedy_pick` previously searched only the live candidate
+pool for its next guess. Widened it to search the *full* guess list,
+matching how the exact solver itself always searches the full list —
+the classic case this helps is exactly an endgame-style cluster (e.g.
+the `.ight` words), where every candidate "wastes" one of its own
+letters confirming itself and a non-candidate guess splits far more
+evenly. Guarded the call site to skip the now-more-expensive scan for
+buckets of size <=2, since `greedy_upper_bound`'s own base cases ignore
+the chosen guess entirely at that size — otherwise the widened search
+would pay full cost on the (numerous) trivial buckets for no benefit.
+
+**Verified**: full `test_solver.py` green (oracle + ASan + UBSan + TSan)
+on a clean rebuild; fixture cross-checks (tiny/small/medium, `--all`)
+match the known-correct totals exactly.
+
+**Measured**: the aspiration ceiling for salet tightened from **12013 to
+11746** (true optimum: 11433) — a real, reproducible improvement,
+directly instrumented and compared against the pre-change binary on the
+same opener. But the full exact search's own node count and wall-clock
+were unchanged (2,251,059 nodes, ~210s, inside the same noise band as
+before) — the tighter seed is real but wasn't tight enough to unlock
+materially more pruning in the exact search for this specific opener.
+**Kept regardless**: unlike Phase 5, this carries no measured downside
+(same safety contract as the existing, already-trusted aspiration-seed
+mechanism, one-time cost per `--opener` call, no wall-clock regression
+observed) and is a genuine, verified tightening of a real number, even
+if its downstream effect on this one benchmark is currently within
+noise.
+
 ## Status: paused here for a checkpoint
 
 Phase 1 (items 1-5), item 6, Phase 3, Phase 4, and Phase 5 are all
@@ -393,3 +490,15 @@ a "one more phase might close the gap" situation; it's a "the gap likely
 isn't closable by porting more of wordle.cpp's specific techniques"
 situation, which calls for a different kind of decision than earlier
 checkpoints in this file.
+
+**Update, post-investigation**: Phase 5 has since been reverted (see its
+own section's "REVERTED" note above). The root-cause investigation above
+found the actual structural reason the gap persists — `wordle.cpp`'s
+depth-budget mechanism doesn't have a safe, non-vacuous port to this
+solver's unbounded objective — which is a more complete and more honest
+answer than "we haven't found the right technique yet." The one
+follow-up that *did* land (widened greedy aspiration seed) is real,
+verified, and kept, but modest. Current shipped state: Phase 1 (items
+1-5), item 6, Phase 3, Phase 4, and the widened greedy seed are all in
+`wordle_claude.c`; Phase 5 is not. `exact_total_guesses` unchanged
+(11433) throughout every change made this session.

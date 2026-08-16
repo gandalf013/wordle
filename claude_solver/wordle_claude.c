@@ -1144,17 +1144,23 @@ static OpenerResult evaluate_opener_sequential(Solver* solver, uint32_t opener_i
 // -------------------------------------------------------------
 
 // Picks a guess for `pool` (`count` target indices) by minimizing
-// sum-of-squared bucket sizes, searching only within `pool` itself (not
-// the full guess list) to keep this cheap. Restricting guesses to the
-// live candidate pool still guarantees termination (guessing any live
-// candidate resolves it for free) and yields a real, achievable strategy.
+// sum-of-squared bucket sizes, searching the FULL guess list -- not just
+// `pool` itself. A guess from outside the live candidates can split an
+// awkward cluster (e.g. an endgame-style group sharing every letter but
+// one) far more evenly than any candidate word can, since a candidate
+// guess "wastes" one of its own letters confirming itself. Whichever
+// guess this returns, greedy_upper_bound always plays it out for real
+// and reports the actual resulting cost, so widening the search space
+// here can only ever find an equal-or-better real strategy -- it never
+// changes the "always a real, achievable total" contract that makes
+// seeding beta from this safe in the first place.
 static uint32_t greedy_pick(GameData* game, const uint32_t* pool, uint32_t count) {
     const uint32_t num_targets = game->num_targets;
+    const uint32_t num_guesses = game->num_guesses;
     const uint8_t* matrix = game->score_matrix;
     uint32_t best_g = pool[0];
     uint32_t best_sum_sq = UINT32_MAX;
-    for (uint32_t c = 0; c < count; c++) {
-        uint32_t g = pool[c];
+    for (uint32_t g = 0; g < num_guesses; g++) {
         const uint8_t* row = matrix + (size_t)g * num_targets;
         uint32_t hist[NUM_SCORES] = {0};
         for (uint32_t i = 0; i < count; i++) hist[row[pool[i]]]++;
@@ -1197,7 +1203,10 @@ static uint32_t greedy_upper_bound(GameData* game, const uint32_t* targets, uint
         uint32_t sz = hist[s];
         if (sz == 0 || s == EXACT_MATCH) continue;
         uint32_t* bucket = &partitioned[offsets[s]];
-        uint32_t next_guess = greedy_pick(game, bucket, sz);
+        // greedy_upper_bound's own base cases (count<=1, count==2) ignore
+        // forced_guess entirely, so skip the now-expensive full-guess-list
+        // scan for buckets that small -- the choice is provably irrelevant.
+        uint32_t next_guess = (sz <= 2) ? bucket[0] : greedy_pick(game, bucket, sz);
         total += greedy_upper_bound(game, bucket, sz, next_guess);
     }
     free(partitioned);
