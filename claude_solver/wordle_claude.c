@@ -54,6 +54,30 @@ typedef struct {
     char word[WORD_LEN + 1];
 } Word;
 
+// -------------------------------------------------------------
+// Endgame-cluster table: a read-only (after startup), precomputed set of
+// admissible lower bounds for specific target subsets that share every
+// letter but one -- see compute_endgame_table() below for the full
+// derivation. Same (hash1, hash2, size) identity scheme as the TT, but
+// deliberately a *separate* structure: all entries are written once,
+// single-threaded, before any solver thread starts, then only ever read
+// concurrently after that -- no locking, no generation/eviction logic,
+// no interaction with the TT's own proven_lower_bound/exact_cost
+// semantics to reason about.
+// -------------------------------------------------------------
+
+typedef struct {
+    uint64_t hash1;
+    uint64_t hash2;
+    uint32_t size;
+    uint32_t lb;
+} EndgameEntry;
+
+typedef struct {
+    EndgameEntry* entries;
+    uint64_t mask;
+} EndgameTable;
+
 typedef struct {
     Word* targets;
     Word* guesses;
@@ -71,6 +95,7 @@ typedef struct {
     uint64_t* zobrist;          // [num_targets]
     uint64_t* zobrist2;         // [num_targets], independent seed
     uint32_t* lower_bound;      // [num_targets + 1], admissible LB by subset size
+    EndgameTable endgame_table; // precomputed endgame-cluster bounds
 } GameData;
 
 // Matches Python scoring.py: green pass first (consuming that letter from
@@ -220,6 +245,194 @@ static void compute_lower_bound_table(GameData* game) {
     }
 }
 
+// Generalizes compute_lower_bound_table's own derivation to an arbitrary
+// per-guess branching cap `b` instead of the fixed 243: idealized minimum
+// cost to resolve k items where every guess can produce at most `b`
+// distinguishable outcomes (one of which may be a free exact match).
+// Verified against a brute-force recursive DP (idealized even-split
+// partitioning into <=(b-1) non-exact buckets, recursively) for b in
+// [2,20), k in [0,300): the k<=b branch (2k-1) is EXACT in every case
+// checked -- same closed form and same reasoning as the k<=243 case
+// above, since that derivation never actually depended on 243
+// specifically, only on every one of the k-1 non-exact items being able
+// to become its own singleton bucket, which just needs b-1 >= k-1, i.e.
+// k<=b. The k>b branch, unlike the k<=243 case, is NOT always exact for
+// small b (a full multi-level telescoping would be needed for that), but
+// it is NEVER an overestimate in any case checked -- i.e. it remains a
+// sound, sometimes-loose lower bound, which is all admissibility
+// requires: a lower bound only has to under-promise, never over-promise.
+static uint32_t branch_capped_lower_bound(uint32_t k, uint32_t b) {
+    if (k == 0) return 0;
+    if (k == 1) return 1;
+    if (k <= b) return 2 * k - 1;
+    return 1 + 2 * (b - 1) + 3 * (k - b);
+}
+
+typedef struct {
+    char pattern[WORD_LEN];
+    uint32_t target_idx;
+} EndgamePatKey;
+
+static int compare_endgame_patkey(const void* a, const void* b) {
+    const EndgamePatKey* pa = (const EndgamePatKey*)a;
+    const EndgamePatKey* pb = (const EndgamePatKey*)b;
+    int c = memcmp(pa->pattern, pb->pattern, WORD_LEN);
+    if (c != 0) return c;
+    return (pa->target_idx > pb->target_idx) - (pa->target_idx < pb->target_idx);
+}
+
+static void endgame_table_init(EndgameTable* et, uint64_t capacity_pow2) {
+    et->entries = malloc(capacity_pow2 * sizeof(EndgameEntry));
+    et->mask = capacity_pow2 - 1;
+    for (uint64_t i = 0; i < capacity_pow2; i++) et->entries[i].hash1 = UINT64_MAX;
+}
+
+// Read-only during search -- see the struct comment above. Mirrors
+// tt_find's probe sequence exactly, just against the separate,
+// never-mutated-after-init endgame table.
+static uint32_t endgame_lookup(const EndgameTable* et, uint64_t hash1, uint64_t hash2, uint32_t size) {
+    uint64_t idx = hash1 & et->mask;
+    for (uint64_t probes = 0; probes <= et->mask; probes++) {
+        const EndgameEntry* e = &et->entries[idx];
+        if (e->hash1 == UINT64_MAX) return 0;
+        if (e->hash1 == hash1 && e->hash2 == hash2 && e->size == size) return e->lb;
+        idx = (idx + 1) & et->mask;
+    }
+    return 0;
+}
+
+// Only called during the single-threaded precompute below -- no
+// concurrency concerns, unlike the TT's own find_or_claim.
+static void endgame_table_insert(EndgameTable* et, uint64_t hash1, uint64_t hash2, uint32_t size, uint32_t lb) {
+    uint64_t idx = hash1 & et->mask;
+    for (uint64_t probes = 0; probes <= et->mask; probes++) {
+        EndgameEntry* e = &et->entries[idx];
+        if (e->hash1 == UINT64_MAX) {
+            e->hash1 = hash1; e->hash2 = hash2; e->size = size; e->lb = lb;
+            return;
+        }
+        if (e->hash1 == hash1 && e->hash2 == hash2 && e->size == size) {
+            if (lb > e->lb) e->lb = lb;
+            return;
+        }
+        idx = (idx + 1) & et->mask;
+    }
+    // Degenerately full: never happens in practice (sized generously
+    // relative to how few clusters ever clear the "actually tightens the
+    // bound" filter below); silently drop, same fallback as the TT.
+}
+
+// Precomputes admissible lower bounds for "endgame clusters": maximal
+// sets of target words that share every letter except one position (e.g.
+// "caled"/"caned"/"cared"/... all matching the wildcard pattern "ca.ed").
+// Every OTHER position's feedback is already identical and known for
+// every member of such a cluster, so any guess's score against the
+// cluster can only vary through how it interacts with the one remaining
+// wildcard letter -- capping the number of genuinely distinguishable
+// outcomes for that guess far below the generic 243-outcome assumption
+// `game->lower_bound[]` is built on. This is the "static coverage
+// cutoff" from wordle.cpp:672-711, re-derived for this solver's own
+// total-cost (not depth-feasibility) objective and bound formulas, and
+// scoped to the static analysis only -- no live per-node endgame
+// re-search (wordle.cpp:715-721), which would be a second solve over a
+// different subset framing sharing this solver's recursion/cache
+// machinery, exactly the kind of change that risks silently conflating
+// two problems under one TT key.
+//
+// For a cluster E, max_d = the largest number of distinct scores any
+// single guess (from the full guess list) produces across E's members --
+// a plain fact about the score matrix, not an estimate: no guess,
+// searched or not, can ever beat this, since max_d is a max over every
+// guess that exists. branch_capped_lower_bound(|E|, max_d) is therefore
+// a sound lower bound on E's own standalone resolution cost, valid
+// uniformly through E's entire recursive resolution (not just its first
+// guess): for any sub-bucket of E produced partway through resolving it,
+// restricting a guess's outcomes to fewer of E's members can only reduce
+// (never increase) how many distinct outcomes it produces, so max_d
+// -- computed once over the whole of E -- remains a valid, if
+// conservative, branching-factor ceiling for every subsequent guess
+// against any subset of E too. This is the same "one global constant
+// applied uniformly throughout the recursion" simplification
+// compute_lower_bound_table's own 243 already relies on, not a new kind
+// of assumption.
+//
+// Entries are only stored when they actually tighten the existing
+// generic bound (lb > game->lower_bound[cluster_size]) -- clusters of
+// size < 3 can never qualify (branch_capped_lower_bound(k,b) == 2k-1
+// for any b>=2 once k<=2, identical to the generic table, since b>=2
+// always holds: guessing any one member of a >=2-member cluster always
+// distinguishes "that member" (exact match) from "everything else",
+// so max_d>=2 is guaranteed whenever |E|>=2), so those are skipped
+// before paying for the max_d scan at all.
+static void compute_endgame_table(GameData* game) {
+    uint32_t n = game->num_targets;
+    uint32_t total_pairs = n * WORD_LEN;
+    EndgamePatKey* keys = malloc((size_t)total_pairs * sizeof(EndgamePatKey));
+    uint32_t kc = 0;
+    for (uint32_t t = 0; t < n; t++) {
+        const char* w = game->targets[t].word;
+        for (int j = 0; j < WORD_LEN; j++) {
+            EndgamePatKey* pk = &keys[kc++];
+            memcpy(pk->pattern, w, WORD_LEN);
+            pk->pattern[j] = '.';
+            pk->target_idx = t;
+        }
+    }
+    qsort(keys, total_pairs, sizeof(EndgamePatKey), compare_endgame_patkey);
+
+    uint64_t et_cap = next_pow2((uint64_t)n + 64);
+    if (et_cap < (1u << 10)) et_cap = 1u << 10;
+    endgame_table_init(&game->endgame_table, et_cap);
+
+    uint32_t* member_scratch = malloc((size_t)n * sizeof(uint32_t));
+    uint32_t* seen_stamp = calloc(NUM_SCORES, sizeof(uint32_t));
+    uint32_t stamp_gen = 0;
+
+    uint32_t considered = 0, useful = 0;
+    uint32_t i = 0;
+    while (i < total_pairs) {
+        uint32_t j = i + 1;
+        while (j < total_pairs && memcmp(keys[j].pattern, keys[i].pattern, WORD_LEN) == 0) j++;
+        uint32_t cluster_size = j - i;
+        if (cluster_size >= 3) {
+            considered++;
+            for (uint32_t m = 0; m < cluster_size; m++) member_scratch[m] = keys[i + m].target_idx;
+
+            uint32_t max_d = 0;
+            for (uint32_t g = 0; g < game->num_guesses; g++) {
+                const uint8_t* row = game->score_matrix + (size_t)g * n;
+                stamp_gen++;
+                uint32_t d = 0;
+                for (uint32_t m = 0; m < cluster_size; m++) {
+                    uint8_t sc = row[member_scratch[m]];
+                    if (seen_stamp[sc] != stamp_gen) { seen_stamp[sc] = stamp_gen; d++; }
+                }
+                if (d > max_d) {
+                    max_d = d;
+                    if (max_d >= cluster_size) break; // can't tighten further than the generic bound
+                }
+            }
+
+            uint32_t lb = branch_capped_lower_bound(cluster_size, max_d);
+            if (lb > game->lower_bound[cluster_size]) {
+                uint64_t h1 = 0, h2 = 0;
+                for (uint32_t m = 0; m < cluster_size; m++) {
+                    h1 ^= game->zobrist[member_scratch[m]];
+                    h2 ^= game->zobrist2[member_scratch[m]];
+                }
+                endgame_table_insert(&game->endgame_table, h1, h2, cluster_size, lb);
+                useful++;
+            }
+        }
+        i = j;
+    }
+
+    free(keys);
+    free(member_scratch);
+    free(seen_stamp);
+    printf("Endgame clusters: %u considered (size>=3), %u tighten the generic bound.\n", considered, useful);
+}
+
 static void init_game_data(GameData* game, int num_threads) {
     size_t total_cells = (size_t)game->num_guesses * game->num_targets;
     game->score_matrix = malloc(total_cells * sizeof(uint8_t));
@@ -256,6 +469,7 @@ static void init_game_data(GameData* game, int num_threads) {
     for (uint32_t t = 0; t < game->num_targets; t++) game->zobrist2[t] = splitmix64(&seed2);
 
     compute_lower_bound_table(game);
+    compute_endgame_table(game);
 }
 
 static void free_game_data(GameData* game) {
@@ -265,6 +479,7 @@ static void free_game_data(GameData* game) {
     free(game->zobrist);
     free(game->zobrist2);
     free(game->lower_bound);
+    free(game->endgame_table.entries);
 }
 
 // -------------------------------------------------------------
@@ -394,6 +609,7 @@ static void solver_init(Solver* s, GameData* game) {
     s->dedup_guess = malloc(dedup_cap * sizeof(uint32_t));
     s->call_id = 0;
     s->representatives = malloc((size_t)game->num_guesses * sizeof(uint32_t));
+
     s->nodes_visited = 0;
 }
 
@@ -410,6 +626,7 @@ typedef struct {
     uint32_t guess_idx;
     uint32_t active_buckets;
     uint32_t sum_sq;
+    uint32_t guess_lb;
 } RankedCandidate;
 
 static int compare_ranked_desc(const void* a, const void* b) {
@@ -470,6 +687,17 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
     const uint8_t* matrix = game->score_matrix;
 
     uint32_t node_lb = game->lower_bound[count];
+
+    // Phase 4: if this exact subset is a precomputed "endgame cluster"
+    // (every member shares every letter but one), the cluster's own
+    // branching-capped bound can be strictly tighter than the generic
+    // 243-outcome assumption above. Pure read against a table built once,
+    // single-threaded, before any solver thread starts -- see
+    // compute_endgame_table's own comment for the full derivation and
+    // why raising node_lb via max() here is always safe regardless of
+    // what node_lb already was.
+    uint32_t endgame_lb = endgame_lookup(&game->endgame_table, hash1, hash2, count);
+    if (endgame_lb > node_lb) node_lb = endgame_lb;
 
     TTEntry* entry = tt_find(&solver->tt, hash1, hash2, count);
     uint32_t suggested_guess = UINT32_MAX;
@@ -558,7 +786,7 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
                     if (s != EXACT_MATCH) glb += game->lower_bound[hist[s]];
                 }
             }
-            ranked[r] = (RankedCandidate){ .guess_idx = g, .active_buckets = active, .sum_sq = sum_sq };
+            ranked[r] = (RankedCandidate){ .guess_idx = g, .active_buckets = active, .sum_sq = sum_sq, .guess_lb = glb };
             if (glb < lb1) lb1 = glb;
         }
     }
@@ -606,22 +834,18 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
 
     for (uint32_t c = 0; c < rep_count; c++) {
         uint32_t g = ranked[c].guess_idx;
-        const uint8_t* row = matrix + (size_t)g * num_targets;
 
-        memset(hist, 0, NUM_SCORES * sizeof(uint32_t));
-        for (uint32_t i = 0; i < count; i++) hist[row[targets[i]]]++;
-
-        uint32_t guess_lb = count;
-        uint32_t active_buckets = 0;
-        for (int s = 0; s < NUM_SCORES; s++) {
-            if (hist[s] > 0) {
-                if (s != EXACT_MATCH) guess_lb += game->lower_bound[hist[s]];
-                buckets[active_buckets].score = (uint16_t)s;
-                buckets[active_buckets].size = hist[s];
-                active_buckets++;
-            }
-        }
-
+        // ---- Cheap prune checks reusing active_buckets/guess_lb already
+        // computed for this exact representative during the ranking pass
+        // above -- byte-identical formulas over the byte-identical
+        // histogram of `g` against `targets` (neither has changed since),
+        // so these are exactly the values a fresh recompute would give.
+        // Skipping straight to `continue` here means a pruned candidate's
+        // O(count) histogram is never rebuilt at all: previously this
+        // loop rebuilt every representative's histogram unconditionally,
+        // duplicating the ranking pass's own O(count) scan for every
+        // single candidate regardless of whether it survived pruning.
+        //
         // Reversible-move (Conway) pruning: a guess with a single active
         // bucket carries zero information -- every remaining candidate
         // scored identically, so the resulting subproblem is literally
@@ -632,7 +856,31 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
         // one. A zero-information guess can therefore never be optimal;
         // skipping it also avoids ever recursing into an identical
         // (hash, count) subset from within its own still-executing call.
-        if (active_buckets == 1) continue;
+        if (ranked[c].active_buckets == 1) continue;
+
+        // Sound prune: this guess's own best possible outcome already
+        // can't beat what we have. (Provably never fires for a genuine
+        // perfect-split guess: such a guess has guess_lb == the node's
+        // raw lower_bound[count] <= node_lb <= current_best's predecessor
+        // node_lb, and the loop already returned/broke above whenever
+        // node_lb >= current_best could hold, so guess_lb < current_best
+        // always holds here for it -- the perfect-split shortcut below
+        // still gets a chance to fire.)
+        uint32_t guess_lb = ranked[c].guess_lb;
+        if (guess_lb >= current_best) continue;
+
+        const uint8_t* row = matrix + (size_t)g * num_targets;
+        memset(hist, 0, NUM_SCORES * sizeof(uint32_t));
+        for (uint32_t i = 0; i < count; i++) hist[row[targets[i]]]++;
+
+        uint32_t active_buckets = 0;
+        for (int s = 0; s < NUM_SCORES; s++) {
+            if (hist[s] > 0) {
+                buckets[active_buckets].score = (uint16_t)s;
+                buckets[active_buckets].size = hist[s];
+                active_buckets++;
+            }
+        }
 
         // Fast perfect-split shortcut: guess_lb == count + (count-1)*1 =
         // 2*count-1 = lower_bound[count] exactly iff every OTHER
@@ -649,10 +897,6 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
             found_improvement = true;
             break;
         }
-
-        // Sound prune: this guess's own best possible outcome already
-        // can't beat what we have.
-        if (guess_lb >= current_best) continue;
 
         offsets[0] = 0;
         for (int s = 0; s < NUM_SCORES; s++) offsets[s + 1] = offsets[s] + hist[s];
@@ -685,6 +929,8 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
         }
 
         bool pruned = false;
+        uint64_t union_hash1 = 0, union_hash2 = 0;
+        uint32_t union_size = 0, union_cost = 0, union_bucket_count = 0;
         for (uint32_t b = 0; b < active_buckets; b++) {
             if (buckets[b].score == EXACT_MATCH) continue;
             remaining_lb -= game->lower_bound[buckets[b].size];
@@ -696,6 +942,41 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
                                                  buckets[b].hash1, buckets[b].hash2, bucket_beta, NULL);
             if (bucket_cost >= bucket_beta) { pruned = true; break; }
             running_cost += bucket_cost;
+
+            // Phase 3 (disjoint-union bound propagation): bucket_cost <
+            // bucket_beta means solve_subset's own exact-if-below-beta
+            // contract guarantees this is the TRUE optimum for this
+            // bucket, not a fail-soft value. Sibling buckets of the same
+            // guess are pairwise disjoint (partitioned by score), so
+            // cost(A1 union ... union Ak) >= sum cost(Ai): restricting an
+            // optimal strategy for the union to any one Ai's own outcomes
+            // gives a valid (if not necessarily optimal) strategy for Ai
+            // alone, so its incurred cost is >= Ai's own true optimum;
+            // summing over every Ai gives the union's total >= the sum of
+            // individual optima. Accumulate the running union of every
+            // already-solved sibling bucket so a break below can bank it.
+            union_hash1 ^= buckets[b].hash1;
+            union_hash2 ^= buckets[b].hash2;
+            union_size += buckets[b].size;
+            union_cost += bucket_cost;
+            union_bucket_count++;
+        }
+
+        // The bucket that triggered a break (either prune site above) is
+        // never folded into union_*, so union_size is always strictly
+        // less than this guess's own (hash1,hash2,count) -- no risk of
+        // colliding with this node's own TT key. Only worth writing for
+        // >=2 buckets: a union of exactly one bucket duplicates that
+        // bucket's own TT entry, already written by its solve_subset call.
+        if (pruned && union_bucket_count >= 2) {
+            TTEntry* ue = tt_find_or_claim(&solver->tt, union_hash1, union_hash2, union_size);
+            // Only ever raises a bound, and only while the union's true
+            // exact cost remains unknown -- never overwrites a tighter
+            // proven_lower_bound or a known exact_cost (which callers
+            // check first and would make proven_lower_bound moot anyway).
+            if (ue && ue->exact_cost == UINT32_MAX && union_cost > ue->proven_lower_bound) {
+                ue->proven_lower_bound = union_cost;
+            }
         }
 
         if (!pruned && running_cost < current_best) {
