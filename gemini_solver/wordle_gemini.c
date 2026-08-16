@@ -445,6 +445,41 @@ static inline void sort64_asc(uint64_t* a, size_t n) {
     }
 }
 
+// Sorts the k smallest elements of a[0..n) into a[0..k) in ascending order.
+// a[k..n) is left as an arbitrary partition (all elements >= a[k-1]). When
+// k >= n this degenerates to a full sort. Quickselect converges the window
+// containing the k-th smallest to <= 16 elements, then two small sorts finish.
+static void sort64_asc_top(uint64_t* a, size_t n, size_t k) {
+    if (k >= n) { sort64_asc(a, n); return; }
+    if (k == 0) return;
+
+    size_t lo = 0, hi = n;
+    while (hi - lo > 16) {
+        size_t mid = lo + (hi - lo) / 2;
+        if (a[lo] > a[mid]) { uint64_t t = a[lo]; a[lo] = a[mid]; a[mid] = t; }
+        if (a[lo] > a[hi - 1]) { uint64_t t = a[lo]; a[lo] = a[hi - 1]; a[hi - 1] = t; }
+        if (a[mid] > a[hi - 1]) { uint64_t t = a[mid]; a[mid] = a[hi - 1]; a[hi - 1] = t; }
+
+        uint64_t pivot = a[mid];
+        size_t i = lo, j = hi - 1;
+        while (1) {
+            while (a[i] < pivot) i++;
+            while (a[j] > pivot) j--;
+            if (i >= j) break;
+            uint64_t t = a[i]; a[i] = a[j]; a[j] = t;
+            i++;
+            j--;
+        }
+        // Hoare split: [lo, i) <= pivot-ish, [i, hi) >= pivot-ish.
+        if (k - 1 < i) hi = i;
+        else lo = i;
+    }
+    // [0, lo) and [lo, hi) both fully sorted now, and every element of the
+    // former is <= every element of the latter, so a[0..k) is sorted.
+    sort64_asc(a, lo);
+    sort64_asc(a + lo, hi - lo);
+}
+
 typedef struct {
     GameData* game;
     TT tt;
@@ -774,22 +809,41 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
         }
 
         uint16_t big_counts[NUM_SCORES] = {0};
+        // guess_lb = count + sum of (2c-1) marginals is monotonic non-decreasing and
+        // bounded above by ~3*count, so the early-exit can never fire for huge beta.
+        const bool can_abort = (beta <= 3 * count);
         for (uint32_t g = 0; g < num_guesses; g++) {
             uint32_t s2 = 0;
             uint32_t guess_lb = count;
             bool max_bucket_le_2 = true;
+            bool aborted = false;
+            uint32_t i;
 
-            for (uint32_t i = 0; i < count; i++) {
+            for (i = 0; i < count; i++) {
                 uint8_t sc = cols[i][g];
                 uint16_t c = ++big_counts[sc];
                 s2 += 2 * c - 1;
                 guess_lb += (c == 1) ? 1 : (c <= 243 ? 2 : 3);
                 if (c > 2) max_bucket_le_2 = false;
+                // guess_lb is monotonic, but the EXACT_MATCH bucket's +1 marginal
+                // is subtracted back out at the end, so an in-flight guess can
+                // still finish below beta by up to one.
+                if (can_abort && guess_lb >= beta + (big_counts[EXACT_MATCH] ? 1 : 0)) {
+                    aborted = true;
+                    break;
+                }
             }
 
-            guess_lb -= big_counts[EXACT_MATCH];
+            if (!aborted) guess_lb -= big_counts[EXACT_MATCH];
 
-            for (uint32_t i = 0; i < count; i++) big_counts[cols[i][g]] = 0;
+            for (uint32_t r = 0; r < count; r++) big_counts[cols[r][g]] = 0;
+
+            if (aborted) {
+                // Aborted: every completion of this guess has lb >= beta, so it can
+                // never beat the current search window. Sentinel so it sorts last.
+                candidate_keys[g] = UINT64_MAX;
+                continue;
+            }
 
             if (guess_lb < global_lb1) global_lb1 = guess_lb;
             if (max_bucket_le_2 && guess_lb < global_ub1) {
@@ -802,6 +856,7 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
     }
 
     // Sound fail-soft cutoff if lb1 >= beta
+    if (global_lb1 == UINT32_MAX) global_lb1 = beta; // every guess aborted: min lb >= beta
     if (global_lb1 >= beta) {
         solver_tt_store_lb(solver, h1, h2, count, global_lb1, UINT32_MAX);
         return global_lb1;
@@ -814,7 +869,10 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
         return global_lb1;
     }
 
-    sort64_asc(candidate_keys, num_guesses);
+    // Only the top `limit` candidates are ever visited, so partial-select the
+    // k smallest keys instead of a full sort (O(n) expected vs O(n log n)).
+    uint32_t limit = solver->max_candidates < num_guesses ? solver->max_candidates : num_guesses;
+    sort64_asc_top(candidate_keys, num_guesses, limit);
 
     if (suggested_guess != UINT32_MAX) {
         for (uint32_t r = 0; r < num_guesses; r++) {
@@ -838,7 +896,6 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
     uint32_t hist[NUM_SCORES] = {0};
     uint16_t active_scores[count + 1];
 
-    uint32_t limit = solver->max_candidates < num_guesses ? solver->max_candidates : num_guesses;
     for (uint32_t c = 0; c < limit; c++) {
         uint32_t clb = (uint32_t)((candidate_keys[c] >> 16) & 0xFFFF);
         if (clb >= current_best) continue;
@@ -1692,7 +1749,7 @@ int main(int argc, char** argv) {
     clock_gettime(CLOCK_MONOTONIC, &pool.start);
     atomic_init(&pool.next_idx, 0);
     atomic_init(&pool.completed, 0);
-    atomic_init(&pool.global_best_cost, UINT32_MAX);
+    atomic_init(&pool.global_best_cost, initial_seed);
     pthread_mutex_init(&pool.print_mutex, NULL);
     pool.results = calloc(count_to_eval, sizeof(OpenerResult));
 
@@ -1707,6 +1764,14 @@ int main(int argc, char** argv) {
     uint32_t best_total = pool.results[0].exact_total_cost;
     uint32_t best_opener_idx = pool.results[0].opener_idx;
     double best_avg = pool.results[0].avg_guesses;
+
+    // If no opener provably beat the greedy aspiration seed, the seed itself is
+    // the incumbent (it is a valid, achievable upper bound).
+    if (best_total == UINT32_MAX) {
+        best_total = initial_seed;
+        best_opener_idx = openers_to_eval[0];
+        best_avg = (double)best_total / (double)game.num_targets;
+    }
 
     printf("\n======================== TOP RESULTS ========================\n");
     printf(" Rank | Opener | Exact Total | Exact Average | Time\n");
