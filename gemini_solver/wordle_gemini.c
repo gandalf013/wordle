@@ -24,6 +24,10 @@
 #include <strings.h>
 #include <stdatomic.h>
 #include <math.h>
+#include <sys/types.h>
+#if defined(__APPLE__)
+#include <sys/sysctl.h>
+#endif
 
 #define WORD_LEN 5
 #define NUM_SCORES 243
@@ -52,6 +56,20 @@ typedef struct {
     uint64_t mask;
 } SharedTT;
 
+typedef struct {
+    uint64_t hash1;
+    uint64_t hash2;
+    uint32_t size;
+    uint32_t exact_cost;
+    uint32_t proven_lower_bound;
+    uint32_t best_guess;
+} TTEntry;
+
+typedef struct {
+    TTEntry* entries;
+    uint64_t mask;
+} TT;
+
 static void shared_tt_init(SharedTT* stt, uint64_t capacity_pow2);
 static void shared_tt_free(SharedTT* stt);
 
@@ -75,6 +93,8 @@ typedef struct {
 
     // Shared global lock-free transposition table across threads
     SharedTT shared_tt;
+    uint64_t shared_tt_cap;
+    uint64_t local_tt_cap;
 
     uint32_t max_candidates; // Top-N candidate exploration limit per node (default: 100, like Alex Selby)
 } GameData;
@@ -202,7 +222,26 @@ static void compute_lower_bound_table(GameData* game) {
     }
 }
 
-static void init_game_data(GameData* game, int num_threads) {
+static uint64_t get_system_ram_bytes(void) {
+#if defined(__APPLE__)
+    int mib[2] = {CTL_HW, HW_MEMSIZE};
+    uint64_t mem = 0;
+    size_t len = sizeof(mem);
+    if (sysctl(mib, 2, &mem, &len, NULL, 0) == 0 && mem > 0) {
+        return mem;
+    }
+#endif
+#if defined(_SC_PHYS_PAGES) && defined(_SC_PAGE_SIZE)
+    long pages = sysconf(_SC_PHYS_PAGES);
+    long page_size = sysconf(_SC_PAGE_SIZE);
+    if (pages > 0 && page_size > 0) {
+        return (uint64_t)pages * (uint64_t)page_size;
+    }
+#endif
+    return (uint64_t)8 * 1024 * 1024 * 1024ULL; // Fallback: 8 GB
+}
+
+static void init_game_data(GameData* game, int num_threads, uint64_t max_memory_mb) {
     size_t total_cells = (size_t)game->num_guesses * game->num_targets;
     game->score_matrix = malloc(total_cells * sizeof(uint8_t));
     if (!game->score_matrix) {
@@ -247,7 +286,47 @@ static void init_game_data(GameData* game, int num_threads) {
     }
 
     compute_lower_bound_table(game);
-    shared_tt_init(&game->shared_tt, 1u << 22);
+
+    // --- Dynamic Laptop-Friendly Memory Auto-Tuning ---
+    uint64_t total_sys_ram = get_system_ram_bytes();
+    uint64_t max_bytes;
+    if (max_memory_mb > 0) {
+        max_bytes = max_memory_mb * 1024 * 1024ULL;
+    } else {
+        // Safe default: use ~6.25% of physical RAM (1/16th), bounded between 256MB and 1024MB.
+        // Leaves >93% of system RAM free for background apps, IDE, and OS.
+        max_bytes = total_sys_ram / 16;
+        if (max_bytes > 1024 * 1024 * 1024ULL) max_bytes = 1024 * 1024 * 1024ULL;
+        if (max_bytes < 256 * 1024 * 1024ULL) max_bytes = 256 * 1024 * 1024ULL;
+    }
+
+    size_t matrix_mem = total_cells * 2 * sizeof(uint8_t);
+    uint64_t tt_budget = (max_bytes > matrix_mem + 32 * 1024 * 1024ULL)
+                             ? (max_bytes - matrix_mem - 32 * 1024 * 1024ULL)
+                             : (128 * 1024 * 1024ULL);
+
+    uint64_t shared_bytes = (uint64_t)(tt_budget * 0.65);
+    uint64_t local_bytes_per_thread = (uint64_t)((tt_budget * 0.35) / num_threads);
+
+    game->shared_tt_cap = next_pow2(shared_bytes / sizeof(SharedTTEntry));
+    if (game->shared_tt_cap > (1u << 25)) game->shared_tt_cap = 1u << 25;
+    if (game->shared_tt_cap < (1u << 18)) game->shared_tt_cap = 1u << 18;
+
+    game->local_tt_cap = next_pow2(local_bytes_per_thread / sizeof(TTEntry));
+    if (game->local_tt_cap > (1u << 21)) game->local_tt_cap = 1u << 21;
+    if (game->local_tt_cap < (1u << 16)) game->local_tt_cap = 1u << 16;
+
+    double shared_mb = (double)(game->shared_tt_cap * sizeof(SharedTTEntry)) / (1024.0 * 1024.0);
+    double local_mb = (double)(game->local_tt_cap * sizeof(TTEntry)) / (1024.0 * 1024.0);
+    double total_est_mb = (double)matrix_mem / (1024.0 * 1024.0) + shared_mb + local_mb * num_threads;
+
+    printf("System RAM: %.1f GB | Solver Memory Budget: %.1f MB (%.1f%% of RAM)\n",
+           (double)total_sys_ram / (1024.0 * 1024.0 * 1024.0),
+           total_est_mb, (total_est_mb * 1024.0 * 1024.0 * 100.0) / (double)total_sys_ram);
+    printf("Transposition Tables: Shared L2 = %.1f MB (%.2fM slots), Local L1 = %.1f MB/thread (%.0fK slots)\n",
+           shared_mb, (double)game->shared_tt_cap / 1e6, local_mb, (double)game->local_tt_cap / 1e3);
+
+    shared_tt_init(&game->shared_tt, game->shared_tt_cap);
 }
 
 static void free_game_data(GameData* game) {
@@ -265,20 +344,6 @@ static void free_game_data(GameData* game) {
 // 128-Bit Transposition Table (Thread-Local L1 + Global Shared L2)
 // -------------------------------------------------------------
 
-typedef struct {
-    uint64_t hash1;
-    uint64_t hash2;
-    uint32_t size;
-    uint32_t exact_cost;
-    uint32_t proven_lower_bound;
-    uint32_t best_guess;
-} TTEntry;
-
-typedef struct {
-    TTEntry* entries;
-    uint64_t mask;
-} TT;
-
 static void tt_init(TT* tt, uint64_t capacity_pow2) {
     tt->entries = malloc(capacity_pow2 * sizeof(TTEntry));
     tt->mask = capacity_pow2 - 1;
@@ -290,21 +355,23 @@ static void tt_init(TT* tt, uint64_t capacity_pow2) {
 
 static void tt_free(TT* tt) { free(tt->entries); }
 
+#define TT_MAX_PROBES 16
+
 static inline TTEntry* tt_find(TT* tt, uint64_t h1, uint64_t h2, uint32_t size) {
     uint64_t idx = (h1 ^ h2) & tt->mask;
-    for (uint64_t probes = 0; probes <= tt->mask; probes++) {
-        TTEntry* e = &tt->entries[idx];
+    for (uint64_t probes = 0; probes < TT_MAX_PROBES; probes++) {
+        TTEntry* e = &tt->entries[(idx + probes) & tt->mask];
         if (e->hash1 == TT_EMPTY_HASH && e->hash2 == TT_EMPTY_HASH) return NULL;
         if (e->hash1 == h1 && e->hash2 == h2 && e->size == size) return e;
-        idx = (idx + 1) & tt->mask;
     }
     return NULL;
 }
 
 static inline TTEntry* tt_find_or_claim(TT* tt, uint64_t h1, uint64_t h2, uint32_t size) {
     uint64_t idx = (h1 ^ h2) & tt->mask;
-    for (uint64_t probes = 0; probes <= tt->mask; probes++) {
-        TTEntry* e = &tt->entries[idx];
+    TTEntry* victim = NULL;
+    for (uint64_t probes = 0; probes < TT_MAX_PROBES; probes++) {
+        TTEntry* e = &tt->entries[(idx + probes) & tt->mask];
         if (e->hash1 == TT_EMPTY_HASH && e->hash2 == TT_EMPTY_HASH) {
             e->hash1 = h1;
             e->hash2 = h2;
@@ -315,7 +382,16 @@ static inline TTEntry* tt_find_or_claim(TT* tt, uint64_t h1, uint64_t h2, uint32
             return e;
         }
         if (e->hash1 == h1 && e->hash2 == h2 && e->size == size) return e;
-        idx = (idx + 1) & tt->mask;
+        if (!victim) victim = e;
+    }
+    if (victim) {
+        victim->hash1 = h1;
+        victim->hash2 = h2;
+        victim->size = size;
+        victim->exact_cost = UINT32_MAX;
+        victim->proven_lower_bound = 0;
+        victim->best_guess = UINT32_MAX;
+        return victim;
     }
     return NULL;
 }
@@ -490,9 +566,7 @@ typedef struct {
 
 static void solver_init(Solver* s, GameData* game) {
     s->game = game;
-    uint64_t tt_cap = next_pow2((uint64_t)game->num_targets * 128);
-    if (tt_cap < (1u << 16)) tt_cap = 1u << 16;
-    if (tt_cap > (1u << 24)) tt_cap = 1u << 24;
+    uint64_t tt_cap = game->local_tt_cap > 0 ? game->local_tt_cap : (1u << 19);
     tt_init(&s->tt, tt_cap);
 
     s->candidate_keys = malloc(8 * (size_t)game->num_guesses * sizeof(uint64_t));
@@ -557,6 +631,12 @@ static int compare_bucket_size_desc(const void* a, const void* b) {
     const BucketInfo* ba = (const BucketInfo*)a;
     const BucketInfo* bb = (const BucketInfo*)b;
     return (ba->size > bb->size) ? -1 : ((ba->size < bb->size) ? 1 : 0);
+}
+
+static int compare_bucket_size_asc(const void* a, const void* b) {
+    const BucketInfo* ba = (const BucketInfo*)a;
+    const BucketInfo* bb = (const BucketInfo*)b;
+    return (ba->size < bb->size) ? -1 : ((ba->size > bb->size) ? 1 : 0);
 }
 
 // -------------------------------------------------------------
@@ -731,6 +811,22 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
             solver_tt_store_exact(solver, h1, h2, count, cost, good_target);
             if (out_guess) *out_guess = good_target;
             return cost;
+        } else {
+            solver_tt_store_lb(solver, h1, h2, count, cost, good_target);
+            if (out_guess) *out_guess = good_target;
+            return cost;
+        }
+    } else {
+        // No target in H achieved bad == 0 (no master separator).
+        // Since an out-of-set guess also cannot achieve 2n-1 (no exact match),
+        // the node's true lower bound is at least 2*count.
+        if (2 * count > node_lb) {
+            node_lb = 2 * count;
+            if (node_lb >= beta) {
+                solver_tt_store_lb(solver, h1, h2, count, node_lb, suggested_guess);
+                if (out_guess) *out_guess = (suggested_guess != UINT32_MAX) ? suggested_guess : targets[0];
+                return node_lb;
+            }
         }
     }
 
@@ -800,7 +896,9 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
                 }
             }
 
-            candidate_keys[g] = ((uint64_t)(2 * s2 + count * guess_lb) << 32) | ((uint64_t)(guess_lb & 0xFFFF) << 16) | (uint64_t)g;
+            bool in_set = (counts[EXACT_MATCH] > 0);
+            uint32_t rank_score = 2 * s2 + count * guess_lb - (in_set ? 2 : 0);
+            candidate_keys[g] = ((uint64_t)rank_score << 32) | ((uint64_t)(guess_lb & 0xFFFF) << 16) | (uint64_t)g;
         }
     } else {
         const uint8_t* cols[count];
@@ -834,6 +932,7 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
                 }
             }
 
+            bool in_set = (big_counts[EXACT_MATCH] > 0);
             if (!aborted) guess_lb -= big_counts[EXACT_MATCH];
 
             for (uint32_t r = 0; r < count; r++) big_counts[cols[r][g]] = 0;
@@ -851,7 +950,8 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
                 best_exact_g = g;
             }
 
-            candidate_keys[g] = ((uint64_t)(2 * s2 + count * guess_lb) << 32) | ((uint64_t)(guess_lb & 0xFFFF) << 16) | (uint64_t)g;
+            uint32_t rank_score = 2 * s2 + count * guess_lb - (in_set ? 2 : 0);
+            candidate_keys[g] = ((uint64_t)rank_score << 32) | ((uint64_t)(guess_lb & 0xFFFF) << 16) | (uint64_t)g;
         }
     }
 
@@ -944,6 +1044,7 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
                 current_best = 2 * count;
                 best_g = g;
                 found_improvement = true;
+                if (current_best <= node_lb) break;
             }
             continue;
         }
@@ -1033,7 +1134,7 @@ static uint32_t solve_subset(Solver* solver, const uint32_t* targets, uint32_t c
         for (uint32_t u = 0; u < num_unresolved; u++) {
             unresolved_buckets[u].offset = offsets[unresolved_buckets[u].score];
         }
-        qsort(unresolved_buckets, num_unresolved, sizeof(BucketInfo), compare_bucket_size_desc);
+        qsort(unresolved_buckets, num_unresolved, sizeof(BucketInfo), compare_bucket_size_asc);
 
         // ---- Tier 3: Ordered Fail-Soft Recursion on Unresolved Buckets ----
         uint32_t running_cost = resolved_cost;
@@ -1299,7 +1400,7 @@ static OpenerResult evaluate_opener_sequential(Solver* solver, uint32_t opener_i
         return res;
     }
 
-    qsort(buckets, active_buckets, sizeof(BucketInfo), compare_bucket_size_desc);
+    qsort(buckets, active_buckets, sizeof(BucketInfo), compare_bucket_size_asc);
 
     uint32_t running_cost = count;
     uint32_t remaining_lb = root_lb - count;
@@ -1564,6 +1665,9 @@ typedef struct {
     pthread_mutex_t print_mutex;
     bool quiet;
     struct timespec start;
+    FILE* log_fp;
+    const char* save_tree_prefix;
+    int num_threads;
 } OpenerWorkPool;
 
 static void* opener_worker(void* arg) {
@@ -1586,6 +1690,29 @@ static void* opener_worker(void* arg) {
         bool is_new_best = res.is_exact && res.exact_total_cost < prev_best;
         if (is_new_best) atomic_store(&pool->global_best_cost, res.exact_total_cost);
 
+        struct timespec now;
+        clock_gettime(CLOCK_MONOTONIC, &now);
+        double el = (now.tv_sec - pool->start.tv_sec) + (now.tv_nsec - pool->start.tv_nsec) * 1e-9;
+        double wps = (el > 0.001) ? ((double)completed / el) : 0.0;
+
+        if (pool->log_fp) {
+            fprintf(pool->log_fp,
+                    "{\"completed\": %zu, \"total\": %zu, \"word\": \"%s\", \"exact_total\": %u, \"avg_guesses\": %.5f, \"is_exact\": %s, \"time_sec\": %.4f, \"elapsed_sec\": %.2f, \"words_per_sec\": %.2f, \"nodes\": %llu, \"is_new_best\": %s}\n",
+                    completed, pool->num_openers, pool->game->guesses[g_idx].word,
+                    res.exact_total_cost, res.avg_guesses, res.is_exact ? "true" : "false",
+                    res.time_sec, el, wps, (unsigned long long)res.nodes, is_new_best ? "true" : "false");
+            fflush(pool->log_fp);
+        }
+
+        if (pool->save_tree_prefix && is_new_best) {
+            char tree_path[512];
+            snprintf(tree_path, sizeof(tree_path), "%s_%s.json", pool->save_tree_prefix, pool->game->guesses[g_idx].word);
+            TreeNode* root = build_solution_tree(pool->game, g_idx, pool->num_threads);
+            dump_tree_to_json(root, tree_path, pool->game, res.exact_total_cost);
+            free_tree(root);
+            printf("  -> [CHECKPOINT] Saved new best strategy tree to '%s'\n", tree_path);
+        }
+
         if (pool->quiet) {
             struct timespec now;
             clock_gettime(CLOCK_MONOTONIC, &now);
@@ -1597,10 +1724,16 @@ static void* opener_worker(void* arg) {
                    completed, pool->num_openers, pct, el, best_avg);
             fflush(stdout);
         } else {
-            printf("[%5zu/%5zu] Opener: %-5s | Exact Avg: %.5f (%u total) | Time: %6.2fs | Nodes: %llu %s\n",
-                   completed, pool->num_openers, pool->game->guesses[g_idx].word,
-                   res.avg_guesses, res.exact_total_cost, res.time_sec,
-                   (unsigned long long)res.nodes, is_new_best ? " <-- NEW BEST" : "");
+            if (res.is_exact) {
+                printf("[%5zu/%5zu] Opener: %-5s | Exact Avg: %.5f (%u total) | Time: %6.2fs | Nodes: %llu %s\n",
+                       completed, pool->num_openers, pool->game->guesses[g_idx].word,
+                       res.avg_guesses, res.exact_total_cost, res.time_sec,
+                       (unsigned long long)res.nodes, is_new_best ? " <-- NEW BEST" : "");
+            } else {
+                printf("[%5zu/%5zu] Opener: %-5s | Status: PRUNED (>= %u)        | Time: %6.2fs | Nodes: %llu\n",
+                       completed, pool->num_openers, pool->game->guesses[g_idx].word,
+                       prev_best, res.time_sec, (unsigned long long)res.nodes);
+            }
             fflush(stdout);
         }
         pthread_mutex_unlock(&pool->print_mutex);
@@ -1620,6 +1753,8 @@ static void print_usage(const char* prog) {
     printf("  --top <N>             Heuristically pre-rank openers, then exactly solve the top N\n");
     printf("  --all                 Exactly solve every possible opening word\n");
     printf("  --threads <N>         Number of worker threads (default: hardware concurrency)\n");
+    printf("  --log <path>          Path to append real-time JSONL results\n");
+    printf("  --save-tree <prefix>  Checkpoint tree filename prefix whenever a new best opener is found\n");
     printf("  --tree, --dump-tree <path> Dump optimal solution tree to JSON\n");
     printf("  --quiet, -q           Compact progress output\n");
     printf("  --help                Display this help message\n\n");
@@ -1636,17 +1771,28 @@ int main(int argc, char** argv) {
     if (num_threads < 1) num_threads = 4;
     uint32_t max_candidates = 100; // Default: top 100 candidates per node (same as Alex Selby nth=100)
 
+    const char* log_path = NULL;
+    const char* save_tree_prefix = NULL;
+
+    uint64_t max_memory_mb = 0; // 0 = automatic auto-tuning based on physical RAM
+
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--wordlist") == 0 && i + 1 < argc) wordlist_path = argv[++i];
         else if (strcmp(argv[i], "--opener") == 0 && i + 1 < argc) single_opener = argv[++i];
         else if (strcmp(argv[i], "--top") == 0 && i + 1 < argc) top_n = atoi(argv[++i]);
         else if (strcmp(argv[i], "--all") == 0) search_all = true;
         else if (strcmp(argv[i], "--threads") == 0 && i + 1 < argc) num_threads = atoi(argv[++i]);
-        else if ((strcmp(argv[i], "--candidates") == 0 || strcmp(argv[i], "-n") == 0) && i + 1 < argc) {
+        else if ((strcmp(argv[i], "--max-memory") == 0 || strcmp(argv[i], "--tt-mem") == 0) && i + 1 < argc) {
+            max_memory_mb = (uint64_t)atoi(argv[++i]);
+        } else if ((strcmp(argv[i], "--candidates") == 0 || strcmp(argv[i], "-n") == 0) && i + 1 < argc) {
             max_candidates = (uint32_t)atoi(argv[++i]);
             if (max_candidates == 0) max_candidates = UINT32_MAX;
         } else if (strcmp(argv[i], "--exhaustive") == 0) {
             max_candidates = UINT32_MAX;
+        } else if (strcmp(argv[i], "--log") == 0 && i + 1 < argc) {
+            log_path = argv[++i];
+        } else if (strcmp(argv[i], "--save-tree") == 0 && i + 1 < argc) {
+            save_tree_prefix = argv[++i];
         } else if (strcmp(argv[i], "--tree") == 0 || strcmp(argv[i], "--dump-tree") == 0) {
             if (i + 1 < argc) tree_dump_path = argv[++i];
         } else if (strcmp(argv[i], "--quiet") == 0 || strcmp(argv[i], "-q") == 0) quiet = true;
@@ -1664,7 +1810,7 @@ int main(int argc, char** argv) {
     struct timespec t0, t1;
     clock_gettime(CLOCK_MONOTONIC, &t0);
     printf("Precomputing %u x %u score matrix using %d threads...\n", game.num_guesses, game.num_targets, num_threads);
-    init_game_data(&game, num_threads);
+    init_game_data(&game, num_threads, max_memory_mb);
     clock_gettime(CLOCK_MONOTONIC, &t1);
     printf("Ready in %.3f seconds (%.1f MB matrix).\n\n",
            (t1.tv_sec - t0.tv_sec) + (t1.tv_nsec - t0.tv_nsec) * 1e-9,
@@ -1700,6 +1846,18 @@ int main(int argc, char** argv) {
             printf("  Computation Time:     %.3f seconds\n", res.time_sec);
             printf("  Tree Nodes Visited:   %llu\n", (unsigned long long)res.nodes);
             printf("============================================================\n");
+        }
+
+        if (log_path) {
+            FILE* log_fp = fopen(log_path, "a");
+            if (log_fp) {
+                fprintf(log_fp,
+                        "{\"completed\": 1, \"total\": 1, \"word\": \"%s\", \"exact_total\": %u, \"avg_guesses\": %.5f, \"is_exact\": %s, \"time_sec\": %.4f, \"nodes\": %llu, \"is_new_best\": %s}\n",
+                        game.guesses[opener_idx].word, res.exact_total_cost, res.avg_guesses,
+                        res.is_exact ? "true" : "false", res.time_sec, (unsigned long long)res.nodes,
+                        res.is_exact ? "true" : "false");
+                fclose(log_fp);
+            }
         }
 
         if (tree_dump_path) {
@@ -1740,11 +1898,22 @@ int main(int argc, char** argv) {
     printf("Evaluating %zu opener(s) in parallel using %d threads%s...\n\n",
            count_to_eval, num_threads, quiet ? " (quiet mode)" : "");
 
+    FILE* log_fp = NULL;
+    if (log_path) {
+        log_fp = fopen(log_path, "a");
+        if (!log_fp) {
+            fprintf(stderr, "Warning: Unable to open log file '%s' for writing\n", log_path);
+        }
+    }
+
     OpenerWorkPool pool = {
         .game = &game,
         .opener_indices = openers_to_eval,
         .num_openers = count_to_eval,
-        .quiet = quiet
+        .quiet = quiet,
+        .log_fp = log_fp,
+        .save_tree_prefix = save_tree_prefix,
+        .num_threads = num_threads
     };
     clock_gettime(CLOCK_MONOTONIC, &pool.start);
     atomic_init(&pool.next_idx, 0);
@@ -1757,6 +1926,7 @@ int main(int argc, char** argv) {
     for (int i = 0; i < num_threads; i++) pthread_create(&threads[i], NULL, opener_worker, &pool);
     for (int i = 0; i < num_threads; i++) pthread_join(threads[i], NULL);
     free(threads);
+    if (log_fp) fclose(log_fp);
     if (quiet) printf("\n");
 
     qsort(pool.results, count_to_eval, sizeof(OpenerResult), compare_opener_results_asc);
@@ -1777,9 +1947,15 @@ int main(int argc, char** argv) {
     printf(" Rank | Opener | Exact Total | Exact Average | Time\n");
     printf("------+--------+-------------+---------------+----------\n");
     for (size_t i = 0; i < count_to_eval && i < 20; i++) {
-        printf(" %4zu | %-6s | %11u | %11.5f | %6.2fs\n",
-               i + 1, game.guesses[pool.results[i].opener_idx].word,
-               pool.results[i].exact_total_cost, pool.results[i].avg_guesses, pool.results[i].time_sec);
+        if (pool.results[i].is_exact) {
+            printf(" %4zu | %-6s | %11u | %11.5f | %6.2fs\n",
+                   i + 1, game.guesses[pool.results[i].opener_idx].word,
+                   pool.results[i].exact_total_cost, pool.results[i].avg_guesses, pool.results[i].time_sec);
+        } else {
+            printf(" %4zu | %-6s |    (pruned) |      (pruned) | %6.2fs\n",
+                   i + 1, game.guesses[pool.results[i].opener_idx].word,
+                   pool.results[i].time_sec);
+        }
     }
     printf("=============================================================\n");
     printf("%s OPENER: '%s' with exact average score: %.5f (%u total guesses)\n",
