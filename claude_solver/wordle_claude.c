@@ -96,6 +96,7 @@ typedef struct {
     uint64_t* zobrist2;         // [num_targets], independent seed
     uint32_t* lower_bound;      // [num_targets + 1], admissible LB by subset size
     EndgameTable endgame_table; // precomputed endgame-cluster bounds
+    uint32_t max_guesses;       // 0 = unbounded (default); N>=1 = depth-capped solver via --max-guesses
 } GameData;
 
 // Matches Python scoring.py: green pass first (consuming that letter from
@@ -1352,6 +1353,439 @@ static OpenerResult evaluate_opener_parallel(GameData* game, uint32_t opener_idx
 }
 
 // -------------------------------------------------------------
+// Depth-capped solver ("--max-guesses N": hard per-word guess budget,
+// matching real Wordle's N=6 rule and wordle.cpp's own `maxguesses`).
+//
+// This computes a DIFFERENT objective than every solver above: the true
+// minimum total cost SUBJECT TO no single target requiring more than N
+// guesses, not the unbounded minimum. The two coincide exactly when the
+// unbounded optimum never needs more than N guesses for any one target
+// -- true for `words.txt` (cross-checked: wordle.cpp with its default
+// maxguesses=6 reports the same 11433 total for salet as this file's
+// unbounded solver), but not something this code can assume for an
+// arbitrary word list, so infeasibility (no valid depth-N strategy
+// exists for some subset) is surfaced explicitly to the caller rather
+// than folded silently into a number -- see evaluate_opener_capped's
+// own handling below.
+//
+// A subset's cost under this objective depends on how many guesses
+// REMAIN (fewer remaining guesses can force a worse, or infeasible,
+// resolution), unlike every solver above where a subset's optimal cost
+// is intrinsic to the subset alone. That breaks the depth-independent
+// TT's caching assumption, so this needs its own transposition table,
+// keyed additionally by remaining depth ("remdepth") -- implemented as
+// an entirely separate struct/table/solver, deliberately NOT folded
+// into TTEntry/TT/Solver/solve_subset, so a bug in this newer, riskier
+// code cannot corrupt the extensively-verified unbounded path above.
+//
+// Scope: only the two cheapest, structurally-unconditional depth
+// shortcuts from wordle.cpp's minoverwords (remdepth==0, remdepth==1
+// with count>1 -- both true by a pigeonhole argument having nothing to
+// do with any specific word list, unlike deeper refinements like the
+// "no guess achieves a singleton split" remdepth<=2 check, which relies
+// on scanning every candidate guess and was left out of this first
+// pass to keep it verifiable). node_lb (generic + endgame table) and
+// the union-bound cache (Phase 3) are intentionally not ported here --
+// same reasoning, smaller and independently-verifiable first version.
+// --opener only for now; --top/--all/--tree are not wired to this path.
+// -------------------------------------------------------------
+
+// Large but finite (matching wordle.cpp's own `infinity=1000000000`, not
+// literally UINT32_MAX, so it can be compared/propagated through the
+// same beta machinery below without colliding with UINT32_MAX's
+// existing meanings elsewhere, e.g. "unbounded beta"). Any candidate
+// guess whose bucket returns this is automatically rejected by the
+// ordinary `bucket_cost >= bucket_beta` check every other bucket-loop
+// cutoff already uses -- no separate plumbing needed for the common
+// case of a locally-infeasible candidate losing to a feasible one.
+#define CAPPED_INFEASIBLE 1000000000u
+
+typedef struct {
+    uint64_t hash1;
+    uint64_t hash2;
+    uint32_t size;
+    uint32_t remdepth;
+    uint32_t exact_cost;
+    uint32_t proven_lower_bound;
+    uint32_t best_guess;
+} CappedTTEntry;
+
+typedef struct {
+    CappedTTEntry* entries;
+    uint64_t mask;
+} CappedTT;
+
+static void capped_tt_init(CappedTT* tt, uint64_t capacity_pow2) {
+    tt->entries = malloc(capacity_pow2 * sizeof(CappedTTEntry));
+    tt->mask = capacity_pow2 - 1;
+    for (uint64_t i = 0; i < capacity_pow2; i++) tt->entries[i].hash1 = UINT64_MAX;
+}
+static void capped_tt_free(CappedTT* tt) { free(tt->entries); }
+
+static CappedTTEntry* capped_tt_find(CappedTT* tt, uint64_t hash1, uint64_t hash2, uint32_t size, uint32_t remdepth) {
+    uint64_t idx = hash1 & tt->mask;
+    for (uint64_t probes = 0; probes <= tt->mask; probes++) {
+        CappedTTEntry* e = &tt->entries[idx];
+        if (e->hash1 == UINT64_MAX) return NULL;
+        if (e->hash1 == hash1 && e->hash2 == hash2 && e->size == size && e->remdepth == remdepth) return e;
+        idx = (idx + 1) & tt->mask;
+    }
+    return NULL;
+}
+static CappedTTEntry* capped_tt_find_or_claim(CappedTT* tt, uint64_t hash1, uint64_t hash2, uint32_t size, uint32_t remdepth) {
+    uint64_t idx = hash1 & tt->mask;
+    for (uint64_t probes = 0; probes <= tt->mask; probes++) {
+        CappedTTEntry* e = &tt->entries[idx];
+        if (e->hash1 == UINT64_MAX) {
+            e->hash1 = hash1; e->hash2 = hash2; e->size = size; e->remdepth = remdepth;
+            e->exact_cost = UINT32_MAX; e->proven_lower_bound = 0; e->best_guess = UINT32_MAX;
+            return e;
+        }
+        if (e->hash1 == hash1 && e->hash2 == hash2 && e->size == size && e->remdepth == remdepth) return e;
+        idx = (idx + 1) & tt->mask;
+    }
+    return NULL;
+}
+
+typedef struct {
+    GameData* game;
+    CappedTT tt;
+    uint64_t* dedup_stamp;
+    uint64_t* dedup_hash;
+    uint64_t* dedup_hash2;
+    uint32_t* dedup_guess;
+    uint64_t call_id;
+    uint32_t* representatives;
+    uint64_t nodes_visited;
+} CappedSolver;
+
+static void capped_solver_init(CappedSolver* s, GameData* game) {
+    s->game = game;
+    // remdepth is now part of the key, so the same subset can occupy
+    // multiple entries (one per distinct remdepth it's ever reached at)
+    // -- size a bit more generously than the unbounded TT accordingly.
+    uint64_t tt_cap = next_pow2((uint64_t)game->num_targets * 64 * (uint64_t)(game->max_guesses + 1));
+    if (tt_cap < (1u << 16)) tt_cap = 1u << 16;
+    if (tt_cap > (1u << 24)) tt_cap = 1u << 24;
+    capped_tt_init(&s->tt, tt_cap);
+
+    uint64_t dedup_cap = next_pow2((uint64_t)game->num_guesses * 2);
+    s->dedup_stamp = calloc(dedup_cap, sizeof(uint64_t));
+    s->dedup_hash = malloc(dedup_cap * sizeof(uint64_t));
+    s->dedup_hash2 = malloc(dedup_cap * sizeof(uint64_t));
+    s->dedup_guess = malloc(dedup_cap * sizeof(uint32_t));
+    s->call_id = 0;
+    s->representatives = malloc((size_t)game->num_guesses * sizeof(uint32_t));
+    s->nodes_visited = 0;
+}
+
+static void capped_solver_free(CappedSolver* s) {
+    capped_tt_free(&s->tt);
+    free(s->dedup_stamp);
+    free(s->dedup_hash);
+    free(s->dedup_hash2);
+    free(s->dedup_guess);
+    free(s->representatives);
+}
+
+// Mirrors solve_subset's structure (dedup -> rank -> branch-and-bound),
+// with `remdepth` (guesses remaining, INCLUDING the one about to be
+// made here) threaded through, two unconditional depth cutoffs added,
+// and every recursive call consuming one unit of remdepth. See the
+// section comment above for what's deliberately not ported here.
+static uint32_t solve_subset_capped(CappedSolver* solver, const uint32_t* targets, uint32_t count,
+                                     uint64_t hash1, uint64_t hash2, uint32_t remdepth,
+                                     uint32_t beta, uint32_t* out_guess) {
+    solver->nodes_visited++;
+    GameData* game = solver->game;
+
+    if (count == 0) return 0;
+
+    // No guesses remain at all: even a single remaining candidate can't
+    // be confirmed (real Wordle requires literally submitting the
+    // correct word to win, even once you've deduced it), so any
+    // count>=1 here is unconditionally infeasible.
+    if (remdepth == 0) return CAPPED_INFEASIBLE;
+
+    if (count == 1) {
+        if (out_guess) *out_guess = targets[0];
+        return 1;
+    }
+
+    // Exactly one guess left: it can resolve at most one candidate for
+    // certain (guess it; if wrong, no chances remain), so count>=2 here
+    // is unconditionally infeasible -- true regardless of which guesses
+    // exist, a pigeonhole fact, not word-list-specific.
+    if (remdepth == 1) return CAPPED_INFEASIBLE;
+
+    if (count == 2) {
+        // Needs remdepth>=2, already guaranteed by the check just above.
+        if (out_guess) *out_guess = targets[0];
+        return 3;
+    }
+
+    const uint32_t num_targets = game->num_targets;
+    const uint32_t num_guesses = game->num_guesses;
+    const uint8_t* matrix = game->score_matrix;
+
+    uint32_t node_lb = game->lower_bound[count];
+    uint32_t endgame_lb = endgame_lookup(&game->endgame_table, hash1, hash2, count);
+    if (endgame_lb > node_lb) node_lb = endgame_lb;
+
+    CappedTTEntry* entry = capped_tt_find(&solver->tt, hash1, hash2, count, remdepth);
+    uint32_t suggested_guess = UINT32_MAX;
+    if (entry) {
+        if (entry->exact_cost != UINT32_MAX) {
+            if (out_guess) *out_guess = entry->best_guess;
+            return entry->exact_cost;
+        }
+        if (entry->proven_lower_bound > node_lb) node_lb = entry->proven_lower_bound;
+        suggested_guess = entry->best_guess;
+    }
+
+    if (node_lb >= beta) {
+        CappedTTEntry* e = capped_tt_find_or_claim(&solver->tt, hash1, hash2, count, remdepth);
+        if (e && node_lb > e->proven_lower_bound) e->proven_lower_bound = node_lb;
+        if (e && e->best_guess == UINT32_MAX && suggested_guess != UINT32_MAX) e->best_guess = suggested_guess;
+        return node_lb;
+    }
+
+    solver->call_id++;
+    uint64_t call_id = solver->call_id;
+    uint64_t dedup_mask = next_pow2((uint64_t)num_guesses * 2) - 1;
+    uint32_t rep_count = 0;
+
+    for (uint32_t g = 0; g < num_guesses; g++) {
+        const uint8_t* row = matrix + (size_t)g * num_targets;
+        uint64_t h = 1469598103934665603ULL;
+        uint64_t h2 = 0x84222325cbf29ce4ULL;
+        for (uint32_t i = 0; i < count; i++) {
+            uint8_t sc = row[targets[i]];
+            h = (h ^ sc) * 1099511628211ULL;
+            h2 = (h2 ^ sc) * 0x9e3779b97f4a7c15ULL;
+        }
+        uint64_t idx = h & dedup_mask;
+        bool duplicate = false;
+        while (solver->dedup_stamp[idx] == call_id) {
+            if (solver->dedup_hash[idx] == h && solver->dedup_hash2[idx] == h2) { duplicate = true; break; }
+            idx = (idx + 1) & dedup_mask;
+        }
+        if (duplicate) continue;
+        solver->dedup_stamp[idx] = call_id;
+        solver->dedup_hash[idx] = h;
+        solver->dedup_hash2[idx] = h2;
+        solver->dedup_guess[idx] = g;
+        solver->representatives[rep_count++] = g;
+    }
+
+    RankedCandidate ranked[rep_count];
+    uint32_t lb1 = UINT32_MAX;
+    {
+        uint32_t hist[NUM_SCORES];
+        for (uint32_t r = 0; r < rep_count; r++) {
+            uint32_t g = solver->representatives[r];
+            const uint8_t* row = matrix + (size_t)g * num_targets;
+            memset(hist, 0, sizeof(hist));
+            for (uint32_t i = 0; i < count; i++) hist[row[targets[i]]]++;
+            uint32_t active = 0, sum_sq = 0, glb = count;
+            for (int s = 0; s < NUM_SCORES; s++) {
+                if (hist[s] > 0) {
+                    active++; sum_sq += hist[s] * hist[s];
+                    if (s != EXACT_MATCH) glb += game->lower_bound[hist[s]];
+                }
+            }
+            ranked[r] = (RankedCandidate){ .guess_idx = g, .active_buckets = active, .sum_sq = sum_sq, .guess_lb = glb };
+            if (glb < lb1) lb1 = glb;
+        }
+    }
+    if (lb1 > node_lb) node_lb = lb1;
+    if (node_lb >= beta) {
+        CappedTTEntry* e = capped_tt_find_or_claim(&solver->tt, hash1, hash2, count, remdepth);
+        if (e && node_lb > e->proven_lower_bound) e->proven_lower_bound = node_lb;
+        if (e && e->best_guess == UINT32_MAX && suggested_guess != UINT32_MAX) e->best_guess = suggested_guess;
+        return node_lb;
+    }
+    qsort(ranked, rep_count, sizeof(RankedCandidate), compare_ranked_desc);
+
+    if (suggested_guess != UINT32_MAX) {
+        for (uint32_t r = 0; r < rep_count; r++) {
+            if (ranked[r].guess_idx == suggested_guess) {
+                RankedCandidate tmp = ranked[0];
+                ranked[0] = ranked[r];
+                ranked[r] = tmp;
+                break;
+            }
+        }
+    }
+
+    uint32_t current_best = beta;
+    uint32_t best_g = ranked[0].guess_idx;
+    bool found_improvement = false;
+
+    uint32_t local_partition[count];
+    uint32_t hist[NUM_SCORES];
+    uint32_t offsets[NUM_SCORES + 1];
+    BucketInfo buckets[NUM_SCORES];
+
+    for (uint32_t c = 0; c < rep_count; c++) {
+        uint32_t g = ranked[c].guess_idx;
+        if (ranked[c].active_buckets == 1) continue;
+        uint32_t guess_lb = ranked[c].guess_lb;
+        if (guess_lb >= current_best) continue;
+
+        const uint8_t* row = matrix + (size_t)g * num_targets;
+        memset(hist, 0, NUM_SCORES * sizeof(uint32_t));
+        for (uint32_t i = 0; i < count; i++) hist[row[targets[i]]]++;
+
+        uint32_t active_buckets = 0;
+        for (int s = 0; s < NUM_SCORES; s++) {
+            if (hist[s] > 0) {
+                buckets[active_buckets].score = (uint16_t)s;
+                buckets[active_buckets].size = hist[s];
+                active_buckets++;
+            }
+        }
+
+        if (active_buckets == count && hist[EXACT_MATCH] > 0) {
+            current_best = guess_lb;
+            best_g = g;
+            found_improvement = true;
+            break;
+        }
+
+        offsets[0] = 0;
+        for (int s = 0; s < NUM_SCORES; s++) offsets[s + 1] = offsets[s] + hist[s];
+        uint32_t cur_offsets[NUM_SCORES];
+        memcpy(cur_offsets, offsets, sizeof(cur_offsets));
+        for (uint32_t i = 0; i < count; i++) {
+            uint8_t s = row[targets[i]];
+            local_partition[cur_offsets[s]++] = targets[i];
+        }
+
+        for (uint32_t b = 0; b < active_buckets; b++) {
+            uint32_t off = offsets[buckets[b].score];
+            uint64_t bh1 = 0, bh2 = 0;
+            for (uint32_t j = 0; j < buckets[b].size; j++) {
+                uint32_t t = local_partition[off + j];
+                bh1 ^= game->zobrist[t];
+                bh2 ^= game->zobrist2[t];
+            }
+            buckets[b].hash1 = bh1;
+            buckets[b].hash2 = bh2;
+            buckets[b].offset = off;
+        }
+
+        qsort(buckets, active_buckets, sizeof(BucketInfo), compare_bucket_size_desc);
+
+        uint32_t running_cost = count;
+        uint32_t remaining_lb = 0;
+        for (uint32_t b = 0; b < active_buckets; b++) {
+            if (buckets[b].score != EXACT_MATCH) remaining_lb += game->lower_bound[buckets[b].size];
+        }
+
+        bool pruned = false;
+        for (uint32_t b = 0; b < active_buckets; b++) {
+            if (buckets[b].score == EXACT_MATCH) continue;
+            remaining_lb -= game->lower_bound[buckets[b].size];
+            if (running_cost + remaining_lb >= current_best) { pruned = true; break; }
+            uint32_t bucket_beta = current_best - running_cost - remaining_lb;
+            // Consumes one unit of remaining depth budget: this guess is
+            // "used up" for every bucket recursed into below it.
+            uint32_t bucket_cost = solve_subset_capped(solver, &local_partition[buckets[b].offset], buckets[b].size,
+                                                         buckets[b].hash1, buckets[b].hash2, remdepth - 1,
+                                                         bucket_beta, NULL);
+            if (bucket_cost >= bucket_beta) { pruned = true; break; }
+            running_cost += bucket_cost;
+        }
+
+        if (!pruned && running_cost < current_best) {
+            current_best = running_cost;
+            best_g = g;
+            found_improvement = true;
+            if (current_best <= node_lb) break;
+        }
+    }
+
+    CappedTTEntry* e = capped_tt_find_or_claim(&solver->tt, hash1, hash2, count, remdepth);
+    if (found_improvement) {
+        if (e) { e->exact_cost = current_best; e->best_guess = best_g; }
+        if (out_guess) *out_guess = best_g;
+        return current_best;
+    } else {
+        if (e && beta > e->proven_lower_bound) e->proven_lower_bound = beta;
+        if (e && e->best_guess == UINT32_MAX) e->best_guess = best_g;
+        if (out_guess) *out_guess = best_g;
+        return beta;
+    }
+}
+
+// Single-threaded --opener entry point for the depth-capped solver.
+// Mirrors evaluate_opener_parallel's structure (partition_root, per-
+// bucket solve) but calls solve_subset_capped sequentially, and
+// deliberately does NOT seed beta from the greedy ceiling the way
+// evaluate_opener_parallel does. Reason: greedy_upper_bound plays out a
+// real strategy that has no awareness of the depth cap, so it isn't
+// safe to treat as an upper bound on the CAPPED objective (a candidate
+// bucket "failing" against a ceiling-derived beta would be ambiguous --
+// beaten by a better real strategy, or genuinely depth-infeasible --
+// and disentangling those reliably (a second solve at a looser beta)
+// is exactly the kind of extra moving part this first, correctness-
+// focused pass is deliberately avoiding). Each bucket is instead solved
+// once, directly, at beta=CAPPED_INFEASIBLE: since that's chosen to be
+// many orders of magnitude above any realistic real total for word
+// lists this size, a returned cost below it is unambiguously the true
+// capped-optimal value for that bucket (solve_subset_capped's own
+// exact-if-below-beta contract), and a returned cost at or above it is
+// unambiguously genuine infeasibility -- no retry, no seeding, no
+// ambiguity to resolve.
+static OpenerResult evaluate_opener_capped(GameData* game, uint32_t opener_idx) {
+    struct timespec t0, t1;
+    clock_gettime(CLOCK_MONOTONIC, &t0);
+
+    uint32_t count = game->num_targets;
+    uint32_t* local_partition = malloc(count * sizeof(uint32_t));
+    BucketInfo* buckets = malloc(NUM_SCORES * sizeof(BucketInfo));
+    uint32_t active_buckets;
+    partition_root(game, opener_idx, local_partition, buckets, &active_buckets);
+    qsort(buckets, active_buckets, sizeof(BucketInfo), compare_bucket_size_desc);
+
+    CappedSolver solver;
+    capped_solver_init(&solver, game);
+
+    uint32_t total_cost = count;
+    uint64_t total_nodes = 0;
+    bool infeasible = false;
+    // The root guess itself consumes one unit of depth budget.
+    uint32_t root_remdepth = game->max_guesses - 1;
+
+    for (uint32_t b = 0; b < active_buckets && !infeasible; b++) {
+        if (buckets[b].score == EXACT_MATCH) continue;
+        uint64_t nodes_before = solver.nodes_visited;
+        uint32_t cost = solve_subset_capped(&solver, &local_partition[buckets[b].offset], buckets[b].size,
+                                             buckets[b].hash1, buckets[b].hash2, root_remdepth,
+                                             CAPPED_INFEASIBLE, NULL);
+        total_nodes += solver.nodes_visited - nodes_before;
+        if (cost >= CAPPED_INFEASIBLE) { infeasible = true; break; }
+        total_cost += cost;
+    }
+
+    capped_solver_free(&solver);
+    free(local_partition);
+    free(buckets);
+
+    clock_gettime(CLOCK_MONOTONIC, &t1);
+
+    OpenerResult res;
+    res.opener_idx = opener_idx;
+    res.exact_total_cost = infeasible ? UINT32_MAX : total_cost;
+    res.avg_guesses = infeasible ? 99.0 : (double)total_cost / (double)count;
+    res.is_exact = !infeasible;
+    res.time_sec = (t1.tv_sec - t0.tv_sec) + (t1.tv_nsec - t0.tv_nsec) * 1e-9;
+    res.nodes = total_nodes;
+    return res;
+}
+
+// -------------------------------------------------------------
 // Decision tree construction & JSON export
 // (schema matches the original solver's output: {"guess","num_targets",
 //  "branches": {"<score>": <child>}} with {"leaf": true} on leaves, so
@@ -1653,6 +2087,12 @@ static void print_usage(const char* prog) {
     printf("  --threads <N>         Number of worker threads (default: hardware concurrency)\n");
     printf("  --tree, --dump-tree <path> Dump the optimal solution decision tree to JSON file\n");
     printf("  --quiet, -q           Disable per-word verbose output (print compact progress)\n");
+    printf("  --max-guesses N       Depth-capped solver: true minimum total cost SUBJECT TO no\n");
+    printf("                        target needing more than N guesses (0 = unbounded, default).\n");
+    printf("                        --opener only; incompatible with --top/--all/--tree. See the\n");
+    printf("                        'Depth-capped solver' section comment for the objective this\n");
+    printf("                        changes and how infeasibility (no valid depth-N strategy) is\n");
+    printf("                        reported rather than silently miscounted.\n");
     printf("  --help                Display this help message\n\n");
 }
 
@@ -1665,6 +2105,7 @@ int main(int argc, char** argv) {
     bool quiet = false;
     int num_threads = (int)sysconf(_SC_NPROCESSORS_ONLN);
     if (num_threads < 1) num_threads = 4;
+    int max_guesses = 0;
 
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--wordlist") == 0 && i + 1 < argc) wordlist_path = argv[++i];
@@ -1675,7 +2116,21 @@ int main(int argc, char** argv) {
         else if (strcmp(argv[i], "--tree") == 0 || strcmp(argv[i], "--dump-tree") == 0) {
             if (i + 1 < argc) tree_dump_path = argv[++i];
         } else if (strcmp(argv[i], "--quiet") == 0 || strcmp(argv[i], "-q") == 0) quiet = true;
+        else if (strcmp(argv[i], "--max-guesses") == 0 && i + 1 < argc) max_guesses = atoi(argv[++i]);
         else if (strcmp(argv[i], "--help") == 0) { print_usage(argv[0]); return 0; }
+    }
+
+    if (max_guesses < 0) {
+        fprintf(stderr, "Error: --max-guesses must be >= 0 (0 disables the depth cap).\n");
+        return 1;
+    }
+    if (max_guesses > 0 && !single_opener) {
+        fprintf(stderr, "Error: --max-guesses currently only supports --opener (not --top/--all).\n");
+        return 1;
+    }
+    if (max_guesses > 0 && tree_dump_path) {
+        fprintf(stderr, "Error: --max-guesses does not support --tree yet.\n");
+        return 1;
     }
 
     printf("=================================================================\n");
@@ -1684,6 +2139,7 @@ int main(int argc, char** argv) {
 
     GameData game;
     if (load_wordlist(wordlist_path, &game) != 0) return 1;
+    game.max_guesses = (uint32_t)max_guesses;
 
     struct timespec t0, t1;
     clock_gettime(CLOCK_MONOTONIC, &t0);
@@ -1704,12 +2160,34 @@ int main(int argc, char** argv) {
             return 1;
         }
 
-        printf("Evaluating opener: '%s' to exact mathematical optimality...\n", game.guesses[opener_idx].word);
-        OpenerResult res = evaluate_opener_parallel(&game, opener_idx, num_threads);
+        OpenerResult res;
+        if (max_guesses > 0) {
+            printf("Evaluating opener: '%s' subject to a %d-guess-per-target cap...\n",
+                   game.guesses[opener_idx].word, max_guesses);
+            res = evaluate_opener_capped(&game, opener_idx);
+        } else {
+            printf("Evaluating opener: '%s' to exact mathematical optimality...\n", game.guesses[opener_idx].word);
+            res = evaluate_opener_parallel(&game, opener_idx, num_threads);
+        }
+
+        if (max_guesses > 0 && !res.is_exact) {
+            printf("\n=================== INFEASIBLE (depth cap) ===================\n");
+            printf("  Opener:               %-5s\n", game.guesses[opener_idx].word);
+            printf("  No strategy exists that resolves every target within %d guesses.\n", max_guesses);
+            printf("  (Not a wrong-answer risk: this is detected and reported explicitly,\n");
+            printf("   never silently folded into a number -- see solve_subset_capped's\n");
+            printf("   own section comment.) Try a higher --max-guesses, or omit the flag\n");
+            printf("   for the unbounded exact solver.\n");
+            printf("  Computation Time:     %.3f seconds\n", res.time_sec);
+            printf("================================================================\n");
+            free_game_data(&game);
+            return 0;
+        }
 
         printf("\n======================= EXACT RESULT =======================\n");
         printf("  Opener:               %-5s\n", game.guesses[opener_idx].word);
         printf("  Total Target Words:   %u\n", game.num_targets);
+        if (max_guesses > 0) printf("  Depth cap:            %d guesses/target\n", max_guesses);
         printf("  Exact Total Guesses:  %u\n", res.exact_total_cost);
         printf("  Exact Average Score:  %.5f guesses/game\n", res.avg_guesses);
         printf("  Computation Time:     %.3f seconds\n", res.time_sec);

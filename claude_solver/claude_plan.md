@@ -84,9 +84,29 @@ improvement to a real number).
 
 **Where this leaves things**: every technique from `wordle.cpp`'s
 playbook that has a safe, non-vacuous translation to this solver's
-objective has now been tried. The remaining gap looks structural (tied
-to the objective difference itself, not a missing technique), not
-closable by further porting.
+*unbounded* objective has now been tried. The remaining gap looks
+structural (tied to the objective difference itself), not closable by
+further porting *without also adopting the depth-bounded objective*.
+
+**Update: the depth-bounded objective was adopted, opt-in.** Per direct
+request, implemented `--max-guesses N` -- a genuinely separate solver
+(`solve_subset_capped` + its own depth-aware TT, isolated from the
+existing unbounded path so a bug in it can't corrupt the
+extensively-verified default behavior) computing the true minimum total
+cost subject to a per-word guess cap, matching real Wordle's rule and
+`wordle.cpp`'s own `maxguesses`. Ported only the two cheapest,
+unconditionally-true depth shortcuts (not the fuller set). Verified via
+full test suite, direct ASan/TSan runs of the new path, fixture
+cross-checks, and an independent hand-derived boundary-condition oracle
+(letter-disjoint word lists, closed-form `n(n+1)/2` cost) that matched
+exactly at every tested boundary, including the two tightest
+still-feasible cases. **Measured: a real, if modest, ~4.9% speedup**
+(201.12s vs. 211.47s mean over 6 interleaved runs each) — the first
+change all session with a plausibly-real effect rather than one fully
+inside the pre-change noise band. See PROGRESS.md's "Depth-capped
+solver" section for the full numbers, a caught-before-shipping
+correctness bug in the first draft, and what was deliberately left
+unported.
 
 ## Scope (unchanged)
 

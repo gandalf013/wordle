@@ -466,6 +466,120 @@ observed) and is a genuine, verified tightening of a real number, even
 if its downstream effect on this one benchmark is currently within
 noise.
 
+## Depth-capped solver (`--max-guesses N`) — DONE, real (if modest) speedup
+
+Following up directly on the user's request to implement the hard
+6-guess depth budget after the root-cause investigation above: this
+computes a genuinely *different* objective (minimum total cost SUBJECT
+TO no target needing more than N guesses) rather than the file's usual
+unbounded minimum, so it's implemented as a fully separate, isolated
+code path — `CappedTTEntry`/`CappedTT`/`CappedSolver`/
+`solve_subset_capped`/`evaluate_opener_capped`, all new, none of the
+existing `TTEntry`/`TT`/`Solver`/`solve_subset` touched — specifically
+so a bug in this newer, higher-risk code cannot corrupt the extensively
+verified unbounded path. Opt-in via `--max-guesses N` (0 = default,
+unbounded, zero behavior change); `--opener` only, rejected at the CLI
+if combined with `--top`/`--all`/`--tree`.
+
+**Why a separate TT, not a parameter on the existing one**: under a
+depth cap, a subset's cost depends on how many guesses *remain*, not
+just the subset itself (fewer remaining guesses can force a worse or
+infeasible resolution) — unlike every solver above, where a subset's
+optimal cost is intrinsic (explicitly documented as such at the top of
+the existing `TT` struct). `wordle.cpp` handles exactly this by indexing
+its own cache by depth (`cache[depth]`); this file's equivalent is
+`CappedTTEntry.remdepth` as an explicit fourth key field alongside
+`(hash1, hash2, size)`.
+
+**Scope of what got ported**: deliberately just the two cheapest,
+structurally-unconditional shortcuts from `wordle.cpp`'s `minoverwords`
+— `remdepth==0` (no guesses left, count>=1 is always infeasible: even a
+known answer needs a guess to submit it) and `remdepth==1 && count>1`
+(one guess left can resolve at most one candidate for certain, a
+pigeonhole fact independent of which guesses exist). Both are provably
+true regardless of word list. Left out for this first pass: the
+`remdepth<=2` "no guess achieves an all-singleton split" check (needs an
+extra upfront scan, and wordle.cpp's own use of it isn't unconditionally
+provable the same simple way), node_lb depth-awareness, and Phase 3's
+union-bound cache — smaller, independently-verifiable first version over
+a maximal port.
+
+**Infeasibility handling (the actual safety-critical part)**: represented
+internally by `CAPPED_INFEASIBLE = 1000000000` (matching wordle.cpp's
+own `infinity`), chosen to be many orders of magnitude above any
+realistic total for word lists this size, so it propagates correctly
+through the *existing* beta/fail-soft machinery (`bucket_cost >=
+bucket_beta` already rejects it like any other failed candidate) with no
+new plumbing needed for the common case. **A real bug was caught before
+it shipped**: the first draft's top-level fallback re-solved a "failed"
+bucket at `beta=UINT32_MAX` to disambiguate "beaten by a better
+strategy" from "genuinely infeasible" — but `UINT32_MAX` (~4.3 billion)
+is *larger* than `CAPPED_INFEASIBLE` (1 billion), so a genuinely
+infeasible bucket's return value would NOT have registered as `>= beta`
+in that retry, silently corrupting the total instead of being detected.
+Caught by tracing the arithmetic before testing, not by a test failure.
+Fixed by simplifying instead of patching: dropped the ceiling-seeded
+beta and the two-pass retry entirely; each bucket is now solved once,
+directly, at `beta=CAPPED_INFEASIBLE` — a returned cost below that is
+unambiguously the true capped-optimal value, at or above it is
+unambiguously genuine infeasibility, no retry or seeding needed. Fewer
+moving parts, and the class of bug that motivated the simplification
+can't recur because there's no second beta value to reason about.
+
+**Verified, several ways**:
+- Full `test_solver.py` green (oracle + ASan + UBSan + TSan) — confirms
+  nothing in the existing file broke.
+- `--max-guesses` path itself run directly under ASan and TSan (not
+  covered by `test_solver.py`, which predates this feature) — clean.
+- Fixture cross-checks (tiny/small/medium) at `--max-guesses 6`: exact
+  match with the unbounded solver's own totals (27, 96, 339).
+- **Independent boundary-condition oracle**, hand-derived and checked
+  against the implementation rather than merely asserted: a word list of
+  5 mutually letter-disjoint words (e.g. abcde/fghij/klmno/pqrst/uvwxy)
+  forces pure sequential elimination under optimal play (every
+  non-matching guess gives zero information), so the true cost is the
+  closed form `n(n+1)/2` and the *last*-resolved word always needs
+  exactly `n` guesses in any optimal ordering. For n=5 (cost 15): capped
+  at 6 and 5 both correctly returned 15 (matching uncapped, cap not
+  binding); capped at 4 correctly reported infeasible. For n=6 (cost
+  21): capped at 6 correctly returned 21 (exactly at the boundary);
+  capped at 5 correctly reported infeasible. Every boundary matched the
+  hand derivation exactly, including the two tightest (still-feasible)
+  cases, which are the ones most likely to expose an off-by-one.
+
+**Measured on the tracked benchmark**: single-threaded, full word list,
+salet, `exact_total_guesses` unchanged (11433, confirming the depth-6
+cap doesn't bind on this word list, consistent with the earlier
+wordle.cpp cross-check). Six solo runs each of capped and uncapped,
+interleaved across two separate sessions to reduce time-correlated bias,
+user-time (immune to this machine's sleep-interruption issue, which
+corrupted `real` time in two of the runs):
+
+- Capped: 187.85, 197.55, 207.92, 207.19, 204.28, 201.96 — mean
+  **201.12s**, stdev 7.52.
+- Uncapped: 205.92, 209.70, 217.03, 210.18, 208.59, 217.40 — mean
+  **211.47s**, stdev 4.69.
+- Difference: **10.34s, 4.9%** — a real, if modest, speedup: the two
+  means' approximate 95% confidence intervals (using each sample's own
+  standard error) are [195.5, 206.7] and [208.0, 215.0] respectively —
+  narrow but non-overlapping, unlike every other change measured this
+  session, where the post-change range sat fully inside the pre-change
+  spread.
+
+**Honest framing**: this is the first change all session to show a
+measurable, plausibly-real (not noise-floor) improvement — but it's a
+~5% win from porting only the two cheapest depth shortcuts, not the
+dramatic gap-closer the root-cause investigation might have suggested
+was available. Node count actually went *up* slightly under the cap
+(2,291,175 vs 2,251,059, +1.8%) despite being faster, confirming "node"
+isn't a directly comparable unit between the two solvers — many of the
+capped solver's extra nodes are near-free `remdepth==0/1` O(1)
+short-circuits, not full search nodes, so raw node count understates the
+per-node work reduction. The unported refinements (remdepth<=2, depth-
+aware node_lb, union-bound) are plausible next steps if more speedup is
+wanted, following the same incremental, verify-before-extending pattern
+used throughout this file.
+
 ## Status: paused here for a checkpoint
 
 Phase 1 (items 1-5), item 6, Phase 3, Phase 4, and Phase 5 are all
