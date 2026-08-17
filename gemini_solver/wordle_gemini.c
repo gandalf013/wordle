@@ -1099,6 +1099,9 @@ solve_subset(Solver *solver, const uint32_t *targets, uint32_t count,
     uint32_t offsets[NUM_SCORES + 1];
     BucketInfo buckets[NUM_SCORES];
     uint32_t hist[NUM_SCORES] = {0};
+    uint64_t bucket_h1[NUM_SCORES];
+    uint64_t bucket_h2[NUM_SCORES];
+    uint32_t u_costs[NUM_SCORES];
     uint16_t active_scores[count + 1];
     uint32_t c;
     uint32_t i;
@@ -1373,17 +1376,34 @@ solve_subset(Solver *solver, const uint32_t *targets, uint32_t count,
         return global_lb1;
     }
 
-    limit = solver->max_candidates < num_guesses ? solver->max_candidates : num_guesses;
-    sort64_asc_top(candidate_keys, num_guesses, limit);
+    /* Compact candidate keys: drop any whose analytic lb already meets beta. */
+    {
+        uint32_t m = 0;
+        for (i = 0; i < num_guesses; i++) {
+            uint32_t glb = (uint32_t)((candidate_keys[i] >> 16) & 0xFFFF);
+            if (glb < beta) {
+                candidate_keys[m++] = candidate_keys[i];
+            }
+        }
+        if (m == 0) {
+            solver_tt_store_lb(solver, h1, h2, count, beta, suggested_guess);
+            if (out_guess) {
+                *out_guess = (suggested_guess != UINT32_MAX) ? suggested_guess : targets[0];
+            }
+            return beta;
+        }
+        limit = solver->max_candidates < m ? solver->max_candidates : m;
+        sort64_asc_top(candidate_keys, m, limit);
 
-    if (suggested_guess != UINT32_MAX) {
-        uint32_t r;
-        for (r = 0; r < num_guesses; r++) {
-            if ((uint32_t)(candidate_keys[r] & 0xFFFF) == suggested_guess) {
-                uint64_t tmp = candidate_keys[0];
-                candidate_keys[0] = candidate_keys[r];
-                candidate_keys[r] = tmp;
-                break;
+        if (suggested_guess != UINT32_MAX) {
+            uint32_t r;
+            for (r = 0; r < m; r++) {
+                if ((uint32_t)(candidate_keys[r] & 0xFFFF) == suggested_guess) {
+                    uint64_t tmp = candidate_keys[0];
+                    candidate_keys[0] = candidate_keys[r];
+                    candidate_keys[r] = tmp;
+                    break;
+                }
             }
         }
     }
@@ -1410,7 +1430,6 @@ solve_subset(Solver *solver, const uint32_t *targets, uint32_t count,
         uint32_t running_cost;
         uint32_t remaining_lb;
         bool pruned;
-        uint32_t u_costs[NUM_SCORES] = {0};
 
         if (clb >= current_best) {
             continue;
@@ -1420,9 +1439,15 @@ solve_subset(Solver *solver, const uint32_t *targets, uint32_t count,
         row = matrix + (size_t)g * num_targets;
 
         for (i = 0; i < count; i++) {
-            uint8_t sc = row[targets[i]];
+            uint32_t tid = targets[i];
+            uint8_t sc = row[tid];
             if (hist[sc] == 0) {
                 active_scores[active_buckets++] = sc;
+                bucket_h1[sc] = game->zobrist1[tid];
+                bucket_h2[sc] = game->zobrist2[tid];
+            } else {
+                bucket_h1[sc] ^= game->zobrist1[tid];
+                bucket_h2[sc] ^= game->zobrist2[tid];
             }
             hist[sc]++;
         }
@@ -1436,6 +1461,8 @@ solve_subset(Solver *solver, const uint32_t *targets, uint32_t count,
             }
             buckets[b].score = s;
             buckets[b].size = sz;
+            buckets[b].hash1 = bucket_h1[s];
+            buckets[b].hash2 = bucket_h2[s];
         }
 
         if (active_buckets == 1) {
@@ -1503,17 +1530,8 @@ solve_subset(Solver *solver, const uint32_t *targets, uint32_t count,
                 continue;
             }
 
-            bh1 = 0;
-            bh2 = 0;
-            for (i = 0; i < count; i++) {
-                if (row[targets[i]] == s) {
-                    uint32_t tid = targets[i];
-                    bh1 ^= game->zobrist1[tid];
-                    bh2 ^= game->zobrist2[tid];
-                }
-            }
-            buckets[b].hash1 = bh1;
-            buckets[b].hash2 = bh2;
+            bh1 = buckets[b].hash1;
+            bh2 = buckets[b].hash2;
 
             base_lb = game->lower_bound[sz];
             tentry = solver_tt_find(solver, bh1, bh2, sz);
@@ -1580,6 +1598,7 @@ solve_subset(Solver *solver, const uint32_t *targets, uint32_t count,
         remaining_lb = 0;
         for (u = 0; u < num_unresolved; u++) {
             remaining_lb += game->lower_bound[unresolved_buckets[u].size];
+            u_costs[u] = 0;
         }
 
         pruned = false;
