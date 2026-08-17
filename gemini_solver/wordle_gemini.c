@@ -27,6 +27,7 @@
 #include <stdatomic.h>
 #include <math.h>
 #include <sys/types.h>
+#include <assert.h>
 #if defined(__APPLE__)
 #include <sys/sysctl.h>
 #endif
@@ -34,6 +35,9 @@
 #define WORD_LEN 5
 #define NUM_SCORES 243
 #define EXACT_MATCH 242
+#define MAX_SOLVER_DEPTH 32
+#define TT_MAX_PROBES 16
+#define PTHREAD_STACK_SIZE (8 * 1024 * 1024)
 
 typedef struct {
     char word[WORD_LEN + 1];
@@ -168,13 +172,17 @@ load_wordlist(const char *filepath, GameData *game)
 
     game->targets = malloc(target_cap * sizeof(Word));
     game->guesses = malloc(guess_cap * sizeof(Word));
+    if (!game->targets || !game->guesses) {
+        fprintf(stderr, "Fatal: Out of memory allocating word lists\n");
+        if (fp) fclose(fp);
+        exit(1);
+    }
     game->num_targets = 0;
     game->num_guesses = 0;
 
     while (fgets(line, sizeof(line), fp)) {
         char *p = line;
         char word[64];
-        double weight;
         int matched;
         size_t i;
 
@@ -186,7 +194,7 @@ load_wordlist(const char *filepath, GameData *game)
             continue;
         }
 
-        matched = sscanf(p, "%63s %lf", word, &weight);
+        matched = sscanf(p, "%63s", word);
         if (matched < 1) {
             continue;
         }
@@ -200,16 +208,30 @@ load_wordlist(const char *filepath, GameData *game)
 
         if (!in_extra) {
             if (game->num_targets >= target_cap) {
+                Word *new_targets;
                 target_cap *= 2;
-                game->targets = realloc(game->targets, target_cap * sizeof(Word));
+                new_targets = realloc(game->targets, target_cap * sizeof(Word));
+                if (!new_targets) {
+                    fprintf(stderr, "Fatal: Out of memory expanding target words\n");
+                    fclose(fp);
+                    exit(1);
+                }
+                game->targets = new_targets;
             }
             strcpy(game->targets[game->num_targets].word, word);
             game->num_targets++;
         }
 
         if (game->num_guesses >= guess_cap) {
+            Word *new_guesses;
             guess_cap *= 2;
-            game->guesses = realloc(game->guesses, guess_cap * sizeof(Word));
+            new_guesses = realloc(game->guesses, guess_cap * sizeof(Word));
+            if (!new_guesses) {
+                fprintf(stderr, "Fatal: Out of memory expanding guess words\n");
+                fclose(fp);
+                exit(1);
+            }
+            game->guesses = new_guesses;
         }
         strcpy(game->guesses[game->num_guesses].word, word);
         game->num_guesses++;
@@ -246,6 +268,31 @@ score_matrix_worker(void *arg)
     return NULL;
 }
 
+typedef struct {
+    GameData *game;
+    size_t start_t;
+    size_t end_t;
+} TransposeWorkerArg;
+
+static void *
+transpose_matrix_worker(void *arg)
+{
+    TransposeWorkerArg *m = (TransposeWorkerArg *)arg;
+    GameData *game = m->game;
+    size_t G = game->num_guesses;
+    size_t T = game->num_targets;
+    size_t t;
+    size_t g;
+
+    for (t = m->start_t; t < m->end_t; t++) {
+        uint8_t *dst_row = game->score_matrix_transposed + t * G;
+        for (g = 0; g < G; g++) {
+            dst_row[g] = game->score_matrix[g * T + t];
+        }
+    }
+    return NULL;
+}
+
 static void
 compute_lower_bound_table(GameData *game)
 {
@@ -253,6 +300,10 @@ compute_lower_bound_table(GameData *game)
     uint32_t k;
 
     game->lower_bound = malloc((n + 1) * sizeof(uint32_t));
+    if (!game->lower_bound) {
+        fprintf(stderr, "Fatal: Out of memory allocating lower bound table\n");
+        exit(1);
+    }
     game->lower_bound[0] = 0;
     for (k = 1; k <= n; k++) {
         if (k == 1) {
@@ -292,9 +343,11 @@ init_game_data(GameData *game, int num_threads, uint64_t max_memory_mb)
     size_t total_cells = (size_t)game->num_guesses * game->num_targets;
     pthread_t *threads;
     MatrixWorkerArg *args;
+    TransposeWorkerArg *t_args;
+    pthread_attr_t attr;
     size_t chunk;
+    size_t t_chunk;
     int i;
-    size_t g;
     uint64_t seed1;
     uint64_t seed2;
     uint32_t t;
@@ -317,8 +370,15 @@ init_game_data(GameData *game, int num_threads, uint64_t max_memory_mb)
     if (num_threads < 1) {
         num_threads = 1;
     }
+    pthread_attr_init(&attr);
+    pthread_attr_setstacksize(&attr, PTHREAD_STACK_SIZE);
+
     threads = malloc(num_threads * sizeof(pthread_t));
     args = malloc(num_threads * sizeof(MatrixWorkerArg));
+    if (!threads || !args) {
+        fprintf(stderr, "Fatal: Out of memory allocating thread structures\n");
+        exit(1);
+    }
     chunk = (game->num_guesses + num_threads - 1) / num_threads;
 
     for (i = 0; i < num_threads; i++) {
@@ -331,12 +391,11 @@ init_game_data(GameData *game, int num_threads, uint64_t max_memory_mb)
         if (args[i].end_g > game->num_guesses) {
             args[i].end_g = game->num_guesses;
         }
-        pthread_create(&threads[i], NULL, score_matrix_worker, &args[i]);
+        pthread_create(&threads[i], &attr, score_matrix_worker, &args[i]);
     }
     for (i = 0; i < num_threads; i++) {
         pthread_join(threads[i], NULL);
     }
-    free(threads);
     free(args);
 
     game->score_matrix_transposed = malloc(total_cells * sizeof(uint8_t));
@@ -344,11 +403,30 @@ init_game_data(GameData *game, int num_threads, uint64_t max_memory_mb)
         fprintf(stderr, "Fatal: Out of memory allocating transposed score matrix\n");
         exit(1);
     }
-    for (g = 0; g < game->num_guesses; g++) {
-        for (t = 0; t < game->num_targets; t++) {
-            game->score_matrix_transposed[t * game->num_guesses + g] = game->score_matrix[g * game->num_targets + t];
-        }
+    t_args = malloc(num_threads * sizeof(TransposeWorkerArg));
+    if (!t_args) {
+        fprintf(stderr, "Fatal: Out of memory allocating transpose arguments\n");
+        exit(1);
     }
+    t_chunk = (game->num_targets + num_threads - 1) / num_threads;
+    for (i = 0; i < num_threads; i++) {
+        t_args[i].game = game;
+        t_args[i].start_t = (size_t)i * t_chunk;
+        t_args[i].end_t = (size_t)(i + 1) * t_chunk;
+        if (t_args[i].start_t > game->num_targets) {
+            t_args[i].start_t = game->num_targets;
+        }
+        if (t_args[i].end_t > game->num_targets) {
+            t_args[i].end_t = game->num_targets;
+        }
+        pthread_create(&threads[i], &attr, transpose_matrix_worker, &t_args[i]);
+    }
+    for (i = 0; i < num_threads; i++) {
+        pthread_join(threads[i], NULL);
+    }
+    free(threads);
+    free(t_args);
+    pthread_attr_destroy(&attr);
 
     seed1 = 0x853c49e6748fea9bULL;
     seed2 = 0xda3e39cb94b95bdbULL;
@@ -542,7 +620,7 @@ shared_tt_find(SharedTT *stt, uint64_t h1, uint64_t h2, uint32_t size,
     }
     idx = (h1 ^ h2) & stt->mask;
 
-    for (probe = 0; probe < 16; probe++) {
+    for (probe = 0; probe < TT_MAX_PROBES; probe++) {
         SharedTTEntry *e = &stt->entries[(idx + probe) & stt->mask];
         uint64_t eh1 = atomic_load_explicit(&e->hash1, memory_order_acquire);
         if (eh1 == TT_EMPTY_HASH) {
@@ -580,7 +658,7 @@ shared_tt_store(SharedTT *stt, uint64_t h1, uint64_t h2, uint32_t size,
     }
     idx = (h1 ^ h2) & stt->mask;
 
-    for (probe = 0; probe < 16; probe++) {
+    for (probe = 0; probe < TT_MAX_PROBES; probe++) {
         SharedTTEntry *e = &stt->entries[(idx + probe) & stt->mask];
         uint64_t eh1 = atomic_load_explicit(&e->hash1, memory_order_acquire);
         if (eh1 == TT_EMPTY_HASH) {
@@ -753,7 +831,7 @@ sort64_asc_top(uint64_t *a, size_t n, size_t k)
 typedef struct {
     GameData *game;
     TT tt;
-    uint64_t *candidate_keys; /* 8 layers of num_guesses uint64_t keys */
+    uint64_t *candidate_keys; /* MAX_SOLVER_DEPTH layers of num_guesses uint64_t keys */
     uint32_t max_candidates;
     uint64_t nodes_visited;
 } Solver;
@@ -767,7 +845,11 @@ solver_init(Solver *s, GameData *game)
     tt_cap = game->local_tt_cap > 0 ? game->local_tt_cap : (1u << 19);
     tt_init(&s->tt, tt_cap);
 
-    s->candidate_keys = malloc(8 * (size_t)game->num_guesses * sizeof(uint64_t));
+    s->candidate_keys = malloc((size_t)MAX_SOLVER_DEPTH * (size_t)game->num_guesses * sizeof(uint64_t));
+    if (!s->candidate_keys) {
+        fprintf(stderr, "Fatal: Out of memory allocating candidate keys buffer\n");
+        exit(1);
+    }
     s->max_candidates = game->max_candidates > 0 ? game->max_candidates : game->num_guesses;
     s->nodes_visited = 0;
 }
@@ -1067,72 +1149,75 @@ solve_subset(Solver *solver, const uint32_t *targets, uint32_t count,
     }
 
     /* ---- O(|H|^2) Target-Only Instant Resolution Pre-Check ---- */
-    good_target = UINT32_MAX;
-    for (i = 0; i < count; i++) {
-        uint32_t t = targets[i];
-        const uint8_t *row = matrix + (size_t)t * num_targets;
-        uint32_t bad = 0;
-        uint32_t n_act = 0;
-        uint32_t j;
-        uint32_t k;
+    if (count <= 243) {
+        good_target = UINT32_MAX;
+        for (i = 0; i < count; i++) {
+            uint32_t t = targets[i];
+            const uint8_t *row = matrix + (size_t)t * num_targets;
+            uint32_t bad = 0;
+            uint32_t n_act = 0;
+            uint32_t j;
+            uint32_t k;
 
-        for (j = 0; j < count; j++) {
-            uint8_t sc = row[targets[j]];
-            if (t_counts[sc] == 0) {
-                t_active[n_act++] = sc;
-            }
-            t_counts[sc]++;
-            if (t_counts[sc] >= 2) {
-                bad++;
-            }
-        }
-        for (k = 0; k < n_act; k++) {
-            t_counts[t_active[k]] = 0;
-        }
-
-        if (bad == 0) {
-            uint32_t cost = 2 * count - 1;
-            solver_tt_store_exact(solver, h1, h2, count, cost, t);
-            if (out_guess) {
-                *out_guess = t;
-            }
-            return cost;
-        }
-        if (bad == 1 && good_target == UINT32_MAX) {
-            good_target = t;
-        }
-    }
-
-    if (good_target != UINT32_MAX) {
-        uint32_t cost = 2 * count;
-        if (cost < beta) {
-            solver_tt_store_exact(solver, h1, h2, count, cost, good_target);
-            if (out_guess) {
-                *out_guess = good_target;
-            }
-            return cost;
-        } else {
-            solver_tt_store_lb(solver, h1, h2, count, cost, good_target);
-            if (out_guess) {
-                *out_guess = good_target;
-            }
-            return cost;
-        }
-    } else {
-        if (2 * count > node_lb) {
-            node_lb = 2 * count;
-            if (node_lb >= beta) {
-                solver_tt_store_lb(solver, h1, h2, count, node_lb, suggested_guess);
-                if (out_guess) {
-                    *out_guess = (suggested_guess != UINT32_MAX) ? suggested_guess : targets[0];
+            for (j = 0; j < count; j++) {
+                uint8_t sc = row[targets[j]];
+                if (t_counts[sc] == 0) {
+                    t_active[n_act++] = sc;
                 }
-                return node_lb;
+                t_counts[sc]++;
+                if (t_counts[sc] >= 2) {
+                    bad++;
+                }
+            }
+            for (k = 0; k < n_act; k++) {
+                t_counts[t_active[k]] = 0;
+            }
+
+            if (bad == 0) {
+                uint32_t cost = 2 * count - 1;
+                solver_tt_store_exact(solver, h1, h2, count, cost, t);
+                if (out_guess) {
+                    *out_guess = t;
+                }
+                return cost;
+            }
+            if (bad == 1 && good_target == UINT32_MAX) {
+                good_target = t;
+            }
+        }
+
+        if (good_target != UINT32_MAX) {
+            uint32_t cost = 2 * count;
+            if (cost < beta) {
+                solver_tt_store_exact(solver, h1, h2, count, cost, good_target);
+                if (out_guess) {
+                    *out_guess = good_target;
+                }
+                return cost;
+            } else {
+                solver_tt_store_lb(solver, h1, h2, count, cost, good_target);
+                if (out_guess) {
+                    *out_guess = good_target;
+                }
+                return cost;
+            }
+        } else {
+            if (2 * count > node_lb) {
+                node_lb = 2 * count;
+                if (node_lb >= beta) {
+                    solver_tt_store_lb(solver, h1, h2, count, node_lb, suggested_guess);
+                    if (out_guess) {
+                        *out_guess = (suggested_guess != UINT32_MAX) ? suggested_guess : targets[0];
+                    }
+                    return node_lb;
+                }
             }
         }
     }
 
     /* ---- Fast Move Ordering & lb1 Computation ---- */
-    candidate_keys = solver->candidate_keys + (size_t)(depth < 7 ? depth : 7) * num_guesses;
+    assert(depth < MAX_SOLVER_DEPTH);
+    candidate_keys = solver->candidate_keys + (size_t)depth * num_guesses;
     global_lb1 = UINT32_MAX;
     global_ub1 = UINT32_MAX;
     best_exact_g = UINT32_MAX;
@@ -1165,7 +1250,8 @@ solve_subset(Solver *solver, const uint32_t *targets, uint32_t count,
             if (count > 6) { sc6 = col6[g]; uint8_t c6 = ++counts[sc6]; s2 += 2 * c6 - 1; guess_lb += 2 - (c6 == 1); max_bucket_le_2 &= (c6 <= 2); }
             if (count > 7) { sc7 = col7[g]; uint8_t c7 = ++counts[sc7]; s2 += 2 * c7 - 1; guess_lb += 2 - (c7 == 1); max_bucket_le_2 &= (c7 <= 2); }
 
-            guess_lb -= counts[EXACT_MATCH];
+            in_set = (counts[EXACT_MATCH] > 0);
+            guess_lb -= (in_set ? 1 : 0);
 
             counts[sc0] = 0; counts[sc1] = 0;
             if (count > 2) counts[sc2] = 0;
@@ -1204,7 +1290,6 @@ solve_subset(Solver *solver, const uint32_t *targets, uint32_t count,
                 }
             }
 
-            in_set = (counts[EXACT_MATCH] > 0);
             rank_score = 2 * s2 + count * guess_lb - (in_set ? 2 : 0);
             candidate_keys[g] = ((uint64_t)rank_score << 32) | ((uint64_t)(guess_lb & 0xFFFF) << 16) | (uint64_t)g;
         }
@@ -1225,6 +1310,7 @@ solve_subset(Solver *solver, const uint32_t *targets, uint32_t count,
             bool aborted = false;
             bool in_set;
             uint32_t rank_score;
+            uint32_t touched = 0;
             uint32_t r;
 
             for (i = 0; i < count; i++) {
@@ -1235,6 +1321,7 @@ solve_subset(Solver *solver, const uint32_t *targets, uint32_t count,
                 if (cval > 2) {
                     max_bucket_le_2 = false;
                 }
+                touched++;
                 if (can_abort && guess_lb >= beta + (big_counts[EXACT_MATCH] ? 1 : 0)) {
                     aborted = true;
                     break;
@@ -1246,7 +1333,7 @@ solve_subset(Solver *solver, const uint32_t *targets, uint32_t count,
                 guess_lb -= big_counts[EXACT_MATCH];
             }
 
-            for (r = 0; r < count; r++) {
+            for (r = 0; r < touched; r++) {
                 big_counts[cols[r][g]] = 0;
             }
 
@@ -1739,6 +1826,7 @@ evaluate_opener_parallel(GameData *game, uint32_t opener_idx, int num_threads)
             .bucket_betas = bucket_betas
         };
         pthread_t *threads;
+        pthread_attr_t attr;
         int i;
 
         atomic_init(&pool.next_idx, 0);
@@ -1746,14 +1834,18 @@ evaluate_opener_parallel(GameData *game, uint32_t opener_idx, int num_threads)
         pool.out_guesses = calloc(active_buckets, sizeof(uint32_t));
         pool.out_nodes = calloc(active_buckets, sizeof(uint64_t));
 
+        pthread_attr_init(&attr);
+        pthread_attr_setstacksize(&attr, PTHREAD_STACK_SIZE);
+
         threads = malloc(num_threads * sizeof(pthread_t));
         for (i = 0; i < num_threads; i++) {
-            pthread_create(&threads[i], NULL, bucket_worker, &pool);
+            pthread_create(&threads[i], &attr, bucket_worker, &pool);
         }
         for (i = 0; i < num_threads; i++) {
             pthread_join(threads[i], NULL);
         }
         free(threads);
+        pthread_attr_destroy(&attr);
 
         for (b = 0; b < active_buckets; b++) {
             if (pool.buckets[b].score == EXACT_MATCH) {
@@ -1782,7 +1874,6 @@ evaluate_opener_parallel(GameData *game, uint32_t opener_idx, int num_threads)
     res.is_exact = !failed;
     res.time_sec = (t1.tv_sec - t0.tv_sec) + (t1.tv_nsec - t0.tv_nsec) * 1e-9;
     res.nodes = total_nodes;
-    (void)greedy_upper_bound;
     return res;
 }
 
@@ -1887,12 +1978,17 @@ typedef struct TreeNode {
 } TreeNode;
 
 static TreeNode *
-make_leaf(GameData *game, uint32_t guess_idx)
+make_leaf_from_word(const char *word)
 {
     TreeNode *n = calloc(1, sizeof(TreeNode));
+    if (!n) {
+        fprintf(stderr, "Fatal: Out of memory allocating TreeNode\n");
+        exit(1);
+    }
     n->is_leaf = true;
     n->num_targets = 1;
-    strcpy(n->guess, game->targets[guess_idx].word);
+    strncpy(n->guess, word, WORD_LEN);
+    n->guess[WORD_LEN] = '\0';
     return n;
 }
 
@@ -1914,6 +2010,10 @@ build_subtree_node_with_guess(Solver *solver, const uint32_t *targets, uint32_t 
     uint32_t i;
 
     node = calloc(1, sizeof(TreeNode));
+    if (!node) {
+        fprintf(stderr, "Fatal: Out of memory allocating TreeNode\n");
+        exit(1);
+    }
     node->num_targets = count;
     strcpy(node->guess, game->guesses[best_g].word);
 
@@ -1928,6 +2028,10 @@ build_subtree_node_with_guess(Solver *solver, const uint32_t *targets, uint32_t 
     }
 
     local_partition = malloc(count * sizeof(uint32_t));
+    if (!local_partition) {
+        fprintf(stderr, "Fatal: Out of memory allocating local partition\n");
+        exit(1);
+    }
     memcpy(cur, offsets, sizeof(cur));
     for (i = 0; i < count; i++) {
         uint8_t sc = row[targets[i]];
@@ -1939,7 +2043,7 @@ build_subtree_node_with_guess(Solver *solver, const uint32_t *targets, uint32_t 
             continue;
         }
         if (s == EXACT_MATCH) {
-            node->children[EXACT_MATCH] = make_leaf(game, best_g);
+            node->children[EXACT_MATCH] = make_leaf_from_word(game->guesses[best_g].word);
         } else {
             uint32_t off = offsets[s];
             uint64_t bh1 = 0;
@@ -1967,7 +2071,7 @@ build_subtree_node(Solver *solver, const uint32_t *targets, uint32_t count, uint
         return NULL;
     }
     if (count == 1) {
-        return make_leaf(solver->game, targets[0]);
+        return make_leaf_from_word(solver->game->targets[targets[0]].word);
     }
     solve_subset(solver, targets, count, h1, h2, UINT32_MAX, &best_g, 0);
     return build_subtree_node_with_guess(solver, targets, count, best_g);
@@ -2024,6 +2128,10 @@ build_solution_tree(GameData *game, uint32_t opener_idx, int num_threads)
         num_threads = 1;
     }
     root = calloc(1, sizeof(TreeNode));
+    if (!root) {
+        fprintf(stderr, "Fatal: Out of memory allocating root TreeNode\n");
+        exit(1);
+    }
     root->num_targets = count;
     strcpy(root->guess, game->guesses[opener_idx].word);
 
@@ -2035,23 +2143,28 @@ build_solution_tree(GameData *game, uint32_t opener_idx, int num_threads)
             .num_buckets = active_buckets
         };
         pthread_t *threads;
+        pthread_attr_t attr;
         int i;
 
         atomic_init(&pool.next_idx, 0);
         pool.out_nodes = calloc(active_buckets, sizeof(TreeNode *));
 
+        pthread_attr_init(&attr);
+        pthread_attr_setstacksize(&attr, PTHREAD_STACK_SIZE);
+
         threads = malloc(num_threads * sizeof(pthread_t));
         for (i = 0; i < num_threads; i++) {
-            pthread_create(&threads[i], NULL, tree_bucket_worker, &pool);
+            pthread_create(&threads[i], &attr, tree_bucket_worker, &pool);
         }
         for (i = 0; i < num_threads; i++) {
             pthread_join(threads[i], NULL);
         }
         free(threads);
+        pthread_attr_destroy(&attr);
 
         for (b = 0; b < active_buckets; b++) {
             if (pool.buckets[b].score == EXACT_MATCH) {
-                root->children[EXACT_MATCH] = make_leaf(game, opener_idx);
+                root->children[EXACT_MATCH] = make_leaf_from_word(game->guesses[opener_idx].word);
             } else {
                 root->children[pool.buckets[b].score] = pool.out_nodes[b];
             }
@@ -2167,6 +2280,15 @@ compare_opener_results_asc(const void *a, const void *b)
     const OpenerResult *rb = (const OpenerResult *)b;
     if (ra->exact_total_cost != rb->exact_total_cost) {
         return (ra->exact_total_cost < rb->exact_total_cost) ? -1 : 1;
+    }
+    if (ra->avg_guesses < rb->avg_guesses) {
+        return -1;
+    }
+    if (ra->avg_guesses > rb->avg_guesses) {
+        return 1;
+    }
+    if (ra->opener_idx != rb->opener_idx) {
+        return (ra->opener_idx < rb->opener_idx) ? -1 : 1;
     }
     return 0;
 }
@@ -2498,14 +2620,22 @@ main(int argc, char **argv)
     pthread_mutex_init(&pool.print_mutex, NULL);
     pool.results = calloc(count_to_eval, sizeof(OpenerResult));
 
-    threads = malloc(num_threads * sizeof(pthread_t));
-    for (i = 0; i < num_threads; i++) {
-        pthread_create(&threads[i], NULL, opener_worker, &pool);
+    {
+        pthread_attr_t attr;
+        pthread_attr_init(&attr);
+        pthread_attr_setstacksize(&attr, PTHREAD_STACK_SIZE);
+
+        threads = malloc(num_threads * sizeof(pthread_t));
+        for (i = 0; i < num_threads; i++) {
+            pthread_create(&threads[i], &attr, opener_worker, &pool);
+        }
+        for (i = 0; i < num_threads; i++) {
+            pthread_join(threads[i], NULL);
+        }
+        free(threads);
+        pthread_attr_destroy(&attr);
     }
-    for (i = 0; i < num_threads; i++) {
-        pthread_join(threads[i], NULL);
-    }
-    free(threads);
+    pthread_mutex_destroy(&pool.print_mutex);
     if (log_fp) {
         fclose(log_fp);
     }

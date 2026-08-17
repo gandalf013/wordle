@@ -12,171 +12,293 @@
       "branches": {
         "0":
           {
-            "guess": "colin",
+            "guess": "guild",
             "num_targets": 320,
             "branches": {
               "0":
                 {
-                  "guess": "pygmy",
-                  "num_targets": 25,
+                  "guess": "whomp",
+                  "num_targets": 32,
                   "branches": {
-                    "0":
-                      {"guess": "kudzu", "num_targets": 1, "leaf": true},
-                    "2":
+                    "9":
                       {
-                        "guess": "buzzy",
-                        "num_targets": 5,
+                        "guess": "bobby",
+                        "num_targets": 4,
                         "branches": {
                           "56":
-                            {"guess": "huffy", "num_targets": 1, "leaf": true},
-                          "80":
-                            {"guess": "fuzzy", "num_targets": 1, "leaf": true},
-                          "137":
-                            {"guess": "hubby", "num_targets": 1, "leaf": true},
+                            {"guess": "cocky", "num_targets": 1, "leaf": true},
+                          "216":
+                            {"guess": "boffo", "num_targets": 1, "leaf": true},
                           "218":
-                            {"guess": "buddy", "num_targets": 1, "leaf": true},
+                            {"guess": "bonny", "num_targets": 1, "leaf": true},
                           "242":
-                            {"guess": "buzzy", "num_targets": 1, "leaf": true}
+                            {"guess": "bobby", "num_targets": 1, "leaf": true}
                         }
                       },
-                    "5":
-                      {"guess": "muddy", "num_targets": 1, "leaf": true},
-                    "8":
+                    "10":
+                      {"guess": "poppy", "num_targets": 1, "leaf": true},
+                    "12":
                       {
-                        "guess": "dummy",
+                        "guess": "combo",
                         "num_targets": 2,
                         "branches": {
-                          "80":
-                            {"guess": "mummy", "num_targets": 1, "leaf": true},
+                          "234":
+                            {"guess": "comfy", "num_targets": 1, "leaf": true},
                           "242":
-                            {"guess": "dummy", "num_targets": 1, "leaf": true}
+                            {"guess": "combo", "num_targets": 1, "leaf": true}
                         }
                       },
-                    "11":
+                    "15":
+                      {"guess": "mommy", "num_targets": 1, "leaf": true},
+                    "18":
                       {
-                        "guess": "fudgy",
+                        "guess": "booby",
+                        "num_targets": 4,
+                        "branches": {
+                          "18":
+                            {"guess": "knock", "num_targets": 1, "leaf": true},
+                          "74":
+                            {"guess": "kooky", "num_targets": 1, "leaf": true},
+                          "236":
+                            {"guess": "boozy", "num_targets": 1, "leaf": true},
+                          "242":
+                            {"guess": "booby", "num_targets": 1, "leaf": true}
+                        }
+                      },
+                    "19":
+                      {"guess": "poofy", "num_targets": 1, "leaf": true},
+                    "21":
+                      {"guess": "moony", "num_targets": 1, "leaf": true},
+                    "31":
+                      {"guess": "nymph", "num_targets": 1, "leaf": true},
+                    "36":
+                      {
+                        "guess": "conch",
                         "num_targets": 2,
                         "branches": {
-                          "80":
-                            {"guess": "judgy", "num_targets": 1, "leaf": true},
+                          "55":
+                            {"guess": "hobby", "num_targets": 1, "leaf": true},
                           "242":
-                            {"guess": "fudgy", "num_targets": 1, "leaf": true}
+                            {"guess": "conch", "num_targets": 1, "leaf": true}
                         }
                       },
-                    "17":
-                      {"guess": "gummy", "num_targets": 1, "leaf": true},
-                    "20":
+                    "37":
+                      {"guess": "hoppy", "num_targets": 1, "leaf": true},
+                    "40":
+                      {"guess": "oomph", "num_targets": 1, "leaf": true},
+                    "45":
                       {
-                        "guess": "buggy",
+                        "guess": "hooch",
                         "num_targets": 2,
                         "branches": {
-                          "80":
-                            {"guess": "huggy", "num_targets": 1, "leaf": true},
+                          "234":
+                            {"guess": "hooky", "num_targets": 1, "leaf": true},
                           "242":
-                            {"guess": "buggy", "num_targets": 1, "leaf": true}
+                            {"guess": "hooch", "num_targets": 1, "leaf": true}
                         }
                       },
-                    "23":
-                      {"guess": "muggy", "num_targets": 1, "leaf": true},
-                    "35":
-                      {"guess": "yummy", "num_targets": 1, "leaf": true},
-                    "84":
-                      {"guess": "humph", "num_targets": 1, "leaf": true},
-                    "86":
-                      {
-                        "guess": "bumpy",
-                        "num_targets": 3,
-                        "branches": {
-                          "80":
-                            {
-                              "guess": "dumpy",
-                              "num_targets": 2,
-                              "branches": {
-                                "80":
-                                  {"guess": "jumpy", "num_targets": 1, "leaf": true},
-                                "242":
-                                  {"guess": "dumpy", "num_targets": 1, "leaf": true}
-                              }
-                            },
-                          "242":
-                            {"guess": "bumpy", "num_targets": 1, "leaf": true}
-                        }
-                      },
-                    "92":
-                      {"guess": "guppy", "num_targets": 1, "leaf": true},
-                    "164":
-                      {
-                        "guess": "puffy",
-                        "num_targets": 2,
-                        "branches": {
-                          "218":
-                            {"guess": "puppy", "num_targets": 1, "leaf": true},
-                          "242":
-                            {"guess": "puffy", "num_targets": 1, "leaf": true}
-                        }
-                      },
-                    "173":
-                      {"guess": "pudgy", "num_targets": 1, "leaf": true},
+                    "46":
+                      {"guess": "pooch", "num_targets": 1, "leaf": true},
+                    "48":
+                      {"guess": "mooch", "num_targets": 1, "leaf": true},
+                    "72":
+                      {"guess": "chock", "num_targets": 1, "leaf": true},
+                    "73":
+                      {"guess": "phony", "num_targets": 1, "leaf": true},
+                    "80":
+                      {"guess": "chomp", "num_targets": 1, "leaf": true},
+                    "90":
+                      {"guess": "oxbow", "num_targets": 1, "leaf": true},
+                    "99":
+                      {"guess": "known", "num_targets": 1, "leaf": true},
+                    "171":
+                      {"guess": "wonky", "num_targets": 1, "leaf": true},
+                    "180":
+                      {"guess": "woozy", "num_targets": 1, "leaf": true},
+                    "236":
+                      {"guess": "whoop", "num_targets": 1, "leaf": true},
                     "242":
-                      {"guess": "pygmy", "num_targets": 1, "leaf": true}
+                      {"guess": "whomp", "num_targets": 1, "leaf": true}
                   }
                 },
               "1":
                 {
-                  "guess": "phang",
-                  "num_targets": 9,
+                  "guess": "howdy",
+                  "num_targets": 8,
                   "branches": {
-                    "3":
-                      {
-                        "guess": "funky",
-                        "num_targets": 2,
-                        "branches": {
-                          "80":
-                            {"guess": "junky", "num_targets": 1, "leaf": true},
-                          "242":
-                            {"guess": "funky", "num_targets": 1, "leaf": true}
-                        }
-                      },
-                    "4":
-                      {"guess": "gunky", "num_targets": 1, "leaf": true},
-                    "6":
-                      {
-                        "guess": "bunny",
-                        "num_targets": 2,
-                        "branches": {
-                          "80":
-                            {"guess": "funny", "num_targets": 1, "leaf": true},
-                          "242":
-                            {"guess": "bunny", "num_targets": 1, "leaf": true}
-                        }
-                      },
-                    "30":
-                      {"guess": "hunky", "num_targets": 1, "leaf": true},
-                    "111":
-                      {"guess": "nymph", "num_targets": 1, "leaf": true},
-                    "165":
-                      {"guess": "punky", "num_targets": 1, "leaf": true},
-                    "168":
-                      {"guess": "punny", "num_targets": 1, "leaf": true}
+                    "59":
+                      {"guess": "doozy", "num_targets": 1, "leaf": true},
+                    "60":
+                      {"guess": "condo", "num_targets": 1, "leaf": true},
+                    "62":
+                      {"guess": "moody", "num_targets": 1, "leaf": true},
+                    "71":
+                      {"guess": "woody", "num_targets": 1, "leaf": true},
+                    "77":
+                      {"guess": "downy", "num_targets": 1, "leaf": true},
+                    "80":
+                      {"guess": "dowdy", "num_targets": 1, "leaf": true},
+                    "224":
+                      {"guess": "hoody", "num_targets": 1, "leaf": true},
+                    "242":
+                      {"guess": "howdy", "num_targets": 1, "leaf": true}
                   }
                 },
               "3":
                 {
-                  "guess": "dumpy",
-                  "num_targets": 15,
+                  "guess": "poofy",
+                  "num_targets": 21,
                   "branches": {
-                    "0":
+                    "5":
+                      {"guess": "flyby", "num_targets": 1, "leaf": true},
+                    "18":
                       {
-                        "guess": "whiff",
+                        "guess": "block",
+                        "num_targets": 4,
+                        "branches": {
+                          "75":
+                            {"guess": "clown", "num_targets": 1, "leaf": true},
+                          "80":
+                            {"guess": "clock", "num_targets": 1, "leaf": true},
+                          "234":
+                            {"guess": "blown", "num_targets": 1, "leaf": true},
+                          "242":
+                            {"guess": "block", "num_targets": 1, "leaf": true}
+                        }
+                      },
+                    "21":
+                      {
+                        "guess": "flock",
                         "num_targets": 2,
                         "branches": {
                           "234":
-                            {"guess": "whizz", "num_targets": 1, "leaf": true},
+                            {"guess": "flown", "num_targets": 1, "leaf": true},
                           "242":
-                            {"guess": "whiff", "num_targets": 1, "leaf": true}
+                            {"guess": "flock", "num_targets": 1, "leaf": true}
                         }
                       },
-                    "2":
+                    "23":
+                      {"guess": "flowy", "num_targets": 1, "leaf": true},
+                    "28":
+                      {"guess": "nylon", "num_targets": 1, "leaf": true},
+                    "45":
+                      {"guess": "bloom", "num_targets": 1, "leaf": true},
+                    "56":
+                      {"guess": "lobby", "num_targets": 1, "leaf": true},
+                    "59":
+                      {"guess": "folky", "num_targets": 1, "leaf": true},
+                    "63":
+                      {"guess": "colon", "num_targets": 1, "leaf": true},
+                    "74":
+                      {"guess": "loony", "num_targets": 1, "leaf": true},
+                    "82":
+                      {"guess": "lymph", "num_targets": 1, "leaf": true},
+                    "99":
+                      {"guess": "clomp", "num_targets": 1, "leaf": true},
+                    "126":
+                      {"guess": "bloop", "num_targets": 1, "leaf": true},
+                    "155":
+                      {"guess": "loopy", "num_targets": 1, "leaf": true},
+                    "180":
+                      {"guess": "plonk", "num_targets": 1, "leaf": true},
+                    "190":
+                      {"guess": "pylon", "num_targets": 1, "leaf": true},
+                    "217":
+                      {"guess": "polyp", "num_targets": 1, "leaf": true}
+                  }
+                },
+              "4":
+                {"guess": "moldy", "num_targets": 1, "leaf": true},
+              "5":
+                {
+                  "guess": "blond",
+                  "num_targets": 3,
+                  "branches": {
+                    "74":
+                      {"guess": "flood", "num_targets": 1, "leaf": true},
+                    "236":
+                      {"guess": "blood", "num_targets": 1, "leaf": true},
+                    "242":
+                      {"guess": "blond", "num_targets": 1, "leaf": true}
+                  }
+                },
+              "6":
+                {
+                  "guess": "lowly",
+                  "num_targets": 11,
+                  "branches": {
+                    "62":
+                      {
+                        "guess": "coyly",
+                        "num_targets": 2,
+                        "branches": {
+                          "62":
+                            {"guess": "nobly", "num_targets": 1, "leaf": true},
+                          "242":
+                            {"guess": "coyly", "num_targets": 1, "leaf": true}
+                        }
+                      },
+                    "71":
+                      {"guess": "wooly", "num_targets": 1, "leaf": true},
+                    "80":
+                      {"guess": "jowly", "num_targets": 1, "leaf": true},
+                    "114":
+                      {"guess": "knoll", "num_targets": 1, "leaf": true},
+                    "143":
+                      {
+                        "guess": "fehme",
+                        "num_targets": 4,
+                        "branches": {
+                          "0":
+                            {"guess": "jolly", "num_targets": 1, "leaf": true},
+                          "3":
+                            {"guess": "molly", "num_targets": 1, "leaf": true},
+                          "9":
+                            {"guess": "holly", "num_targets": 1, "leaf": true},
+                          "162":
+                            {"guess": "folly", "num_targets": 1, "leaf": true}
+                        }
+                      },
+                    "224":
+                      {"guess": "lolly", "num_targets": 1, "leaf": true},
+                    "242":
+                      {"guess": "lowly", "num_targets": 1, "leaf": true}
+                  }
+                },
+              "7":
+                {
+                  "guess": "dolly",
+                  "num_targets": 2,
+                  "branches": {
+                    "116":
+                      {"guess": "oddly", "num_targets": 1, "leaf": true},
+                    "242":
+                      {"guess": "dolly", "num_targets": 1, "leaf": true}
+                  }
+                },
+              "9":
+                {
+                  "guess": "nymph",
+                  "num_targets": 26,
+                  "branches": {
+                    "0":
+                      {"guess": "civic", "num_targets": 1, "leaf": true},
+                    "7":
+                      {"guess": "hippo", "num_targets": 1, "leaf": true},
+                    "10":
+                      {"guess": "mochi", "num_targets": 1, "leaf": true},
+                    "18":
+                      {
+                        "guess": "comic",
+                        "num_targets": 2,
+                        "branches": {
+                          "26":
+                            {"guess": "mimic", "num_targets": 1, "leaf": true},
+                          "242":
+                            {"guess": "comic", "num_targets": 1, "leaf": true}
+                        }
+                      },
+                    "27":
                       {
                         "guess": "fizzy",
                         "num_targets": 2,
@@ -187,1132 +309,898 @@
                             {"guess": "fizzy", "num_targets": 1, "leaf": true}
                         }
                       },
-                    "5":
-                      {"guess": "piggy", "num_targets": 1, "leaf": true},
-                    "8":
+                    "30":
+                      {"guess": "picky", "num_targets": 1, "leaf": true},
+                    "33":
+                      {"guess": "zippy", "num_targets": 1, "leaf": true},
+                    "34":
+                      {"guess": "hippy", "num_targets": 1, "leaf": true},
+                    "45":
+                      {"guess": "jimmy", "num_targets": 1, "leaf": true},
+                    "51":
+                      {"guess": "wimpy", "num_targets": 1, "leaf": true},
+                    "81":
                       {
-                        "guess": "hippy",
-                        "num_targets": 2,
+                        "guess": "conic",
+                        "num_targets": 3,
                         "branches": {
+                          "39":
+                            {"guess": "inbox", "num_targets": 1, "leaf": true},
                           "80":
-                            {"guess": "zippy", "num_targets": 1, "leaf": true},
+                            {"guess": "ionic", "num_targets": 1, "leaf": true},
                           "242":
-                            {"guess": "hippy", "num_targets": 1, "leaf": true}
+                            {"guess": "conic", "num_targets": 1, "leaf": true}
                         }
                       },
-                    "20":
-                      {"guess": "jimmy", "num_targets": 1, "leaf": true},
-                    "26":
-                      {"guess": "wimpy", "num_targets": 1, "leaf": true},
-                    "39":
-                      {"guess": "mixup", "num_targets": 1, "leaf": true},
                     "83":
                       {
-                        "guess": "biddy",
-                        "num_targets": 2,
+                        "guess": "cinch",
+                        "num_targets": 3,
                         "branches": {
                           "80":
-                            {"guess": "giddy", "num_targets": 1, "leaf": true},
+                            {
+                              "guess": "finch",
+                              "num_targets": 2,
+                              "branches": {
+                                "80":
+                                  {"guess": "winch", "num_targets": 1, "leaf": true},
+                                "242":
+                                  {"guess": "finch", "num_targets": 1, "leaf": true}
+                              }
+                            },
                           "242":
-                            {"guess": "biddy", "num_targets": 1, "leaf": true}
+                            {"guess": "cinch", "num_targets": 1, "leaf": true}
                         }
                       },
-                    "164":
+                    "86":
+                      {"guess": "pinch", "num_targets": 1, "leaf": true},
+                    "90":
+                      {"guess": "minim", "num_targets": 1, "leaf": true},
+                    "108":
+                      {"guess": "kinky", "num_targets": 1, "leaf": true},
+                    "109":
+                      {"guess": "hinky", "num_targets": 1, "leaf": true},
+                    "111":
+                      {"guess": "pinky", "num_targets": 1, "leaf": true},
+                    "135":
+                      {"guess": "cynic", "num_targets": 1, "leaf": true},
+                    "189":
+                      {"guess": "ninny", "num_targets": 1, "leaf": true},
+                    "195":
+                      {"guess": "nippy", "num_targets": 1, "leaf": true}
+                  }
+                },
+              "10":
+                {
+                  "guess": "devon",
+                  "num_targets": 8,
+                  "branches": {
+                    "81":
+                      {"guess": "biddy", "num_targets": 1, "leaf": true},
+                    "82":
+                      {"guess": "windy", "num_targets": 1, "leaf": true},
+                    "84":
+                      {"guess": "kiddo", "num_targets": 1, "leaf": true},
+                    "87":
+                      {"guess": "widow", "num_targets": 1, "leaf": true},
+                    "162":
                       {
-                        "guess": "divvy",
+                        "guess": "dippy",
                         "num_targets": 2,
                         "branches": {
                           "218":
                             {"guess": "dizzy", "num_targets": 1, "leaf": true},
                           "242":
-                            {"guess": "divvy", "num_targets": 1, "leaf": true}
+                            {"guess": "dippy", "num_targets": 1, "leaf": true}
                         }
                       },
-                    "170":
-                      {"guess": "dippy", "num_targets": 1, "leaf": true}
-                  }
-                },
-              "4":
-                {
-                  "guess": "kindy",
-                  "num_targets": 14,
-                  "branches": {
-                    "37":
-                      {"guess": "vying", "num_targets": 1, "leaf": true},
-                    "38":
-                      {
-                        "guess": "unify",
-                        "num_targets": 2,
-                        "branches": {
-                          "47":
-                            {"guess": "whiny", "num_targets": 1, "leaf": true},
-                          "242":
-                            {"guess": "unify", "num_targets": 1, "leaf": true}
-                        }
-                      },
-                    "40":
-                      {"guess": "dying", "num_targets": 1, "leaf": true},
-                    "45":
-                      {"guess": "fungi", "num_targets": 1, "leaf": true},
-                    "65":
-                      {"guess": "nippy", "num_targets": 1, "leaf": true},
-                    "72":
-                      {"guess": "pinup", "num_targets": 1, "leaf": true},
-                    "74":
-                      {"guess": "ninny", "num_targets": 1, "leaf": true},
-                    "77":
-                      {"guess": "dingy", "num_targets": 1, "leaf": true},
-                    "80":
-                      {"guess": "windy", "num_targets": 1, "leaf": true},
-                    "155":
-                      {
-                        "guess": "hinky",
-                        "num_targets": 2,
-                        "branches": {
-                          "80":
-                            {"guess": "pinky", "num_targets": 1, "leaf": true},
-                          "242":
-                            {"guess": "hinky", "num_targets": 1, "leaf": true}
-                        }
-                      },
-                    "158":
+                    "163":
                       {"guess": "dinky", "num_targets": 1, "leaf": true},
-                    "236":
-                      {"guess": "kinky", "num_targets": 1, "leaf": true}
+                    "180":
+                      {"guess": "divvy", "num_targets": 1, "leaf": true}
                   }
                 },
-              "6":
+              "11":
                 {
-                  "guess": "humid",
-                  "num_targets": 2,
-                  "branches": {
-                    "8":
-                      {"guess": "vivid", "num_targets": 1, "leaf": true},
-                    "242":
-                      {"guess": "humid", "num_targets": 1, "leaf": true}
-                  }
-                },
-              "7":
-                {
-                  "guess": "unhip",
-                  "num_targets": 4,
-                  "branches": {
-                    "33":
-                      {"guess": "minim", "num_targets": 1, "leaf": true},
-                    "222":
-                      {"guess": "undid", "num_targets": 1, "leaf": true},
-                    "224":
-                      {"guess": "unzip", "num_targets": 1, "leaf": true},
-                    "242":
-                      {"guess": "unhip", "num_targets": 1, "leaf": true}
-                  }
-                },
-              "8":
-                {"guess": "unpin", "num_targets": 1, "leaf": true},
-              "9":
-                {
-                  "guess": "bluff",
-                  "num_targets": 9,
-                  "branches": {
-                    "27":
-                      {"guess": "lymph", "num_targets": 1, "leaf": true},
-                    "36":
-                      {"guess": "lumpy", "num_targets": 1, "leaf": true},
-                    "54":
-                      {"guess": "glyph", "num_targets": 1, "leaf": true},
-                    "72":
-                      {"guess": "plump", "num_targets": 1, "leaf": true},
-                    "75":
-                      {"guess": "fluky", "num_targets": 1, "leaf": true},
-                    "80":
-                      {"guess": "fluff", "num_targets": 1, "leaf": true},
-                    "138":
-                      {"guess": "flyby", "num_targets": 1, "leaf": true},
-                    "153":
-                      {"guess": "plumb", "num_targets": 1, "leaf": true},
-                    "242":
-                      {"guess": "bluff", "num_targets": 1, "leaf": true}
-                  }
-                },
-              "10":
-                {
-                  "guess": "flung",
+                  "guess": "bipod",
                   "num_targets": 3,
                   "branches": {
-                    "78":
-                      {"guess": "plunk", "num_targets": 1, "leaf": true},
-                    "240":
-                      {"guess": "flunk", "num_targets": 1, "leaf": true},
+                    "32":
+                      {"guess": "ovoid", "num_targets": 1, "leaf": true},
+                    "56":
+                      {"guess": "vivid", "num_targets": 1, "leaf": true},
                     "242":
-                      {"guess": "flung", "num_targets": 1, "leaf": true}
+                      {"guess": "bipod", "num_targets": 1, "leaf": true}
                   }
                 },
               "12":
                 {
-                  "guess": "blimp",
-                  "num_targets": 8,
+                  "guess": "folic",
+                  "num_targets": 12,
                   "branches": {
-                    "36":
-                      {"guess": "idyll", "num_targets": 1, "leaf": true},
-                    "37":
-                      {"guess": "lippy", "num_targets": 1, "leaf": true},
-                    "39":
-                      {"guess": "dimly", "num_targets": 1, "leaf": true},
-                    "40":
-                      {"guess": "imply", "num_targets": 1, "leaf": true},
-                    "45":
+                    "12":
                       {
-                        "guess": "guild",
+                        "guess": "lippy",
                         "num_targets": 2,
                         "branches": {
-                          "78":
-                            {"guess": "quill", "num_targets": 1, "leaf": true},
+                          "136":
+                            {"guess": "vinyl", "num_targets": 1, "leaf": true},
                           "242":
-                            {"guess": "guild", "num_targets": 1, "leaf": true}
+                            {"guess": "lippy", "num_targets": 1, "leaf": true}
                         }
                       },
-                    "207":
-                      {"guess": "build", "num_targets": 1, "leaf": true},
-                    "242":
-                      {"guess": "blimp", "num_targets": 1, "leaf": true}
-                  }
-                },
-              "13":
-                {
-                  "guess": "bling",
-                  "num_targets": 7,
-                  "branches": {
+                    "16":
+                      {"guess": "civil", "num_targets": 1, "leaf": true},
+                    "21":
+                      {"guess": "milky", "num_targets": 1, "leaf": true},
+                    "22":
+                      {"guess": "zilch", "num_targets": 1, "leaf": true},
                     "39":
-                      {"guess": "vinyl", "num_targets": 1, "leaf": true},
-                    "53":
-                      {"guess": "lying", "num_targets": 1, "leaf": true},
+                      {"guess": "limbo", "num_targets": 1, "leaf": true},
                     "78":
-                      {"guess": "plink", "num_targets": 1, "leaf": true},
+                      {"guess": "polio", "num_targets": 1, "leaf": true},
                     "80":
-                      {"guess": "fling", "num_targets": 1, "leaf": true},
+                      {"guess": "colic", "num_targets": 1, "leaf": true},
+                    "183":
+                      {"guess": "filmy", "num_targets": 1, "leaf": true},
+                    "184":
+                      {"guess": "filch", "num_targets": 1, "leaf": true},
                     "240":
-                      {
-                        "guess": "blind",
-                        "num_targets": 2,
-                        "branches": {
-                          "240":
-                            {"guess": "blink", "num_targets": 1, "leaf": true},
-                          "242":
-                            {"guess": "blind", "num_targets": 1, "leaf": true}
-                        }
-                      },
+                      {"guess": "folio", "num_targets": 1, "leaf": true},
                     "242":
-                      {"guess": "bling", "num_targets": 1, "leaf": true}
+                      {"guess": "folic", "num_targets": 1, "leaf": true}
                   }
                 },
-              "15":
+              "14":
                 {
                   "guess": "lipid",
-                  "num_targets": 5,
+                  "num_targets": 2,
                   "branches": {
-                    "89":
-                      {"guess": "fluid", "num_targets": 1, "leaf": true},
-                    "105":
-                      {"guess": "pupil", "num_targets": 1, "leaf": true},
-                    "141":
-                      {"guess": "vigil", "num_targets": 1, "leaf": true},
                     "224":
                       {"guess": "livid", "num_targets": 1, "leaf": true},
                     "242":
                       {"guess": "lipid", "num_targets": 1, "leaf": true}
                   }
                 },
-              "18":
+              "15":
                 {
-                  "guess": "bugle",
-                  "num_targets": 8,
+                  "guess": "belch",
+                  "num_targets": 5,
                   "branches": {
-                    "57":
+                    "9":
+                      {"guess": "imply", "num_targets": 1, "leaf": true},
+                    "18":
                       {
-                        "guess": "hulky",
-                        "num_targets": 2,
-                        "branches": {
-                          "74":
-                            {"guess": "pulpy", "num_targets": 1, "leaf": true},
-                          "242":
-                            {"guess": "hulky", "num_targets": 1, "leaf": true}
-                        }
-                      },
-                    "60":
-                      {
-                        "guess": "dully",
+                        "guess": "filly",
                         "num_targets": 2,
                         "branches": {
                           "80":
-                            {"guess": "fully", "num_targets": 1, "leaf": true},
+                            {"guess": "willy", "num_targets": 1, "leaf": true},
                           "242":
-                            {"guess": "dully", "num_targets": 1, "leaf": true}
+                            {"guess": "filly", "num_targets": 1, "leaf": true}
                         }
                       },
-                    "69":
-                      {"guess": "gully", "num_targets": 1, "leaf": true},
-                    "219":
-                      {"guess": "bulky", "num_targets": 1, "leaf": true},
-                    "222":
-                      {"guess": "bully", "num_targets": 1, "leaf": true},
-                    "228":
-                      {"guess": "bulgy", "num_targets": 1, "leaf": true}
+                    "19":
+                      {"guess": "hilly", "num_targets": 1, "leaf": true},
+                    "180":
+                      {"guess": "billy", "num_targets": 1, "leaf": true}
                   }
                 },
-              "21":
+              "16":
                 {
-                  "guess": "fable",
-                  "num_targets": 7,
-                  "branches": {
-                    "3":
-                      {"guess": "milky", "num_targets": 1, "leaf": true},
-                    "6":
-                      {
-                        "guess": "dilly",
-                        "num_targets": 3,
-                        "branches": {
-                          "80":
-                            {
-                              "guess": "hilly",
-                              "num_targets": 2,
-                              "branches": {
-                                "80":
-                                  {"guess": "willy", "num_targets": 1, "leaf": true},
-                                "242":
-                                  {"guess": "hilly", "num_targets": 1, "leaf": true}
-                              }
-                            },
-                          "242":
-                            {"guess": "dilly", "num_targets": 1, "leaf": true}
-                        }
-                      },
-                    "15":
-                      {"guess": "billy", "num_targets": 1, "leaf": true},
-                    "165":
-                      {"guess": "filmy", "num_targets": 1, "leaf": true},
-                    "168":
-                      {"guess": "filly", "num_targets": 1, "leaf": true}
-                  }
-                },
-              "27":
-                {
-                  "guess": "gumbo",
-                  "num_targets": 6,
-                  "branches": {
-                    "1":
-                      {"guess": "whoop", "num_targets": 1, "leaf": true},
-                    "4":
-                      {"guess": "oxbow", "num_targets": 1, "leaf": true},
-                    "10":
-                      {"guess": "whomp", "num_targets": 1, "leaf": true},
-                    "67":
-                      {"guess": "buxom", "num_targets": 1, "leaf": true},
-                    "80":
-                      {"guess": "jumbo", "num_targets": 1, "leaf": true},
-                    "242":
-                      {"guess": "gumbo", "num_targets": 1, "leaf": true}
-                  }
-                },
-              "28":
-                {
-                  "guess": "fungo",
+                  "guess": "dilly",
                   "num_targets": 3,
                   "branches": {
-                    "10":
-                      {"guess": "phony", "num_targets": 1, "leaf": true},
-                    "37":
-                      {"guess": "unbox", "num_targets": 1, "leaf": true},
+                    "124":
+                      {"guess": "idyll", "num_targets": 1, "leaf": true},
+                    "224":
+                      {"guess": "dimly", "num_targets": 1, "leaf": true},
                     "242":
-                      {"guess": "fungo", "num_targets": 1, "leaf": true}
+                      {"guess": "dilly", "num_targets": 1, "leaf": true}
+                  }
+                },
+              "18":
+                {
+                  "guess": "comfy",
+                  "num_targets": 8,
+                  "branches": {
+                    "0":
+                      {"guess": "whizz", "num_targets": 1, "leaf": true},
+                    "2":
+                      {"guess": "whiny", "num_targets": 1, "leaf": true},
+                    "6":
+                      {"guess": "whiff", "num_targets": 1, "leaf": true},
+                    "27":
+                      {"guess": "onion", "num_targets": 1, "leaf": true},
+                    "81":
+                      {"guess": "which", "num_targets": 1, "leaf": true},
+                    "162":
+                      {"guess": "chick", "num_targets": 1, "leaf": true},
+                    "171":
+                      {"guess": "chimp", "num_targets": 1, "leaf": true},
+                    "189":
+                      {"guess": "chino", "num_targets": 1, "leaf": true}
+                  }
+                },
+              "19":
+                {"guess": "idiom", "num_targets": 1, "leaf": true},
+              "21":
+                {
+                  "guess": "flick",
+                  "num_targets": 8,
+                  "branches": {
+                    "72":
+                      {"guess": "blimp", "num_targets": 1, "leaf": true},
+                    "74":
+                      {
+                        "guess": "blink",
+                        "num_targets": 2,
+                        "branches": {
+                          "80":
+                            {"guess": "plink", "num_targets": 1, "leaf": true},
+                          "242":
+                            {"guess": "blink", "num_targets": 1, "leaf": true}
+                        }
+                      },
+                    "75":
+                      {"guess": "climb", "num_targets": 1, "leaf": true},
+                    "77":
+                      {"guess": "clink", "num_targets": 1, "leaf": true},
+                    "80":
+                      {"guess": "click", "num_targets": 1, "leaf": true},
+                    "156":
+                      {"guess": "cliff", "num_targets": 1, "leaf": true},
+                    "242":
+                      {"guess": "flick", "num_targets": 1, "leaf": true}
+                  }
+                },
+              "23":
+                {"guess": "blind", "num_targets": 1, "leaf": true},
+              "24":
+                {
+                  "guess": "chili",
+                  "num_targets": 3,
+                  "branches": {
+                    "106":
+                      {"guess": "icily", "num_targets": 1, "leaf": true},
+                    "240":
+                      {"guess": "chill", "num_targets": 1, "leaf": true},
+                    "242":
+                      {"guess": "chili", "num_targets": 1, "leaf": true}
+                  }
+                },
+              "25":
+                {"guess": "doily", "num_targets": 1, "leaf": true},
+              "26":
+                {"guess": "child", "num_targets": 1, "leaf": true},
+              "27":
+                {
+                  "guess": "chump",
+                  "num_targets": 10,
+                  "branches": {
+                    "9":
+                      {"guess": "unbox", "num_targets": 1, "leaf": true},
+                    "11":
+                      {"guess": "popup", "num_targets": 1, "leaf": true},
+                    "39":
+                      {"guess": "hokum", "num_targets": 1, "leaf": true},
+                    "126":
+                      {"guess": "vouch", "num_targets": 1, "leaf": true},
+                    "127":
+                      {"guess": "pouch", "num_targets": 1, "leaf": true},
+                    "207":
+                      {"guess": "couch", "num_targets": 1, "leaf": true},
+                    "225":
+                      {"guess": "choux", "num_targets": 1, "leaf": true},
+                    "234":
+                      {
+                        "guess": "chuck",
+                        "num_targets": 2,
+                        "branches": {
+                          "236":
+                            {"guess": "chunk", "num_targets": 1, "leaf": true},
+                          "242":
+                            {"guess": "chuck", "num_targets": 1, "leaf": true}
+                        }
+                      },
+                    "242":
+                      {"guess": "chump", "num_targets": 1, "leaf": true}
                   }
                 },
               "29":
-                {"guess": "known", "num_targets": 1, "leaf": true},
-              "30":
                 {
-                  "guess": "bipod",
-                  "num_targets": 7,
+                  "guess": "whomp",
+                  "num_targets": 6,
                   "branches": {
-                    "34":
-                      {"guess": "idiom", "num_targets": 1, "leaf": true},
-                    "39":
-                      {"guess": "opium", "num_targets": 1, "leaf": true},
-                    "57":
-                      {"guess": "gizmo", "num_targets": 1, "leaf": true},
-                    "58":
-                      {"guess": "kiddo", "num_targets": 1, "leaf": true},
-                    "61":
-                      {"guess": "widow", "num_targets": 1, "leaf": true},
-                    "75":
-                      {"guess": "hippo", "num_targets": 1, "leaf": true},
-                    "242":
-                      {"guess": "bipod", "num_targets": 1, "leaf": true}
+                    "9":
+                      {
+                        "guess": "bound",
+                        "num_targets": 2,
+                        "branches": {
+                          "80":
+                            {"guess": "found", "num_targets": 1, "leaf": true},
+                          "242":
+                            {"guess": "bound", "num_targets": 1, "leaf": true}
+                        }
+                      },
+                    "10":
+                      {"guess": "pound", "num_targets": 1, "leaf": true},
+                    "12":
+                      {"guess": "mound", "num_targets": 1, "leaf": true},
+                    "36":
+                      {"guess": "hound", "num_targets": 1, "leaf": true},
+                    "171":
+                      {"guess": "wound", "num_targets": 1, "leaf": true}
                   }
                 },
-              "31":
+              "30":
                 {
-                  "guess": "bingo",
-                  "num_targets": 4,
+                  "guess": "pluck",
+                  "num_targets": 11,
                   "branches": {
-                    "40":
-                      {"guess": "owing", "num_targets": 1, "leaf": true},
+                    "72":
+                      {
+                        "guess": "bluff",
+                        "num_targets": 2,
+                        "branches": {
+                          "80":
+                            {"guess": "fluff", "num_targets": 1, "leaf": true},
+                          "242":
+                            {"guess": "bluff", "num_targets": 1, "leaf": true}
+                        }
+                      },
+                    "73":
+                      {"guess": "fluky", "num_targets": 1, "leaf": true},
+                    "74":
+                      {"guess": "flunk", "num_targets": 1, "leaf": true},
+                    "77":
+                      {"guess": "clunk", "num_targets": 1, "leaf": true},
                     "80":
-                      {"guess": "dingo", "num_targets": 1, "leaf": true},
-                    "118":
-                      {"guess": "inbox", "num_targets": 1, "leaf": true},
+                      {"guess": "cluck", "num_targets": 1, "leaf": true},
+                    "156":
+                      {"guess": "clump", "num_targets": 1, "leaf": true},
+                    "234":
+                      {
+                        "guess": "plumb",
+                        "num_targets": 2,
+                        "branches": {
+                          "240":
+                            {"guess": "plump", "num_targets": 1, "leaf": true},
+                          "242":
+                            {"guess": "plumb", "num_targets": 1, "leaf": true}
+                        }
+                      },
+                    "236":
+                      {"guess": "plunk", "num_targets": 1, "leaf": true},
                     "242":
-                      {"guess": "bingo", "num_targets": 1, "leaf": true}
+                      {"guess": "pluck", "num_targets": 1, "leaf": true}
                   }
                 },
               "32":
+                {"guess": "cloud", "num_targets": 1, "leaf": true},
+              "35":
                 {
-                  "guess": "onion",
-                  "num_targets": 2,
+                  "guess": "could",
+                  "num_targets": 3,
                   "branches": {
                     "80":
-                      {"guess": "union", "num_targets": 1, "leaf": true},
-                    "242":
-                      {"guess": "onion", "num_targets": 1, "leaf": true}
-                  }
-                },
-              "33":
-                {"guess": "ovoid", "num_targets": 1, "leaf": true},
-              "36":
-                {
-                  "guess": "pudgy",
-                  "num_targets": 10,
-                  "branches": {
-                    "0":
-                      {"guess": "bloom", "num_targets": 1, "leaf": true},
-                    "2":
-                      {"guess": "flowy", "num_targets": 1, "leaf": true},
-                    "3":
-                      {"guess": "gloom", "num_targets": 1, "leaf": true},
-                    "5":
-                      {"guess": "glowy", "num_targets": 1, "leaf": true},
-                    "9":
                       {
-                        "guess": "blood",
+                        "guess": "mould",
                         "num_targets": 2,
                         "branches": {
                           "80":
-                            {"guess": "flood", "num_targets": 1, "leaf": true},
+                            {"guess": "would", "num_targets": 1, "leaf": true},
                           "242":
-                            {"guess": "blood", "num_targets": 1, "leaf": true}
+                            {"guess": "mould", "num_targets": 1, "leaf": true}
                         }
                       },
-                    "20":
-                      {"guess": "oddly", "num_targets": 1, "leaf": true},
-                    "30":
-                      {"guess": "ghoul", "num_targets": 1, "leaf": true},
-                    "81":
-                      {"guess": "bloop", "num_targets": 1, "leaf": true},
-                    "84":
-                      {"guess": "gloop", "num_targets": 1, "leaf": true}
+                    "242":
+                      {"guess": "could", "num_targets": 1, "leaf": true}
                   }
                 },
-              "37":
+              "36":
                 {
-                  "guess": "blond",
-                  "num_targets": 3,
+                  "guess": "unhip",
+                  "num_targets": 5,
                   "branches": {
-                    "48":
-                      {"guess": "knoll", "num_targets": 1, "leaf": true},
-                    "78":
-                      {"guess": "plonk", "num_targets": 1, "leaf": true},
+                    "86":
+                      {"guess": "mixup", "num_targets": 1, "leaf": true},
+                    "113":
+                      {"guess": "pinup", "num_targets": 1, "leaf": true},
+                    "223":
+                      {"guess": "unpin", "num_targets": 1, "leaf": true},
+                    "224":
+                      {"guess": "unzip", "num_targets": 1, "leaf": true},
                     "242":
-                      {"guess": "blond", "num_targets": 1, "leaf": true}
+                      {"guess": "unhip", "num_targets": 1, "leaf": true}
                   }
                 },
               "38":
+                {"guess": "undid", "num_targets": 1, "leaf": true},
+              "41":
+                {"guess": "fluid", "num_targets": 1, "leaf": true},
+              "45":
                 {
-                  "guess": "blown",
-                  "num_targets": 2,
+                  "guess": "opium",
+                  "num_targets": 3,
                   "branches": {
-                    "80":
-                      {"guess": "flown", "num_targets": 1, "leaf": true},
+                    "21":
+                      {"guess": "unify", "num_targets": 1, "leaf": true},
+                    "102":
+                      {"guess": "union", "num_targets": 1, "leaf": true},
                     "242":
-                      {"guess": "blown", "num_targets": 1, "leaf": true}
+                      {"guess": "opium", "num_targets": 1, "leaf": true}
                   }
                 },
-              "39":
-                {"guess": "limbo", "num_targets": 1, "leaf": true},
-              "40":
-                {"guess": "lingo", "num_targets": 1, "leaf": true},
-              "47":
-                {
-                  "guess": "nylon",
-                  "num_targets": 2,
-                  "branches": {
-                    "80":
-                      {"guess": "pylon", "num_targets": 1, "leaf": true},
-                    "242":
-                      {"guess": "nylon", "num_targets": 1, "leaf": true}
-                  }
-                },
-              "48":
-                {"guess": "igloo", "num_targets": 1, "leaf": true},
               "54":
                 {
-                  "guess": "pudgy",
-                  "num_targets": 30,
+                  "guess": "bumph",
+                  "num_targets": 27,
                   "branches": {
-                    "0":
-                      {"guess": "boffo", "num_targets": 1, "leaf": true},
-                    "2":
+                    "54":
                       {
-                        "guess": "boozy",
-                        "num_targets": 8,
+                        "guess": "funky",
+                        "num_targets": 5,
                         "branches": {
-                          "56":
-                            {"guess": "mommy", "num_targets": 1, "leaf": true},
-                          "74":
-                            {
-                              "guess": "hooky",
-                              "num_targets": 2,
-                              "branches": {
-                                "80":
-                                  {"guess": "kooky", "num_targets": 1, "leaf": true},
-                                "242":
-                                  {"guess": "hooky", "num_targets": 1, "leaf": true}
-                              }
-                            },
-                          "80":
-                            {"guess": "woozy", "num_targets": 1, "leaf": true},
-                          "137":
-                            {"guess": "hobby", "num_targets": 1, "leaf": true},
-                          "218":
-                            {"guess": "bobby", "num_targets": 1, "leaf": true},
-                          "236":
-                            {"guess": "booby", "num_targets": 1, "leaf": true},
-                          "242":
-                            {"guess": "boozy", "num_targets": 1, "leaf": true}
-                        }
-                      },
-                    "5":
-                      {"guess": "goofy", "num_targets": 1, "leaf": true},
-                    "8":
-                      {
-                        "guess": "boggy",
-                        "num_targets": 2,
-                        "branches": {
-                          "80":
-                            {"guess": "foggy", "num_targets": 1, "leaf": true},
-                          "242":
-                            {"guess": "boggy", "num_targets": 1, "leaf": true}
-                        }
-                      },
-                    "11":
-                      {
-                        "guess": "howdy",
-                        "num_targets": 6,
-                        "branches": {
-                          "59":
-                            {"guess": "doozy", "num_targets": 1, "leaf": true},
                           "62":
-                            {"guess": "moody", "num_targets": 1, "leaf": true},
-                          "71":
-                            {"guess": "woody", "num_targets": 1, "leaf": true},
+                            {"guess": "yucky", "num_targets": 1, "leaf": true},
                           "80":
-                            {"guess": "dowdy", "num_targets": 1, "leaf": true},
-                          "224":
-                            {"guess": "hoody", "num_targets": 1, "leaf": true},
+                            {"guess": "junky", "num_targets": 1, "leaf": true},
+                          "218":
+                            {"guess": "fuzzy", "num_targets": 1, "leaf": true},
+                          "236":
+                            {"guess": "funny", "num_targets": 1, "leaf": true},
                           "242":
-                            {"guess": "howdy", "num_targets": 1, "leaf": true}
+                            {"guess": "funky", "num_targets": 1, "leaf": true}
                         }
                       },
-                    "14":
-                      {"guess": "goody", "num_targets": 1, "leaf": true},
-                    "17":
-                      {"guess": "doggy", "num_targets": 1, "leaf": true},
-                    "26":
-                      {"guess": "dodgy", "num_targets": 1, "leaf": true},
-                    "27":
-                      {"guess": "hokum", "num_targets": 1, "leaf": true},
-                    "33":
-                      {"guess": "bough", "num_targets": 1, "leaf": true},
-                    "42":
-                      {"guess": "dough", "num_targets": 1, "leaf": true},
-                    "81":
-                      {"guess": "oomph", "num_targets": 1, "leaf": true},
-                    "83":
-                      {"guess": "hoppy", "num_targets": 1, "leaf": true},
-                    "86":
-                      {"guess": "goopy", "num_targets": 1, "leaf": true},
-                    "164":
+                    "55":
                       {
-                        "guess": "poofy",
+                        "guess": "huffy",
                         "num_targets": 2,
                         "branches": {
                           "218":
-                            {"guess": "poppy", "num_targets": 1, "leaf": true},
+                            {"guess": "hunky", "num_targets": 1, "leaf": true},
                           "242":
-                            {"guess": "poofy", "num_targets": 1, "leaf": true}
+                            {"guess": "huffy", "num_targets": 1, "leaf": true}
                         }
                       },
-                    "189":
-                      {"guess": "popup", "num_targets": 1, "leaf": true}
+                    "56":
+                      {"guess": "hunch", "num_targets": 1, "leaf": true},
+                    "57":
+                      {
+                        "guess": "punky",
+                        "num_targets": 3,
+                        "branches": {
+                          "218":
+                            {"guess": "puffy", "num_targets": 1, "leaf": true},
+                          "236":
+                            {"guess": "punny", "num_targets": 1, "leaf": true},
+                          "242":
+                            {"guess": "punky", "num_targets": 1, "leaf": true}
+                        }
+                      },
+                    "59":
+                      {"guess": "punch", "num_targets": 1, "leaf": true},
+                    "60":
+                      {"guess": "puppy", "num_targets": 1, "leaf": true},
+                    "63":
+                      {"guess": "mucky", "num_targets": 1, "leaf": true},
+                    "65":
+                      {"guess": "munch", "num_targets": 1, "leaf": true},
+                    "72":
+                      {
+                        "guess": "mummy",
+                        "num_targets": 2,
+                        "branches": {
+                          "80":
+                            {"guess": "yummy", "num_targets": 1, "leaf": true},
+                          "242":
+                            {"guess": "mummy", "num_targets": 1, "leaf": true}
+                        }
+                      },
+                    "78":
+                      {"guess": "jumpy", "num_targets": 1, "leaf": true},
+                    "80":
+                      {"guess": "humph", "num_targets": 1, "leaf": true},
+                    "135":
+                      {"guess": "cubby", "num_targets": 1, "leaf": true},
+                    "136":
+                      {"guess": "hubby", "num_targets": 1, "leaf": true},
+                    "153":
+                      {"guess": "jumbo", "num_targets": 1, "leaf": true},
+                    "216":
+                      {
+                        "guess": "bunny",
+                        "num_targets": 2,
+                        "branches": {
+                          "218":
+                            {"guess": "buzzy", "num_targets": 1, "leaf": true},
+                          "242":
+                            {"guess": "bunny", "num_targets": 1, "leaf": true}
+                        }
+                      },
+                    "218":
+                      {"guess": "bunch", "num_targets": 1, "leaf": true},
+                    "225":
+                      {"guess": "buxom", "num_targets": 1, "leaf": true},
+                    "240":
+                      {"guess": "bumpy", "num_targets": 1, "leaf": true}
                   }
                 },
               "55":
                 {
-                  "guess": "bumpy",
-                  "num_targets": 13,
+                  "guess": "dummy",
+                  "num_targets": 7,
                   "branches": {
-                    "0":
-                      {"guess": "gonzo", "num_targets": 1, "leaf": true},
-                    "2":
+                    "135":
+                      {"guess": "kudzu", "num_targets": 1, "leaf": true},
+                    "137":
+                      {"guess": "buddy", "num_targets": 1, "leaf": true},
+                    "146":
+                      {"guess": "muddy", "num_targets": 1, "leaf": true},
+                    "218":
                       {
-                        "guess": "downy",
+                        "guess": "duchy",
                         "num_targets": 2,
                         "branches": {
-                          "68":
-                            {"guess": "wonky", "num_targets": 1, "leaf": true},
+                          "236":
+                            {"guess": "ducky", "num_targets": 1, "leaf": true},
                           "242":
-                            {"guess": "downy", "num_targets": 1, "leaf": true}
-                        }
-                      },
-                    "11":
-                      {"guess": "moony", "num_targets": 1, "leaf": true},
-                    "27":
-                      {
-                        "guess": "found",
-                        "num_targets": 3,
-                        "branches": {
-                          "80":
-                            {
-                              "guess": "hound",
-                              "num_targets": 2,
-                              "branches": {
-                                "80":
-                                  {"guess": "wound", "num_targets": 1, "leaf": true},
-                                "242":
-                                  {"guess": "hound", "num_targets": 1, "leaf": true}
-                              }
-                            },
-                          "242":
-                            {"guess": "found", "num_targets": 1, "leaf": true}
-                        }
-                      },
-                    "28":
-                      {"guess": "young", "num_targets": 1, "leaf": true},
-                    "30":
-                      {"guess": "pound", "num_targets": 1, "leaf": true},
-                    "36":
-                      {"guess": "mound", "num_targets": 1, "leaf": true},
-                    "162":
-                      {"guess": "bongo", "num_targets": 1, "leaf": true},
-                    "164":
-                      {"guess": "bonny", "num_targets": 1, "leaf": true},
-                    "189":
-                      {"guess": "bound", "num_targets": 1, "leaf": true}
-                  }
-                },
-              "58":
-                {
-                  "guess": "boing",
-                  "num_targets": 3,
-                  "branches": {
-                    "80":
-                      {
-                        "guess": "doing",
-                        "num_targets": 2,
-                        "branches": {
-                          "80":
-                            {"guess": "going", "num_targets": 1, "leaf": true},
-                          "242":
-                            {"guess": "doing", "num_targets": 1, "leaf": true}
-                        }
-                      },
-                    "242":
-                      {"guess": "boing", "num_targets": 1, "leaf": true}
-                  }
-                },
-              "63":
-                {
-                  "guess": "jowly",
-                  "num_targets": 9,
-                  "branches": {
-                    "57":
-                      {"guess": "mogul", "num_targets": 1, "leaf": true},
-                    "59":
-                      {
-                        "guess": "lobby",
-                        "num_targets": 2,
-                        "branches": {
-                          "218":
-                            {"guess": "loopy", "num_targets": 1, "leaf": true},
-                          "242":
-                            {"guess": "lobby", "num_targets": 1, "leaf": true}
-                        }
-                      },
-                    "60":
-                      {"guess": "mould", "num_targets": 1, "leaf": true},
-                    "62":
-                      {"guess": "godly", "num_targets": 1, "leaf": true},
-                    "69":
-                      {"guess": "would", "num_targets": 1, "leaf": true},
-                    "71":
-                      {"guess": "wooly", "num_targets": 1, "leaf": true},
-                    "80":
-                      {"guess": "lowly", "num_targets": 1, "leaf": true},
-                    "242":
-                      {"guess": "jowly", "num_targets": 1, "leaf": true}
-                  }
-                },
-              "64":
-                {
-                  "guess": "loony",
-                  "num_targets": 2,
-                  "branches": {
-                    "140":
-                      {"guess": "nobly", "num_targets": 1, "leaf": true},
-                    "242":
-                      {"guess": "loony", "num_targets": 1, "leaf": true}
-                  }
-                },
-              "65":
-                {"guess": "logon", "num_targets": 1, "leaf": true},
-              "66":
-                {"guess": "doily", "num_targets": 1, "leaf": true},
-              "71":
-                {"guess": "login", "num_targets": 1, "leaf": true},
-              "72":
-                {
-                  "guess": "fjeld",
-                  "num_targets": 10,
-                  "branches": {
-                    "3":
-                      {"guess": "polyp", "num_targets": 1, "leaf": true},
-                    "4":
-                      {"guess": "moldy", "num_targets": 1, "leaf": true},
-                    "6":
-                      {
-                        "guess": "laugh",
-                        "num_targets": 4,
-                        "branches": {
-                          "81":
-                            {"guess": "molly", "num_targets": 1, "leaf": true},
-                          "82":
-                            {"guess": "holly", "num_targets": 1, "leaf": true},
-                          "84":
-                            {"guess": "golly", "num_targets": 1, "leaf": true},
-                          "162":
-                            {"guess": "lolly", "num_targets": 1, "leaf": true}
-                        }
-                      },
-                    "7":
-                      {"guess": "dolly", "num_targets": 1, "leaf": true},
-                    "33":
-                      {"guess": "jolly", "num_targets": 1, "leaf": true},
-                    "165":
-                      {"guess": "folky", "num_targets": 1, "leaf": true},
-                    "168":
-                      {"guess": "folly", "num_targets": 1, "leaf": true}
-                  }
-                },
-              "78":
-                {
-                  "guess": "folio",
-                  "num_targets": 2,
-                  "branches": {
-                    "80":
-                      {"guess": "polio", "num_targets": 1, "leaf": true},
-                    "242":
-                      {"guess": "folio", "num_targets": 1, "leaf": true}
-                  }
-                },
-              "81":
-                {
-                  "guess": "duchy",
-                  "num_targets": 4,
-                  "branches": {
-                    "74":
-                      {
-                        "guess": "mucky",
-                        "num_targets": 2,
-                        "branches": {
-                          "80":
-                            {"guess": "yucky", "num_targets": 1, "leaf": true},
-                          "242":
-                            {"guess": "mucky", "num_targets": 1, "leaf": true}
+                            {"guess": "duchy", "num_targets": 1, "leaf": true}
                         }
                       },
                     "236":
-                      {"guess": "ducky", "num_targets": 1, "leaf": true},
+                      {"guess": "dumpy", "num_targets": 1, "leaf": true},
                     "242":
-                      {"guess": "duchy", "num_targets": 1, "leaf": true}
+                      {"guess": "dummy", "num_targets": 1, "leaf": true}
                   }
                 },
-              "82":
+              "57":
                 {
-                  "guess": "blimp",
-                  "num_targets": 4,
+                  "guess": "bulky",
+                  "num_targets": 7,
                   "branches": {
-                    "0":
-                      {"guess": "hunch", "num_targets": 1, "leaf": true},
-                    "1":
-                      {"guess": "punch", "num_targets": 1, "leaf": true},
-                    "3":
-                      {"guess": "munch", "num_targets": 1, "leaf": true},
-                    "162":
-                      {"guess": "bunch", "num_targets": 1, "leaf": true}
+                    "63":
+                      {"guess": "lunch", "num_targets": 1, "leaf": true},
+                    "65":
+                      {"guess": "lumpy", "num_targets": 1, "leaf": true},
+                    "71":
+                      {"guess": "lucky", "num_targets": 1, "leaf": true},
+                    "72":
+                      {"guess": "mulch", "num_targets": 1, "leaf": true},
+                    "74":
+                      {"guess": "pulpy", "num_targets": 1, "leaf": true},
+                    "80":
+                      {"guess": "hulky", "num_targets": 1, "leaf": true},
+                    "242":
+                      {"guess": "bulky", "num_targets": 1, "leaf": true}
                   }
                 },
-              "84":
+              "60":
+                {
+                  "guess": "bully",
+                  "num_targets": 2,
+                  "branches": {
+                    "80":
+                      {"guess": "fully", "num_targets": 1, "leaf": true},
+                    "242":
+                      {"guess": "bully", "num_targets": 1, "leaf": true}
+                  }
+                },
+              "61":
+                {"guess": "dully", "num_targets": 1, "leaf": true},
+              "63":
+                {
+                  "guess": "cubic",
+                  "num_targets": 3,
+                  "branches": {
+                    "80":
+                      {"guess": "pubic", "num_targets": 1, "leaf": true},
+                    "222":
+                      {"guess": "cumin", "num_targets": 1, "leaf": true},
+                    "242":
+                      {"guess": "cubic", "num_targets": 1, "leaf": true}
+                  }
+                },
+              "65":
+                {
+                  "guess": "cupid",
+                  "num_targets": 2,
+                  "branches": {
+                    "62":
+                      {"guess": "humid", "num_targets": 1, "leaf": true},
+                    "242":
+                      {"guess": "cupid", "num_targets": 1, "leaf": true}
+                  }
+                },
+              "66":
+                {"guess": "pupil", "num_targets": 1, "leaf": true},
+              "68":
+                {"guess": "lucid", "num_targets": 1, "leaf": true},
+              "72":
                 {
                   "guess": "juicy",
-                  "num_targets": 4,
+                  "num_targets": 2,
                   "branches": {
-                    "14":
-                      {"guess": "picky", "num_targets": 1, "leaf": true},
-                    "24":
-                      {"guess": "which", "num_targets": 1, "leaf": true},
                     "78":
                       {"guess": "quick", "num_targets": 1, "leaf": true},
                     "242":
                       {"guess": "juicy", "num_targets": 1, "leaf": true}
                   }
                 },
-              "85":
+              "78":
+                {"guess": "quill", "num_targets": 1, "leaf": true},
+              "80":
+                {"guess": "build", "num_targets": 1, "leaf": true},
+              "81":
                 {
-                  "guess": "finch",
+                  "guess": "boggy",
                   "num_targets": 4,
                   "branches": {
-                    "39":
-                      {"guess": "icing", "num_targets": 1, "leaf": true},
+                    "20":
+                      {"guess": "pygmy", "num_targets": 1, "leaf": true},
                     "80":
-                      {
-                        "guess": "pinch",
-                        "num_targets": 2,
-                        "branches": {
-                          "80":
-                            {"guess": "winch", "num_targets": 1, "leaf": true},
-                          "242":
-                            {"guess": "pinch", "num_targets": 1, "leaf": true}
-                        }
-                      },
+                      {"guess": "foggy", "num_targets": 1, "leaf": true},
+                    "222":
+                      {"guess": "bongo", "num_targets": 1, "leaf": true},
                     "242":
-                      {"guess": "finch", "num_targets": 1, "leaf": true}
+                      {"guess": "boggy", "num_targets": 1, "leaf": true}
                   }
                 },
-              "87":
+              "82":
                 {
-                  "guess": "mimic",
+                  "guess": "dodgy",
                   "num_targets": 2,
                   "branches": {
-                    "8":
-                      {"guess": "pubic", "num_targets": 1, "leaf": true},
+                    "224":
+                      {"guess": "doggy", "num_targets": 1, "leaf": true},
                     "242":
-                      {"guess": "mimic", "num_targets": 1, "leaf": true}
+                      {"guess": "dodgy", "num_targets": 1, "leaf": true}
                   }
                 },
+              "84":
+                {"guess": "logon", "num_targets": 1, "leaf": true},
               "90":
                 {
-                  "guess": "lucky",
+                  "guess": "bingo",
                   "num_targets": 2,
                   "branches": {
-                    "120":
-                      {"guess": "pluck", "num_targets": 1, "leaf": true},
+                    "60":
+                      {"guess": "piggy", "num_targets": 1, "leaf": true},
                     "242":
-                      {"guess": "lucky", "num_targets": 1, "leaf": true}
+                      {"guess": "bingo", "num_targets": 1, "leaf": true}
                   }
                 },
               "91":
-                {"guess": "lunch", "num_targets": 1, "leaf": true},
-              "93":
                 {
-                  "guess": "flick",
+                  "guess": "dingo",
                   "num_targets": 2,
                   "branches": {
-                    "48":
-                      {"guess": "icily", "num_targets": 1, "leaf": true},
+                    "240":
+                      {"guess": "dingy", "num_targets": 1, "leaf": true},
                     "242":
-                      {"guess": "flick", "num_targets": 1, "leaf": true}
+                      {"guess": "dingo", "num_targets": 1, "leaf": true}
                   }
                 },
-              "96":
-                {"guess": "lucid", "num_targets": 1, "leaf": true},
+              "93":
+                {
+                  "guess": "lingo",
+                  "num_targets": 5,
+                  "branches": {
+                    "113":
+                      {"guess": "igloo", "num_targets": 1, "leaf": true},
+                    "138":
+                      {"guess": "vigil", "num_targets": 1, "leaf": true},
+                    "193":
+                      {"guess": "logic", "num_targets": 1, "leaf": true},
+                    "202":
+                      {"guess": "login", "num_targets": 1, "leaf": true},
+                    "242":
+                      {"guess": "lingo", "num_targets": 1, "leaf": true}
+                  }
+                },
               "99":
                 {
-                  "guess": "gulch",
+                  "guess": "boing",
+                  "num_targets": 4,
+                  "branches": {
+                    "26":
+                      {
+                        "guess": "icing",
+                        "num_targets": 2,
+                        "branches": {
+                          "26":
+                            {"guess": "vying", "num_targets": 1, "leaf": true},
+                          "242":
+                            {"guess": "icing", "num_targets": 1, "leaf": true}
+                        }
+                      },
+                    "53":
+                      {"guess": "owing", "num_targets": 1, "leaf": true},
+                    "242":
+                      {"guess": "boing", "num_targets": 1, "leaf": true}
+                  }
+                },
+              "100":
+                {
+                  "guess": "doing",
                   "num_targets": 2,
                   "branches": {
-                    "80":
-                      {"guess": "mulch", "num_targets": 1, "leaf": true},
+                    "188":
+                      {"guess": "dying", "num_targets": 1, "leaf": true},
                     "242":
-                      {"guess": "gulch", "num_targets": 1, "leaf": true}
+                      {"guess": "doing", "num_targets": 1, "leaf": true}
                   }
                 },
               "102":
                 {
-                  "guess": "filch",
-                  "num_targets": 2,
+                  "guess": "bling",
+                  "num_targets": 4,
                   "branches": {
-                    "80":
-                      {"guess": "zilch", "num_targets": 1, "leaf": true},
-                    "242":
-                      {"guess": "filch", "num_targets": 1, "leaf": true}
-                  }
-                },
-              "109":
-                {"guess": "knock", "num_targets": 1, "leaf": true},
-              "117":
-                {
-                  "guess": "block",
-                  "num_targets": 2,
-                  "branches": {
-                    "80":
-                      {"guess": "flock", "num_targets": 1, "leaf": true},
-                    "242":
-                      {"guess": "block", "num_targets": 1, "leaf": true}
-                  }
-                },
-              "135":
-                {
-                  "guess": "pooch",
-                  "num_targets": 5,
-                  "branches": {
-                    "62":
-                      {"guess": "vouch", "num_targets": 1, "leaf": true},
+                    "53":
+                      {"guess": "lying", "num_targets": 1, "leaf": true},
                     "80":
                       {
-                        "guess": "hooch",
+                        "guess": "cling",
                         "num_targets": 2,
                         "branches": {
                           "80":
-                            {"guess": "mooch", "num_targets": 1, "leaf": true},
+                            {"guess": "fling", "num_targets": 1, "leaf": true},
                           "242":
-                            {"guess": "hooch", "num_targets": 1, "leaf": true}
+                            {"guess": "cling", "num_targets": 1, "leaf": true}
                         }
                       },
-                    "224":
-                      {"guess": "pouch", "num_targets": 1, "leaf": true},
                     "242":
-                      {"guess": "pooch", "num_targets": 1, "leaf": true}
+                      {"guess": "bling", "num_targets": 1, "leaf": true}
                   }
                 },
-              "138":
-                {"guess": "mochi", "num_targets": 1, "leaf": true},
-              "142":
-                {"guess": "ionic", "num_targets": 1, "leaf": true},
-              "150":
-                {"guess": "logic", "num_targets": 1, "leaf": true},
-              "159":
-                {"guess": "folic", "num_targets": 1, "leaf": true},
-              "162":
+              "108":
                 {
-                  "guess": "chuck",
+                  "guess": "bough",
                   "num_targets": 3,
                   "branches": {
-                    "171":
-                      {"guess": "cubby", "num_targets": 1, "leaf": true},
-                    "234":
-                      {"guess": "chump", "num_targets": 1, "leaf": true},
+                    "75":
+                      {"guess": "young", "num_targets": 1, "leaf": true},
+                    "80":
+                      {"guess": "cough", "num_targets": 1, "leaf": true},
                     "242":
-                      {"guess": "chuck", "num_targets": 1, "leaf": true}
+                      {"guess": "bough", "num_targets": 1, "leaf": true}
                   }
                 },
-              "163":
-                {"guess": "chunk", "num_targets": 1, "leaf": true},
-              "165":
-                {
-                  "guess": "chick",
-                  "num_targets": 2,
-                  "branches": {
-                    "234":
-                      {"guess": "chimp", "num_targets": 1, "leaf": true},
-                    "242":
-                      {"guess": "chick", "num_targets": 1, "leaf": true}
-                  }
-                },
-              "166":
-                {
-                  "guess": "cinch",
-                  "num_targets": 2,
-                  "branches": {
-                    "198":
-                      {"guess": "cuing", "num_targets": 1, "leaf": true},
-                    "242":
-                      {"guess": "cinch", "num_targets": 1, "leaf": true}
-                  }
-                },
-              "168":
-                {
-                  "guess": "civic",
-                  "num_targets": 3,
-                  "branches": {
-                    "168":
-                      {"guess": "cupid", "num_targets": 1, "leaf": true},
-                    "170":
-                      {"guess": "cubic", "num_targets": 1, "leaf": true},
-                    "242":
-                      {"guess": "civic", "num_targets": 1, "leaf": true}
-                  }
-                },
-              "169":
-                {"guess": "cynic", "num_targets": 1, "leaf": true},
-              "170":
-                {"guess": "cumin", "num_targets": 1, "leaf": true},
-              "171":
-                {
-                  "guess": "cluck",
-                  "num_targets": 2,
-                  "branches": {
-                    "234":
-                      {"guess": "clump", "num_targets": 1, "leaf": true},
-                    "242":
-                      {"guess": "cluck", "num_targets": 1, "leaf": true}
-                  }
-                },
-              "172":
+              "109":
+                {"guess": "dough", "num_targets": 1, "leaf": true},
+              "111":
                 {
                   "guess": "clung",
-                  "num_targets": 2,
+                  "num_targets": 3,
                   "branches": {
-                    "240":
-                      {"guess": "clunk", "num_targets": 1, "leaf": true},
+                    "37":
+                      {"guess": "mogul", "num_targets": 1, "leaf": true},
+                    "80":
+                      {"guess": "flung", "num_targets": 1, "leaf": true},
                     "242":
                       {"guess": "clung", "num_targets": 1, "leaf": true}
                   }
                 },
-              "174":
+              "135":
                 {
-                  "guess": "belli",
-                  "num_targets": 6,
+                  "guess": "buggy",
+                  "num_targets": 4,
                   "branches": {
-                    "7":
-                      {"guess": "child", "num_targets": 1, "leaf": true},
-                    "8":
-                      {"guess": "chili", "num_targets": 1, "leaf": true},
-                    "10":
+                    "60":
+                      {"guess": "fungo", "num_targets": 1, "leaf": true},
+                    "80":
                       {
-                        "guess": "click",
+                        "guess": "huggy",
                         "num_targets": 2,
                         "branches": {
-                          "234":
-                            {"guess": "cliff", "num_targets": 1, "leaf": true},
+                          "80":
+                            {"guess": "muggy", "num_targets": 1, "leaf": true},
                           "242":
-                            {"guess": "click", "num_targets": 1, "leaf": true}
+                            {"guess": "huggy", "num_targets": 1, "leaf": true}
                         }
                       },
-                    "16":
-                      {"guess": "chill", "num_targets": 1, "leaf": true},
-                    "91":
-                      {"guess": "climb", "num_targets": 1, "leaf": true}
+                    "242":
+                      {"guess": "buggy", "num_targets": 1, "leaf": true}
                   }
                 },
-              "175":
+              "136":
                 {
-                  "guess": "cling",
-                  "num_targets": 2,
+                  "guess": "fudgy",
+                  "num_targets": 3,
                   "branches": {
+                    "80":
+                      {
+                        "guess": "judgy",
+                        "num_targets": 2,
+                        "branches": {
+                          "80":
+                            {"guess": "pudgy", "num_targets": 1, "leaf": true},
+                          "242":
+                            {"guess": "judgy", "num_targets": 1, "leaf": true}
+                        }
+                      },
+                    "242":
+                      {"guess": "fudgy", "num_targets": 1, "leaf": true}
+                  }
+                },
+              "138":
+                {"guess": "bulgy", "num_targets": 1, "leaf": true},
+              "144":
+                {"guess": "fungi", "num_targets": 1, "leaf": true},
+              "153":
+                {"guess": "cuing", "num_targets": 1, "leaf": true},
+              "162":
+                {
+                  "guess": "goofy",
+                  "num_targets": 3,
+                  "branches": {
+                    "225":
+                      {"guess": "gonzo", "num_targets": 1, "leaf": true},
+                    "236":
+                      {"guess": "goopy", "num_targets": 1, "leaf": true},
+                    "242":
+                      {"guess": "goofy", "num_targets": 1, "leaf": true}
+                  }
+                },
+              "163":
+                {"guess": "goody", "num_targets": 1, "leaf": true},
+              "165":
+                {
+                  "guess": "gloom",
+                  "num_targets": 4,
+                  "branches": {
+                    "216":
+                      {"guess": "glyph", "num_targets": 1, "leaf": true},
+                    "234":
+                      {"guess": "glowy", "num_targets": 1, "leaf": true},
                     "240":
-                      {"guess": "clink", "num_targets": 1, "leaf": true},
+                      {"guess": "gloop", "num_targets": 1, "leaf": true},
                     "242":
-                      {"guess": "cling", "num_targets": 1, "leaf": true}
+                      {"guess": "gloom", "num_targets": 1, "leaf": true}
                   }
                 },
-              "177":
-                {"guess": "civil", "num_targets": 1, "leaf": true},
-              "189":
-                {
-                  "guess": "chock",
-                  "num_targets": 3,
-                  "branches": {
-                    "234":
-                      {
-                        "guess": "chomp",
-                        "num_targets": 2,
-                        "branches": {
-                          "234":
-                            {"guess": "choux", "num_targets": 1, "leaf": true},
-                          "242":
-                            {"guess": "chomp", "num_targets": 1, "leaf": true}
-                        }
-                      },
-                    "242":
-                      {"guess": "chock", "num_targets": 1, "leaf": true}
-                  }
-                },
-              "193":
-                {"guess": "chino", "num_targets": 1, "leaf": true},
-              "198":
-                {
-                  "guess": "clock",
-                  "num_targets": 3,
-                  "branches": {
-                    "234":
-                      {
-                        "guess": "clomp",
-                        "num_targets": 2,
-                        "branches": {
-                          "234":
-                            {"guess": "cloud", "num_targets": 1, "leaf": true},
-                          "242":
-                            {"guess": "clomp", "num_targets": 1, "leaf": true}
-                        }
-                      },
-                    "242":
-                      {"guess": "clock", "num_targets": 1, "leaf": true}
-                  }
-                },
-              "200":
-                {"guess": "clown", "num_targets": 1, "leaf": true},
+              "168":
+                {"guess": "golly", "num_targets": 1, "leaf": true},
+              "169":
+                {"guess": "godly", "num_targets": 1, "leaf": true},
+              "171":
+                {"guess": "gizmo", "num_targets": 1, "leaf": true},
+              "172":
+                {"guess": "giddy", "num_targets": 1, "leaf": true},
+              "180":
+                {"guess": "going", "num_targets": 1, "leaf": true},
+              "192":
+                {"guess": "ghoul", "num_targets": 1, "leaf": true},
               "216":
                 {
-                  "guess": "cocky",
-                  "num_targets": 5,
+                  "guess": "gumbo",
+                  "num_targets": 4,
                   "branches": {
                     "216":
                       {
-                        "guess": "combo",
+                        "guess": "gunky",
                         "num_targets": 2,
                         "branches": {
-                          "216":
-                            {"guess": "cough", "num_targets": 1, "leaf": true},
+                          "218":
+                            {"guess": "guppy", "num_targets": 1, "leaf": true},
                           "242":
-                            {"guess": "combo", "num_targets": 1, "leaf": true}
+                            {"guess": "gunky", "num_targets": 1, "leaf": true}
                         }
                       },
-                    "218":
-                      {"guess": "comfy", "num_targets": 1, "leaf": true},
-                    "225":
-                      {"guess": "couch", "num_targets": 1, "leaf": true},
-                    "242":
-                      {"guess": "cocky", "num_targets": 1, "leaf": true}
-                  }
-                },
-              "217":
-                {
-                  "guess": "conch",
-                  "num_targets": 2,
-                  "branches": {
                     "234":
-                      {"guess": "condo", "num_targets": 1, "leaf": true},
+                      {"guess": "gummy", "num_targets": 1, "leaf": true},
                     "242":
-                      {"guess": "conch", "num_targets": 1, "leaf": true}
+                      {"guess": "gumbo", "num_targets": 1, "leaf": true}
                   }
                 },
+              "219":
+                {"guess": "gulch", "num_targets": 1, "leaf": true},
               "222":
-                {"guess": "comic", "num_targets": 1, "leaf": true},
-              "223":
-                {"guess": "conic", "num_targets": 1, "leaf": true},
-              "225":
-                {
-                  "guess": "could",
-                  "num_targets": 2,
-                  "branches": {
-                    "222":
-                      {"guess": "coyly", "num_targets": 1, "leaf": true},
-                    "242":
-                      {"guess": "could", "num_targets": 1, "leaf": true}
-                  }
-                },
-              "236":
-                {"guess": "colon", "num_targets": 1, "leaf": true},
-              "240":
-                {"guess": "colic", "num_targets": 1, "leaf": true}
+                {"guess": "gully", "num_targets": 1, "leaf": true},
+              "242":
+                {"guess": "guild", "num_targets": 1, "leaf": true}
             }
           },
         "1":
