@@ -2249,7 +2249,8 @@ write_node_json(const TreeNode *node, FILE *fp, int indent)
 }
 
 static int
-dump_tree_to_json(const TreeNode *root, const char *filepath, GameData *game, uint32_t exact_total_cost)
+dump_tree_to_json(const TreeNode *root, const char *filepath, uint32_t num_targets,
+                  uint32_t num_guesses, uint32_t exact_total_cost)
 {
     FILE *fp;
     double avg_score;
@@ -2259,12 +2260,12 @@ dump_tree_to_json(const TreeNode *root, const char *filepath, GameData *game, ui
         fprintf(stderr, "Error: Could not open '%s' for writing\n", filepath);
         return -1;
     }
-    avg_score = (double)exact_total_cost / (double)game->num_targets;
+    avg_score = (double)exact_total_cost / (double)num_targets;
     fprintf(fp, "{\n");
     fprintf(fp, "  \"version\": 1,\n");
     fprintf(fp, "  \"opener\": \"%s\",\n", root->guess);
-    fprintf(fp, "  \"num_targets\": %u,\n", game->num_targets);
-    fprintf(fp, "  \"num_guesses\": %u,\n", game->num_guesses);
+    fprintf(fp, "  \"num_targets\": %u,\n", num_targets);
+    fprintf(fp, "  \"num_guesses\": %u,\n", num_guesses);
     fprintf(fp, "  \"exact_total_guesses\": %u,\n", exact_total_cost);
     fprintf(fp, "  \"exact_avg_score\": %.17g,\n", avg_score);
     fprintf(fp, "  \"tree\":\n");
@@ -2382,7 +2383,7 @@ opener_worker(void *arg)
             TreeNode *root;
             snprintf(tree_path, sizeof(tree_path), "%s_%s.json", pool->save_tree_prefix, pool->game->guesses[g_idx].word);
             root = build_solution_tree(pool->game, g_idx, pool->num_threads);
-            dump_tree_to_json(root, tree_path, pool->game, res.exact_total_cost);
+            dump_tree_to_json(root, tree_path, pool->game->num_targets, pool->game->num_guesses, res.exact_total_cost);
             free_tree(root);
             printf("  -> [CHECKPOINT] Saved new best strategy tree to '%s'\n", tree_path);
         }
@@ -2423,6 +2424,7 @@ print_usage(const char *prog)
     printf("Options:\n");
     printf("  --wordlist <path>     Path to words.txt (default: words.txt)\n");
     printf("  --opener <word>       Evaluate a single opening word to exact optimality\n");
+    printf("  --subset <path>       Solve an arbitrary candidate subset (one word per line, '-' for stdin) to exact optimality\n");
     printf("  --top <N>             Heuristically pre-rank openers, then exactly solve the top N\n");
     printf("  --all                 Exactly solve every possible opening word\n");
     printf("  --threads <N>         Number of worker threads (default: hardware concurrency)\n");
@@ -2434,12 +2436,107 @@ print_usage(const char *prog)
     printf("  --help                Display this help message\n\n");
 }
 
+static uint32_t
+find_target_index(const GameData *game, const char *word)
+{
+    uint32_t t;
+    for (t = 0; t < game->num_targets; t++) {
+        if (strcasecmp(game->targets[t].word, word) == 0) {
+            return t;
+        }
+    }
+    return UINT32_MAX;
+}
+
+/* Load a candidate subset (one 5-letter target word per line) and map it to
+ * target indices. Returns a malloc'd index array (caller frees) and sets
+ * *out_count, *out_h1, *out_h2 (128-bit Zobrist of the subset). NULL on error. */
+static uint32_t *
+load_subset(const GameData *game, const char *path, uint32_t *out_count,
+            uint64_t *out_h1, uint64_t *out_h2)
+{
+    FILE *fp;
+    uint32_t cap = 64;
+    uint32_t *indices;
+    uint32_t count = 0;
+    uint64_t h1 = 0;
+    uint64_t h2 = 0;
+    char line[256];
+
+    fp = (strcmp(path, "-") == 0) ? stdin : fopen(path, "r");
+    if (!fp) {
+        fprintf(stderr, "Error: cannot open subset file '%s'\n", path);
+        return NULL;
+    }
+
+    indices = malloc(cap * sizeof(uint32_t));
+    if (!indices) {
+        fprintf(stderr, "Fatal: Out of memory allocating subset indices\n");
+        if (fp != stdin) fclose(fp);
+        return NULL;
+    }
+
+    while (fgets(line, sizeof(line), fp)) {
+        char word[64];
+        uint32_t t;
+        uint32_t i;
+        int matched;
+
+        matched = sscanf(line, "%63s", word);
+        if (matched < 1) {
+            continue;
+        }
+        if (strlen(word) != WORD_LEN) {
+            fprintf(stderr, "Error: subset word '%s' is not %d letters\n", word, WORD_LEN);
+            free(indices);
+            if (fp != stdin) fclose(fp);
+            return NULL;
+        }
+        t = find_target_index(game, word);
+        if (t == UINT32_MAX) {
+            fprintf(stderr, "Error: subset word '%s' is not a valid target word\n", word);
+            free(indices);
+            if (fp != stdin) fclose(fp);
+            return NULL;
+        }
+        for (i = 0; i < count; i++) {
+            if (indices[i] == t) {
+                fprintf(stderr, "Error: duplicate subset word '%s'\n", word);
+                free(indices);
+                if (fp != stdin) fclose(fp);
+                return NULL;
+            }
+        }
+        if (count >= cap) {
+            cap *= 2;
+            indices = realloc(indices, cap * sizeof(uint32_t));
+            if (!indices) {
+                fprintf(stderr, "Fatal: Out of memory expanding subset indices\n");
+                if (fp != stdin) fclose(fp);
+                return NULL;
+            }
+        }
+        indices[count++] = t;
+        h1 ^= game->zobrist1[t];
+        h2 ^= game->zobrist2[t];
+    }
+
+    if (fp != stdin) {
+        fclose(fp);
+    }
+    *out_count = count;
+    *out_h1 = h1;
+    *out_h2 = h2;
+    return indices;
+}
+
 int
 main(int argc, char **argv)
 {
     const char *wordlist_path = "words.txt";
     const char *single_opener = NULL;
     const char *tree_dump_path = NULL;
+    const char *subset_path = NULL;
     int top_n = 10;
     bool search_all = false;
     bool quiet = false;
@@ -2473,6 +2570,8 @@ main(int argc, char **argv)
             wordlist_path = argv[++i];
         } else if (strcmp(argv[i], "--opener") == 0 && i + 1 < argc) {
             single_opener = argv[++i];
+        } else if (strcmp(argv[i], "--subset") == 0 && i + 1 < argc) {
+            subset_path = argv[++i];
         } else if (strcmp(argv[i], "--top") == 0 && i + 1 < argc) {
             top_n = atoi(argv[++i]);
         } else if (strcmp(argv[i], "--all") == 0) {
@@ -2520,6 +2619,69 @@ main(int argc, char **argv)
     printf("Ready in %.3f seconds (%.1f MB matrix).\n\n",
            (t1.tv_sec - t0.tv_sec) + (t1.tv_nsec - t0.tv_nsec) * 1e-9,
            (double)((size_t)game.num_guesses * game.num_targets) / (1024.0 * 1024.0));
+
+    if (subset_path) {
+        uint32_t *subset;
+        uint32_t count;
+        uint64_t h1;
+        uint64_t h2;
+        Solver solver;
+        uint32_t best_g = UINT32_MAX;
+        uint32_t cost;
+        struct timespec st0, st1;
+        double solve_sec;
+
+        subset = load_subset(&game, subset_path, &count, &h1, &h2);
+        if (!subset) {
+            free_game_data(&game);
+            return 1;
+        }
+        if (count == 0) {
+            fprintf(stderr, "Error: subset is empty\n");
+            free(subset);
+            free_game_data(&game);
+            return 1;
+        }
+
+        solver_init(&solver, &game);
+        solver.max_candidates = UINT32_MAX;
+
+        printf("Solving subset of %u target word(s) to exact optimality...\n", count);
+        clock_gettime(CLOCK_MONOTONIC, &st0);
+        cost = solve_subset(&solver, subset, count, h1, h2, UINT32_MAX, &best_g, 0);
+        clock_gettime(CLOCK_MONOTONIC, &st1);
+        solve_sec = (st1.tv_sec - st0.tv_sec) + (st1.tv_nsec - st0.tv_nsec) * 1e-9;
+
+        printf("{\n");
+        printf("  \"mode\": \"subset\",\n");
+        printf("  \"num_targets\": %u,\n", count);
+        if (best_g != UINT32_MAX) {
+            printf("  \"best_guess\": \"%s\",\n", game.guesses[best_g].word);
+        } else {
+            printf("  \"best_guess\": null,\n");
+        }
+        printf("  \"exact_cost\": %u,\n", cost);
+        printf("  \"avg_score\": %.17g,\n", (double)cost / (double)count);
+        printf("  \"nodes\": %llu,\n", (unsigned long long)solver.nodes_visited);
+        printf("  \"time_sec\": %.4f\n", solve_sec);
+        printf("}\n");
+
+        if (tree_dump_path) {
+            TreeNode *root;
+            if (count == 1) {
+                root = make_leaf_from_word(game.targets[subset[0]].word);
+            } else {
+                root = build_subtree_node_with_guess(&solver, subset, count, best_g);
+            }
+            dump_tree_to_json(root, tree_dump_path, count, game.num_guesses, cost);
+            free_tree(root);
+        }
+
+        solver_free(&solver);
+        free(subset);
+        free_game_data(&game);
+        return 0;
+    }
 
     if (single_opener) {
         uint32_t opener_idx = UINT32_MAX;
@@ -2574,7 +2736,7 @@ main(int argc, char **argv)
             TreeNode *root;
             printf("\nBuilding full decision tree for opener '%s'...\n", game.guesses[opener_idx].word);
             root = build_solution_tree(&game, opener_idx, num_threads);
-            dump_tree_to_json(root, tree_dump_path, &game, res.exact_total_cost);
+            dump_tree_to_json(root, tree_dump_path, game.num_targets, game.num_guesses, res.exact_total_cost);
             free_tree(root);
         }
 
@@ -2698,7 +2860,7 @@ main(int argc, char **argv)
         TreeNode *root;
         printf("\nBuilding full decision tree for winning opener '%s'...\n", game.guesses[best_opener_idx].word);
         root = build_solution_tree(&game, best_opener_idx, num_threads);
-        dump_tree_to_json(root, tree_dump_path, &game, best_total);
+        dump_tree_to_json(root, tree_dump_path, game.num_targets, game.num_guesses, best_total);
         free_tree(root);
     }
 
