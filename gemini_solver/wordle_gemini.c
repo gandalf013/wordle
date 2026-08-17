@@ -2424,7 +2424,9 @@ print_usage(const char *prog)
     printf("Options:\n");
     printf("  --wordlist <path>     Path to words.txt (default: words.txt)\n");
     printf("  --opener <word>       Evaluate a single opening word to exact optimality\n");
-    printf("  --subset <path>       Solve an arbitrary candidate subset (one word per line, '-' for stdin) to exact optimality\n");
+    printf("  --subset <path|seq>   Solve an arbitrary candidate subset to exact optimality\n");
+    printf("                          path: one word per line ('-' = stdin)\n");
+    printf("                          seq:  word.score[.word.score...] (0=gray, 1=yellow, 2=green)\n");
     printf("  --top <N>             Heuristically pre-rank openers, then exactly solve the top N\n");
     printf("  --all                 Exactly solve every possible opening word\n");
     printf("  --threads <N>         Number of worker threads (default: hardware concurrency)\n");
@@ -2530,6 +2532,139 @@ load_subset(const GameData *game, const char *path, uint32_t *out_count,
     return indices;
 }
 
+static uint32_t
+find_guess_index(const GameData *game, const char *word)
+{
+    uint32_t g;
+    for (g = 0; g < game->num_guesses; g++) {
+        if (strcasecmp(game->guesses[g].word, word) == 0) {
+            return g;
+        }
+    }
+    return UINT32_MAX;
+}
+
+/* True iff `s` looks like it was meant as a "word.score..." sequence: it
+ * contains a '.' and the first '.'-separated token is exactly 5 letters.
+ * Full validation happens in parse_sequence_subset, which reports precise
+ * errors (so a malformed sequence gets a sequence error, not a "can't open
+ * file" error). */
+static bool
+looks_like_sequence(const char *s)
+{
+    const char *dot = strchr(s, '.');
+    const char *p;
+    if (!dot) {
+        return false;
+    }
+    if ((size_t)(dot - s) != WORD_LEN) {
+        return false;
+    }
+    for (p = s; p < dot; p++) {
+        if (!isalpha((unsigned char)*p)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/* Parse "word.score[.word.score...]" into the candidate subset it leaves:
+ * start from the full target list, then for each (guess, score) pair keep
+ * only targets scoring `score` against `guess`. Returns a malloc'd index
+ * array (caller frees) and sets *out_count, *out_h1, *out_h2 (128-bit
+ * Zobrist of the subset). NULL on error. */
+static uint32_t *
+parse_sequence_subset(GameData *game, const char *seq, uint32_t *out_count,
+                      uint64_t *out_h1, uint64_t *out_h2)
+{
+    char *buf;
+    char *saveptr = NULL;
+    char *tok;
+    char *word = NULL;
+    uint32_t *subset;
+    uint32_t count;
+    uint32_t cap;
+    uint32_t t;
+    uint32_t i;
+    uint32_t m;
+    int part = 0;
+    uint64_t h1 = 0;
+    uint64_t h2 = 0;
+
+    count = game->num_targets;
+    cap = game->num_targets;
+    subset = malloc(cap * sizeof(uint32_t));
+    if (!subset) {
+        fprintf(stderr, "Fatal: Out of memory allocating sequence subset\n");
+        return NULL;
+    }
+    for (t = 0; t < count; t++) {
+        subset[t] = t;
+    }
+
+    buf = strdup(seq);
+    if (!buf) {
+        fprintf(stderr, "Fatal: Out of memory duplicating sequence\n");
+        free(subset);
+        return NULL;
+    }
+
+    for (tok = strtok_r(buf, ".", &saveptr); tok; tok = strtok_r(NULL, ".", &saveptr)) {
+        if (part % 2 == 0) {
+            word = tok;
+        } else {
+            uint32_t sc = 0;
+            uint32_t g;
+            const uint8_t *row;
+
+            if (strlen(tok) != WORD_LEN) {
+                fprintf(stderr, "Error: score '%s' is not %d digits\n", tok, WORD_LEN);
+                free(buf); free(subset); return NULL;
+            }
+            for (i = 0; i < WORD_LEN; i++) {
+                if (tok[i] < '0' || tok[i] > '2') {
+                    fprintf(stderr, "Error: score '%s' must contain only 0/1/2 digits\n", tok);
+                    free(buf); free(subset); return NULL;
+                }
+                sc = sc * 3 + (uint32_t)(tok[i] - '0');
+            }
+
+            g = find_guess_index(game, word);
+            if (g == UINT32_MAX) {
+                fprintf(stderr, "Error: guess word '%s' not found in word list\n", word);
+                free(buf); free(subset); return NULL;
+            }
+
+            row = game->score_matrix + (size_t)g * game->num_targets;
+            m = 0;
+            for (i = 0; i < count; i++) {
+                if (row[subset[i]] == sc) {
+                    subset[m++] = subset[i];
+                }
+            }
+            count = m;
+            word = NULL;
+        }
+        part++;
+    }
+    free(buf);
+
+    if (part % 2 != 0) {
+        fprintf(stderr, "Error: sequence must be word.score[.word.score...] pairs\n");
+        free(subset);
+        return NULL;
+    }
+
+    for (t = 0; t < count; t++) {
+        h1 ^= game->zobrist1[subset[t]];
+        h2 ^= game->zobrist2[subset[t]];
+    }
+    *out_count = count;
+    *out_h1 = h1;
+    *out_h2 = h2;
+    return subset;
+}
+
 int
 main(int argc, char **argv)
 {
@@ -2631,7 +2766,9 @@ main(int argc, char **argv)
         struct timespec st0, st1;
         double solve_sec;
 
-        subset = load_subset(&game, subset_path, &count, &h1, &h2);
+        subset = (strcmp(subset_path, "-") != 0 && looks_like_sequence(subset_path))
+                     ? parse_sequence_subset(&game, subset_path, &count, &h1, &h2)
+                     : load_subset(&game, subset_path, &count, &h1, &h2);
         if (!subset) {
             free_game_data(&game);
             return 1;
