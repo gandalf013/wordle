@@ -29,9 +29,6 @@
 #include <sys/types.h>
 #include <assert.h>
 #include <stdarg.h>
-#if defined(__APPLE__)
-#include <sys/sysctl.h>
-#endif
 
 #define WORD_LEN 5
 #define NUM_SCORES 243
@@ -390,14 +387,6 @@ compute_lower_bound_table(GameData *game)
 static uint64_t
 get_system_ram_bytes(void)
 {
-#if defined(__APPLE__)
-    int mib[2] = {CTL_HW, HW_MEMSIZE};
-    uint64_t mem = 0;
-    size_t len = sizeof(mem);
-    if (sysctl(mib, 2, &mem, &len, NULL, 0) == 0 && mem > 0) {
-        return mem;
-    }
-#endif
 #if defined(_SC_PHYS_PAGES) && defined(_SC_PAGE_SIZE)
     long pages = sysconf(_SC_PHYS_PAGES);
     long page_size = sysconf(_SC_PAGE_SIZE);

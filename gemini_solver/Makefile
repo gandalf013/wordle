@@ -1,8 +1,16 @@
-CC = clang
-CFLAGS = -O3 -march=native -flto -Wall -Wextra -pthread -D_GNU_SOURCE
+CC ?= cc
+CFLAGS ?= -O3 -march=native -flto -Wall -Wextra -pthread -D_GNU_SOURCE
 TARGET = wordle_gemini
-LIBTARGET = libwordle_gemini.dylib
 SRCS = wordle_gemini.c
+
+# Shared-library extension differs by platform (macOS: dylib, Linux/BSD: so).
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+SHARED_EXT := dylib
+else
+SHARED_EXT := so
+endif
+LIBTARGET := libwordle_gemini.$(SHARED_EXT)
 
 SANFLAGS = -O1 -g -fno-omit-frame-pointer -Wall -Wextra -pthread -D_GNU_SOURCE -fno-sanitize-recover=all
 
