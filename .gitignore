@@ -28,5 +28,7 @@ gemini_solver/wordle_gemini
 gemini_solver/wordle_gemini_asan
 gemini_solver/wordle_gemini_tsan
 gemini_solver/wordle_gemini_profile
+gemini_solver/libwordle_gemini.dylib
+gemini_solver/libwordle_gemini.so
 gemini_solver/*.dSYM/
 gemini_solver/bench_wordlists/
