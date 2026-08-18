@@ -2587,7 +2587,7 @@ opener_worker(void *arg)
 static void
 print_usage(const char *prog)
 {
-    WORDLE_INFO("Wordle Exact Solver (gemini_solver)\n\n");
+    WORDLE_INFO("Wordle Exact Solver (wordle_gemini)\n\n");
     WORDLE_INFO("Usage:\n");
     WORDLE_INFO("  %s [options]\n\n", prog);
     WORDLE_INFO("Options:\n");
@@ -3017,7 +3017,7 @@ main(int argc, char **argv)
     }
 
     WORDLE_INFO("=================================================================\n");
-    WORDLE_INFO("      WORDLE OPTIMAL FULL-TREE SOLVER (gemini_solver)\n");
+    WORDLE_INFO("      WORDLE OPTIMAL FULL-TREE SOLVER (wordle_gemini)\n");
     WORDLE_INFO("=================================================================\n");
 
     if (load_wordlist(wordlist_path, &game) != 0) {

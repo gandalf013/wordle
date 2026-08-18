@@ -13,9 +13,8 @@ import tempfile
 from pathlib import Path
 
 SOLVER_DIR = Path(__file__).resolve().parent
-REPO_ROOT = SOLVER_DIR.parent
+REPO_ROOT = SOLVER_DIR
 sys.path.insert(0, str(REPO_ROOT))
-sys.path.insert(0, str(REPO_ROOT / "solver"))
 import scoring  # noqa: E402
 import wordlists  # noqa: E402
 import reference_solver  # noqa: E402
@@ -47,7 +46,7 @@ ORACLE_CASES = {
 }
 
 STRESS_CASES = ["small", "medium"]
-FIXTURE_DIR = REPO_ROOT / "solver" / "bench_wordlists"
+FIXTURE_DIR = REPO_ROOT / "bench_wordlists"
 FULL_WORDLIST = REPO_ROOT / "words.txt"
 FIXTURES = {
     "tiny": (12, 0),

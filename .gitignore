@@ -4,31 +4,13 @@ __pycache__/
 .wordle_cache/
 .claude/
 
-# solver/: compiled binaries, debug symbols, and generated benchmark/test
-# artifacts -- all reproducible from wordle_claude.c + Makefile.
-solver/wordle_claude
-solver/wordle_claude_asan
-solver/wordle_claude_tsan
-solver/wordle_claude_profile
-solver/*.dSYM/
-solver/bench_wordlists/
-solver/benchmark_results.jsonl
-
-# claude_solver/: same, for the standalone claude_solver/wordle_claude.c copy.
-claude_solver/wordle_claude
-claude_solver/wordle_claude_asan
-claude_solver/wordle_claude_tsan
-claude_solver/wordle_claude_profile
-claude_solver/*.dSYM/
-claude_solver/bench_wordlists/
-claude_solver/benchmark_results.jsonl
-
-# gemini_solver/: compiled binaries and debug symbols
-gemini_solver/wordle_gemini
-gemini_solver/wordle_gemini_asan
-gemini_solver/wordle_gemini_tsan
-gemini_solver/wordle_gemini_profile
-gemini_solver/libwordle_gemini.dylib
-gemini_solver/libwordle_gemini.so
-gemini_solver/*.dSYM/
-gemini_solver/bench_wordlists/
+# C solver (wordle_gemini.c): compiled binaries, debug symbols, and generated
+# fixtures -- all reproducible from wordle_gemini.c + Makefile.
+wordle_gemini
+wordle_gemini_asan
+wordle_gemini_tsan
+wordle_gemini_profile
+libwordle_gemini.dylib
+libwordle_gemini.so
+wordle_gemini*.dSYM/
+bench_wordlists/
