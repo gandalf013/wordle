@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Test harness for wordle_gemini.c: correctness regressions, sanitizer
+"""Test harness for wordle_solver.c: correctness regressions, sanitizer
 issues (ASan/UBSan memory bugs, TSan data races).
 """
 
@@ -13,8 +13,8 @@ import tempfile
 from pathlib import Path
 
 SOLVER_DIR = Path(__file__).resolve().parent
-REPO_ROOT = SOLVER_DIR
-sys.path.insert(0, str(REPO_ROOT))
+DATA_DIR = SOLVER_DIR / "data"
+sys.path.insert(0, str(SOLVER_DIR))
 import scoring  # noqa: E402
 import wordlists  # noqa: E402
 import reference_solver  # noqa: E402
@@ -22,14 +22,14 @@ import reference_solver  # noqa: E402
 EXACT_MATCH = 242
 
 VARIANTS = {
-    "plain": {"binary": SOLVER_DIR / "wordle_gemini", "make_target": "all", "env": {}},
+    "plain": {"binary": SOLVER_DIR / "wordle_solver", "make_target": "all", "env": {}},
     "asan": {
-        "binary": SOLVER_DIR / "wordle_gemini_asan",
+        "binary": SOLVER_DIR / "wordle_solver_asan",
         "make_target": "asan",
         "env": {"ASAN_OPTIONS": "halt_on_error=1:abort_on_error=1", "UBSAN_OPTIONS": "halt_on_error=1"},
     },
     "tsan": {
-        "binary": SOLVER_DIR / "wordle_gemini_tsan",
+        "binary": SOLVER_DIR / "wordle_solver_tsan",
         "make_target": "tsan",
         "env": {"TSAN_OPTIONS": "halt_on_error=1"},
     },
@@ -46,8 +46,8 @@ ORACLE_CASES = {
 }
 
 STRESS_CASES = ["small", "medium"]
-FIXTURE_DIR = REPO_ROOT / "bench_wordlists"
-FULL_WORDLIST = REPO_ROOT / "words.txt"
+FIXTURE_DIR = SOLVER_DIR / "bench_wordlists"
+FULL_WORDLIST = DATA_DIR / "words.txt"
 FIXTURES = {
     "tiny": (12, 0),
     "small": (40, 120),

@@ -59,7 +59,7 @@ class TestParseFile:
     def test_real_wordlist(self):
         # words.txt: weighted targets, blank line, then unweighted extra
         # guess-only words (defaulting to uniform weight 1.0).
-        with open(REPO_ROOT / "words.txt") as fp:
+        with open(REPO_ROOT / "src" / "data" / "words.txt") as fp:
             wl = parse_file(fp)
         assert wl.word_length == 5
         assert len(wl.target) == 3209

@@ -137,7 +137,7 @@ class TestEntropyStrategyMatchesGame:
 @pytest.mark.slow
 class TestEntropyStrategyRealWordList:
     def test_round_one_matches_game_golden_value(self):
-        with open(REPO_ROOT / "words.txt") as fp:
+        with open(REPO_ROOT / "src" / "data" / "words.txt") as fp:
             wl = parse_file(fp)
         guesses = sorted(set(wl.target) | set(wl.extra))
         targets = wl.target
@@ -314,7 +314,7 @@ class TestNumBinsStrategyRealWordList:
         # original (uniform, unweighted) NYT Wordle list -- a reassuring
         # sign this heuristic surfaces genuinely strong openers, not an
         # artifact of this repo's specific word list.
-        with open(REPO_ROOT / "words.txt") as fp:
+        with open(REPO_ROOT / "src" / "data" / "words.txt") as fp:
             wl = parse_file(fp)
         guesses = sorted(set(wl.target) | set(wl.extra))
         targets = wl.target
@@ -434,7 +434,7 @@ class TestMaxBinsBalanceStrategy:
 class TestMaxBinsBalanceStrategyRealWordList:
     @classmethod
     def setup_class(cls):
-        with open(REPO_ROOT / "words.txt") as fp:
+        with open(REPO_ROOT / "src" / "data" / "words.txt") as fp:
             wl = parse_file(fp)
         cls.guesses = sorted(set(wl.target) | set(wl.extra))
         cls.targets = wl.target

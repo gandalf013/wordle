@@ -1,5 +1,5 @@
 /*
- * wordle_gemini.c
+ * wordle_solver.c
  *
  * Optimal Wordle Solver (Easy Mode)
  *
@@ -2587,11 +2587,11 @@ opener_worker(void *arg)
 static void
 print_usage(const char *prog)
 {
-    WORDLE_INFO("Wordle Exact Solver (wordle_gemini)\n\n");
+    WORDLE_INFO("Wordle Exact Solver (wordle_solver)\n\n");
     WORDLE_INFO("Usage:\n");
     WORDLE_INFO("  %s [options]\n\n", prog);
     WORDLE_INFO("Options:\n");
-    WORDLE_INFO("  --wordlist <path>     Path to words.txt (default: words.txt)\n");
+    WORDLE_INFO("  --wordlist <path>     Path to words.txt (default: data/words.txt)\n");
     WORDLE_INFO("  --opener <word>       Evaluate a single opening word to exact optimality\n");
     WORDLE_INFO("  --subset <path|seq>   Solve an arbitrary candidate subset to exact optimality\n");
     WORDLE_INFO("                          path: one word per line ('-' = stdin)\n");
@@ -2945,7 +2945,7 @@ wordle_subset_solve(GameData *game, const uint32_t *targets, uint32_t count,
 int
 main(int argc, char **argv)
 {
-    const char *wordlist_path = "words.txt";
+    const char *wordlist_path = "data/words.txt";
     const char *single_opener = NULL;
     const char *tree_dump_path = NULL;
     const char *subset_path = NULL;
@@ -3017,7 +3017,7 @@ main(int argc, char **argv)
     }
 
     WORDLE_INFO("=================================================================\n");
-    WORDLE_INFO("      WORDLE OPTIMAL FULL-TREE SOLVER (wordle_gemini)\n");
+    WORDLE_INFO("      WORDLE OPTIMAL FULL-TREE SOLVER (wordle_solver)\n");
     WORDLE_INFO("=================================================================\n");
 
     if (load_wordlist(wordlist_path, &game) != 0) {

@@ -376,7 +376,7 @@ def build_strategy(
 ) -> Strategy:
     cls = STRATEGIES[name]
     if cls is DecisionTreeStrategy:
-        path = tree_path or "optimal_tree.json"
+        path = tree_path or "src/data/optimal_tree.json"
         if weighted:
             logging.warning("decision-tree has no separate weighted mode; ignoring --weighted")
         return DecisionTreeStrategy(tree_source=path, target_list=target_list)
@@ -473,7 +473,7 @@ def main(argv=None):
     parser.add_argument(
         "--tree-file",
         "--tree",
-        default="optimal_tree.json",
+        default="src/data/optimal_tree.json",
         help="path to precomputed decision tree JSON file when using "
         "--strategy decision-tree (default: %(default)s)",
     )

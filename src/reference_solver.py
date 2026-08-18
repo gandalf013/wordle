@@ -3,7 +3,7 @@
 Deliberately dumb: no branch-and-bound, no lower bounds, no equivalence-
 class dedup, no move ordering -- just "try every guess, recurse, take the
 min." Slow, but its correctness is obvious by inspection, which is the
-point: it shares no logic with wordle_gemini.c, so agreement between the
+point: it shares no logic with wordle_solver.c, so agreement between the
 two is real evidence the C solver's optimizations (bounds, pruning, dedup)
 haven't changed the answer, not just self-consistency.
 
@@ -79,7 +79,7 @@ def _build_solver(guesses: tuple[str, ...]):
 def exact_cost(targets: list[str], guesses: list[str]) -> int:
     """True minimum total guesses to resolve `targets` under optimal play,
     with free choice of guess (from `guesses`) at every node, including the
-    first. Matches wordle_gemini.c's `--all`/`--top` search.
+    first. Matches wordle_solver.c's `--all`/`--top` search.
     """
     solve = _build_solver(tuple(guesses))
     return solve(frozenset(targets))
@@ -87,7 +87,7 @@ def exact_cost(targets: list[str], guesses: list[str]) -> int:
 
 def forced_opener_cost(targets: list[str], guesses: list[str], opener: str) -> int:
     """True minimum total guesses when the very first guess is forced to be
-    `opener` (optimal play thereafter). Matches wordle_gemini.c's --opener.
+    `opener` (optimal play thereafter). Matches wordle_solver.c's --opener.
     """
     solve = _build_solver(tuple(guesses))
     target_set = frozenset(targets)

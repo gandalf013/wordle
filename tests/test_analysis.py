@@ -273,7 +273,7 @@ class TestRealWordList:
         yield
 
     def test_round_one_entropy_matches_independent_census_computation(self):
-        with open(REPO_ROOT / "words.txt") as fp:
+        with open(REPO_ROOT / "src" / "data" / "words.txt") as fp:
             wl = parse_file(fp)
         guesses = sorted(set(wl.target) | set(wl.extra))
         targets = wl.target

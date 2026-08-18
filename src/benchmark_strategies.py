@@ -69,7 +69,7 @@ def run_benchmark(name, strategy, guesses, targets, weights, sample):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("infile", nargs="?", default="words.txt")
+    parser.add_argument("infile", nargs="?", default="src/data/words.txt")
     parser.add_argument("--sample-size", type=int, default=100)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--full", action="store_true", help="use every target word")
@@ -128,7 +128,7 @@ def main(argv=None):
     )
 
     import os
-    tree_path = "optimal_tree.json"
+    tree_path = "src/data/optimal_tree.json"
     if os.path.exists(tree_path):
         run_benchmark(
             "Optimal DecisionTreeStrategy(optimal_tree.json)",

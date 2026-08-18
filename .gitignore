@@ -3,14 +3,15 @@ __pycache__/
 .pytest_cache/
 .wordle_cache/
 .claude/
+.venv/
 
-# C solver (wordle_gemini.c): compiled binaries, debug symbols, and generated
-# fixtures -- all reproducible from wordle_gemini.c + Makefile.
-wordle_gemini
-wordle_gemini_asan
-wordle_gemini_tsan
-wordle_gemini_profile
-libwordle_gemini.dylib
-libwordle_gemini.so
-wordle_gemini*.dSYM/
+# C solver (src/wordle_solver.c): compiled binaries, debug symbols, and
+# generated fixtures -- all reproducible from wordle_solver.c + Makefile.
+wordle_solver
+wordle_solver_asan
+wordle_solver_tsan
+wordle_solver_profile
+libwordle_solver.dylib
+libwordle_solver.so
+wordle_solver*.dSYM/
 bench_wordlists/

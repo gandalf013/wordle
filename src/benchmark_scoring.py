@@ -104,7 +104,7 @@ def benchmark_analyze_all(guesses, targets, weights_dict=None, sizes=(5, 50, 500
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("infile", nargs="?", default="words.wordle.txt")
+    parser.add_argument("infile", nargs="?", default="src/data/words.txt")
     args = parser.parse_args(argv)
 
     with open(args.infile) as fp:
