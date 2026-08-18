@@ -40,32 +40,32 @@
 /* -------------------------------------------------------------
  * Logging control
  *
- * The library defaults to GD_LOG_QUIET (silent): it prints nothing unless
- * a caller opts in by raising the level (e.g. gd_log_set_level(GD_LOG_INFO))
- * and, optionally, redirecting output with gd_log_set_stream(). The CLI
- * raises the level to GD_LOG_INFO before doing any work.
+ * The library defaults to WORDLE_LOG_QUIET (silent): it prints nothing unless
+ * a caller opts in by raising the level (e.g. wordle_log_set_level(WORDLE_LOG_INFO))
+ * and, optionally, redirecting output with wordle_log_set_stream(). The CLI
+ * raises the level to WORDLE_LOG_INFO before doing any work.
  * ------------------------------------------------------------- */
 
 enum {
-    GD_LOG_QUIET = 0,
-    GD_LOG_ERROR = 1,
-    GD_LOG_INFO  = 2,
-    GD_LOG_DEBUG = 3,
+    WORDLE_LOG_QUIET = 0,
+    WORDLE_LOG_ERROR = 1,
+    WORDLE_LOG_INFO  = 2,
+    WORDLE_LOG_DEBUG = 3,
 };
 
-static int gd_log_level = GD_LOG_QUIET;
-static FILE *gd_log_stream = NULL;
+static int wordle_log_level = WORDLE_LOG_QUIET;
+static FILE *wordle_log_stream = NULL;
 
 static void
-gd_logf(int level, bool is_err, const char *fmt, ...)
+wordle_logf(int level, bool is_err, const char *fmt, ...)
 {
     FILE *fp;
     va_list ap;
 
-    if (level > gd_log_level) {
+    if (level > wordle_log_level) {
         return;
     }
-    fp = (gd_log_stream != NULL) ? gd_log_stream : (is_err ? stderr : stdout);
+    fp = (wordle_log_stream != NULL) ? wordle_log_stream : (is_err ? stderr : stdout);
     va_start(ap, fmt);
     vfprintf(fp, fmt, ap);
     va_end(ap);
@@ -73,26 +73,26 @@ gd_logf(int level, bool is_err, const char *fmt, ...)
 }
 
 void
-gd_log_set_level(int level)
+wordle_log_set_level(int level)
 {
-    gd_log_level = level;
+    wordle_log_level = level;
 }
 
 void
-gd_log_set_stream(FILE *stream)
+wordle_log_set_stream(FILE *stream)
 {
-    gd_log_stream = stream;
+    wordle_log_stream = stream;
 }
 
 int
-gd_log_get_level(void)
+wordle_log_get_level(void)
 {
-    return gd_log_level;
+    return wordle_log_level;
 }
 
-#define GD_ERROR(...) gd_logf(GD_LOG_ERROR, true, __VA_ARGS__)
-#define GD_INFO(...)  gd_logf(GD_LOG_INFO, false, __VA_ARGS__)
-#define GD_DEBUG(...) gd_logf(GD_LOG_DEBUG, false, __VA_ARGS__)
+#define WORDLE_ERROR(...) wordle_logf(WORDLE_LOG_ERROR, true, __VA_ARGS__)
+#define WORDLE_INFO(...)  wordle_logf(WORDLE_LOG_INFO, false, __VA_ARGS__)
+#define WORDLE_DEBUG(...) wordle_logf(WORDLE_LOG_DEBUG, false, __VA_ARGS__)
 
 typedef struct {
     char word[WORD_LEN + 1];
@@ -221,14 +221,14 @@ load_wordlist(const char *filepath, GameData *game)
 
     fp = fopen(filepath, "r");
     if (!fp) {
-        GD_ERROR("Error: Unable to open word list file '%s'\n", filepath);
+        WORDLE_ERROR("Error: Unable to open word list file '%s'\n", filepath);
         return -1;
     }
 
     game->targets = malloc(target_cap * sizeof(Word));
     game->guesses = malloc(guess_cap * sizeof(Word));
     if (!game->targets || !game->guesses) {
-        GD_ERROR("Fatal: Out of memory allocating word lists\n");
+        WORDLE_ERROR("Fatal: Out of memory allocating word lists\n");
         free(game->targets);
         free(game->guesses);
         game->targets = NULL;
@@ -271,7 +271,7 @@ load_wordlist(const char *filepath, GameData *game)
                 target_cap *= 2;
                 new_targets = realloc(game->targets, target_cap * sizeof(Word));
                 if (!new_targets) {
-                    GD_ERROR("Fatal: Out of memory expanding target words\n");
+                    WORDLE_ERROR("Fatal: Out of memory expanding target words\n");
                     free(game->targets);
                     free(game->guesses);
                     game->targets = NULL;
@@ -290,7 +290,7 @@ load_wordlist(const char *filepath, GameData *game)
             guess_cap *= 2;
             new_guesses = realloc(game->guesses, guess_cap * sizeof(Word));
             if (!new_guesses) {
-                GD_ERROR("Fatal: Out of memory expanding guess words\n");
+                WORDLE_ERROR("Fatal: Out of memory expanding guess words\n");
                 free(game->targets);
                 free(game->guesses);
                 game->targets = NULL;
@@ -305,7 +305,7 @@ load_wordlist(const char *filepath, GameData *game)
     }
 
     fclose(fp);
-    GD_INFO("Loaded %u target words, %u total valid guess words from '%s'\n",
+    WORDLE_INFO("Loaded %u target words, %u total valid guess words from '%s'\n",
            game->num_targets, game->num_guesses, filepath);
     return 0;
 }
@@ -368,7 +368,7 @@ compute_lower_bound_table(GameData *game)
 
     game->lower_bound = malloc((n + 1) * sizeof(uint32_t));
     if (!game->lower_bound) {
-        GD_ERROR("Fatal: Out of memory allocating lower bound table\n");
+        WORDLE_ERROR("Fatal: Out of memory allocating lower bound table\n");
         return -1;
     }
     game->lower_bound[0] = 0;
@@ -424,7 +424,7 @@ init_game_data(GameData *game, int num_threads, uint64_t max_memory_mb)
 
     game->score_matrix = malloc(total_cells * sizeof(uint8_t));
     if (!game->score_matrix) {
-        GD_ERROR("Fatal: Out of memory allocating score matrix\n");
+        WORDLE_ERROR("Fatal: Out of memory allocating score matrix\n");
         goto fail;
     }
 
@@ -438,7 +438,7 @@ init_game_data(GameData *game, int num_threads, uint64_t max_memory_mb)
     threads = malloc(num_threads * sizeof(pthread_t));
     args = malloc(num_threads * sizeof(MatrixWorkerArg));
     if (!threads || !args) {
-        GD_ERROR("Fatal: Out of memory allocating thread structures\n");
+        WORDLE_ERROR("Fatal: Out of memory allocating thread structures\n");
         goto fail;
     }
     chunk = (game->num_guesses + num_threads - 1) / num_threads;
@@ -463,12 +463,12 @@ init_game_data(GameData *game, int num_threads, uint64_t max_memory_mb)
 
     game->score_matrix_transposed = malloc(total_cells * sizeof(uint8_t));
     if (!game->score_matrix_transposed) {
-        GD_ERROR("Fatal: Out of memory allocating transposed score matrix\n");
+        WORDLE_ERROR("Fatal: Out of memory allocating transposed score matrix\n");
         goto fail;
     }
     t_args = malloc(num_threads * sizeof(TransposeWorkerArg));
     if (!t_args) {
-        GD_ERROR("Fatal: Out of memory allocating transpose arguments\n");
+        WORDLE_ERROR("Fatal: Out of memory allocating transpose arguments\n");
         goto fail;
     }
     t_chunk = (game->num_targets + num_threads - 1) / num_threads;
@@ -499,7 +499,7 @@ init_game_data(GameData *game, int num_threads, uint64_t max_memory_mb)
     game->zobrist1 = malloc(game->num_targets * sizeof(uint64_t));
     game->zobrist2 = malloc(game->num_targets * sizeof(uint64_t));
     if (!game->zobrist1 || !game->zobrist2) {
-        GD_ERROR("Fatal: Out of memory allocating Zobrist tables\n");
+        WORDLE_ERROR("Fatal: Out of memory allocating Zobrist tables\n");
         goto fail;
     }
     for (t = 0; t < game->num_targets; t++) {
@@ -554,10 +554,10 @@ init_game_data(GameData *game, int num_threads, uint64_t max_memory_mb)
     local_mb = (double)(game->local_tt_cap * sizeof(TTEntry)) / (1024.0 * 1024.0);
     total_est_mb = (double)matrix_mem / (1024.0 * 1024.0) + shared_mb + local_mb * num_threads;
 
-    GD_INFO("System RAM: %.1f GB | Solver Memory Budget: %.1f MB (%.1f%% of RAM)\n",
+    WORDLE_INFO("System RAM: %.1f GB | Solver Memory Budget: %.1f MB (%.1f%% of RAM)\n",
            (double)total_sys_ram / (1024.0 * 1024.0 * 1024.0),
            total_est_mb, (total_est_mb * 1024.0 * 1024.0 * 100.0) / (double)total_sys_ram);
-    GD_INFO("Transposition Tables: Shared L2 = %.1f MB (%.2fM slots), Local L1 = %.1f MB/thread (%.0fK slots)\n",
+    WORDLE_INFO("Transposition Tables: Shared L2 = %.1f MB (%.2fM slots), Local L1 = %.1f MB/thread (%.0fK slots)\n",
            shared_mb, (double)game->shared_tt_cap / 1e6, local_mb, (double)game->local_tt_cap / 1e3);
 
     if (shared_tt_init(&game->shared_tt, game->shared_tt_cap) != 0) {
@@ -599,7 +599,7 @@ tt_init(TT *tt, uint64_t capacity_pow2)
     uint64_t i;
     tt->entries = malloc(capacity_pow2 * sizeof(TTEntry));
     if (!tt->entries) {
-        GD_ERROR("Fatal: Out of memory allocating local transposition table\n");
+        WORDLE_ERROR("Fatal: Out of memory allocating local transposition table\n");
         return -1;
     }
     tt->mask = capacity_pow2 - 1;
@@ -679,7 +679,7 @@ shared_tt_init(SharedTT *stt, uint64_t capacity_pow2)
     uint64_t i;
     stt->entries = calloc(capacity_pow2, sizeof(SharedTTEntry));
     if (!stt->entries) {
-        GD_ERROR("Fatal: Out of memory allocating shared transposition table\n");
+        WORDLE_ERROR("Fatal: Out of memory allocating shared transposition table\n");
         return -1;
     }
     stt->mask = capacity_pow2 - 1;
@@ -944,7 +944,7 @@ solver_init(Solver *s, GameData *game)
 
     s->candidate_keys = malloc((size_t)MAX_SOLVER_DEPTH * (size_t)game->num_guesses * sizeof(uint64_t));
     if (!s->candidate_keys) {
-        GD_ERROR("Fatal: Out of memory allocating candidate keys buffer\n");
+        WORDLE_ERROR("Fatal: Out of memory allocating candidate keys buffer\n");
         tt_free(&s->tt);
         return -1;
     }
@@ -2111,7 +2111,7 @@ make_leaf_from_word(const char *word)
 {
     TreeNode *n = calloc(1, sizeof(TreeNode));
     if (!n) {
-        GD_ERROR("Fatal: Out of memory allocating TreeNode\n");
+        WORDLE_ERROR("Fatal: Out of memory allocating TreeNode\n");
         return NULL;
     }
     n->is_leaf = true;
@@ -2140,7 +2140,7 @@ build_subtree_node_with_guess(Solver *solver, const uint32_t *targets, uint32_t 
 
     node = calloc(1, sizeof(TreeNode));
     if (!node) {
-        GD_ERROR("Fatal: Out of memory allocating TreeNode\n");
+        WORDLE_ERROR("Fatal: Out of memory allocating TreeNode\n");
         return NULL;
     }
     node->num_targets = count;
@@ -2158,7 +2158,7 @@ build_subtree_node_with_guess(Solver *solver, const uint32_t *targets, uint32_t 
 
     local_partition = malloc(count * sizeof(uint32_t));
     if (!local_partition) {
-        GD_ERROR("Fatal: Out of memory allocating local partition\n");
+        WORDLE_ERROR("Fatal: Out of memory allocating local partition\n");
         free_tree(node);
         return NULL;
     }
@@ -2269,7 +2269,7 @@ build_solution_tree(GameData *game, uint32_t opener_idx, int num_threads)
     local_partition = malloc(count * sizeof(uint32_t));
     buckets = malloc(NUM_SCORES * sizeof(BucketInfo));
     if (!local_partition || !buckets) {
-        GD_ERROR("Fatal: Out of memory allocating partition buffers\n");
+        WORDLE_ERROR("Fatal: Out of memory allocating partition buffers\n");
         free(local_partition);
         free(buckets);
         return NULL;
@@ -2283,7 +2283,7 @@ build_solution_tree(GameData *game, uint32_t opener_idx, int num_threads)
     }
     root = calloc(1, sizeof(TreeNode));
     if (!root) {
-        GD_ERROR("Fatal: Out of memory allocating root TreeNode\n");
+        WORDLE_ERROR("Fatal: Out of memory allocating root TreeNode\n");
         free(local_partition);
         free(buckets);
         return NULL;
@@ -2306,7 +2306,7 @@ build_solution_tree(GameData *game, uint32_t opener_idx, int num_threads)
         atomic_init(&pool.failed, false);
         pool.out_nodes = calloc(active_buckets, sizeof(TreeNode *));
         if (!pool.out_nodes) {
-            GD_ERROR("Fatal: Out of memory allocating tree bucket results\n");
+            WORDLE_ERROR("Fatal: Out of memory allocating tree bucket results\n");
             free(local_partition);
             free(buckets);
             free_tree(root);
@@ -2318,7 +2318,7 @@ build_solution_tree(GameData *game, uint32_t opener_idx, int num_threads)
 
         threads = malloc(num_threads * sizeof(pthread_t));
         if (!threads) {
-            GD_ERROR("Fatal: Out of memory allocating tree worker threads\n");
+            WORDLE_ERROR("Fatal: Out of memory allocating tree worker threads\n");
             pthread_attr_destroy(&attr);
             free(pool.out_nodes);
             free(local_partition);
@@ -2336,7 +2336,7 @@ build_solution_tree(GameData *game, uint32_t opener_idx, int num_threads)
         pthread_attr_destroy(&attr);
 
         if (atomic_load(&pool.failed)) {
-            GD_ERROR("Fatal: Out of memory during tree construction\n");
+            WORDLE_ERROR("Fatal: Out of memory during tree construction\n");
             free(pool.out_nodes);
             free(local_partition);
             free(buckets);
@@ -2420,7 +2420,7 @@ dump_tree_to_json(const TreeNode *root, const char *filepath, uint32_t num_targe
 
     fp = fopen(filepath, "w");
     if (!fp) {
-        GD_ERROR("Error: Could not open '%s' for writing\n", filepath);
+        WORDLE_ERROR("Error: Could not open '%s' for writing\n", filepath);
         return -1;
     }
     avg_score = (double)exact_total_cost / (double)num_targets;
@@ -2435,7 +2435,7 @@ dump_tree_to_json(const TreeNode *root, const char *filepath, uint32_t num_targe
     write_node_json(root, fp, 4);
     fprintf(fp, "\n}\n");
     fclose(fp);
-    GD_INFO("Successfully dumped complete optimal solution tree to '%s'\n", filepath);
+    WORDLE_INFO("Successfully dumped complete optimal solution tree to '%s'\n", filepath);
     return 0;
 }
 
@@ -2553,7 +2553,7 @@ opener_worker(void *arg)
             if (root) {
                 dump_tree_to_json(root, tree_path, pool->game->num_targets, pool->game->num_guesses, res.exact_total_cost);
                 free_tree(root);
-                GD_INFO("  -> [CHECKPOINT] Saved new best strategy tree to '%s'\n", tree_path);
+                WORDLE_INFO("  -> [CHECKPOINT] Saved new best strategy tree to '%s'\n", tree_path);
             }
         }
 
@@ -2561,17 +2561,17 @@ opener_worker(void *arg)
             double pct = (double)completed * 100.0 / (double)pool->num_openers;
             uint32_t cur_best = atomic_load(&pool->global_best_cost);
             double best_avg = (cur_best == UINT32_MAX) ? 0.0 : (double)cur_best / (double)pool->game->num_targets;
-            GD_INFO("\r[%6zu/%6zu] (%5.1f%%) | Elapsed: %7.1fs | Current Best: %.5f avg",
+            WORDLE_INFO("\r[%6zu/%6zu] (%5.1f%%) | Elapsed: %7.1fs | Current Best: %.5f avg",
                    completed, pool->num_openers, pct, el, best_avg);
             fflush(stdout);
         } else {
             if (res.is_exact) {
-                GD_INFO("[%5zu/%5zu] Opener: %-5s | Exact Avg: %.5f (%u total) | Time: %6.2fs | Nodes: %llu %s\n",
+                WORDLE_INFO("[%5zu/%5zu] Opener: %-5s | Exact Avg: %.5f (%u total) | Time: %6.2fs | Nodes: %llu %s\n",
                        completed, pool->num_openers, pool->game->guesses[g_idx].word,
                        res.avg_guesses, res.exact_total_cost, res.time_sec,
                        (unsigned long long)res.nodes, is_new_best ? " <-- NEW BEST" : "");
             } else {
-                GD_INFO("[%5zu/%5zu] Opener: %-5s | Status: PRUNED (>= %u)        | Time: %6.2fs | Nodes: %llu\n",
+                WORDLE_INFO("[%5zu/%5zu] Opener: %-5s | Status: PRUNED (>= %u)        | Time: %6.2fs | Nodes: %llu\n",
                        completed, pool->num_openers, pool->game->guesses[g_idx].word,
                        prev_best, res.time_sec, (unsigned long long)res.nodes);
             }
@@ -2587,28 +2587,28 @@ opener_worker(void *arg)
 static void
 print_usage(const char *prog)
 {
-    GD_INFO("Wordle Exact Solver (gemini_solver)\n\n");
-    GD_INFO("Usage:\n");
-    GD_INFO("  %s [options]\n\n", prog);
-    GD_INFO("Options:\n");
-    GD_INFO("  --wordlist <path>     Path to words.txt (default: words.txt)\n");
-    GD_INFO("  --opener <word>       Evaluate a single opening word to exact optimality\n");
-    GD_INFO("  --subset <path|seq>   Solve an arbitrary candidate subset to exact optimality\n");
-    GD_INFO("                          path: one word per line ('-' = stdin)\n");
-    GD_INFO("                          seq:  word.score[.word.score...] (0=gray, 1=yellow, 2=green)\n");
-    GD_INFO("  --top <N>             Heuristically pre-rank openers, then exactly solve the top N\n");
-    GD_INFO("  --all                 Exactly solve every possible opening word\n");
-    GD_INFO("  --threads <N>         Number of worker threads (default: hardware concurrency)\n");
-    GD_INFO("  --max-memory <MB>     Maximum memory budget for caches (default: auto)\n");
-    GD_INFO("  --log <path>          Path to append real-time JSONL results\n");
-    GD_INFO("  --save-tree <prefix>  Checkpoint tree filename prefix whenever a new best opener is found\n");
-    GD_INFO("  --tree, --dump-tree <path> Dump optimal solution tree to JSON\n");
-    GD_INFO("  --quiet, -q           Compact progress output\n");
-    GD_INFO("  --help                Display this help message\n\n");
+    WORDLE_INFO("Wordle Exact Solver (gemini_solver)\n\n");
+    WORDLE_INFO("Usage:\n");
+    WORDLE_INFO("  %s [options]\n\n", prog);
+    WORDLE_INFO("Options:\n");
+    WORDLE_INFO("  --wordlist <path>     Path to words.txt (default: words.txt)\n");
+    WORDLE_INFO("  --opener <word>       Evaluate a single opening word to exact optimality\n");
+    WORDLE_INFO("  --subset <path|seq>   Solve an arbitrary candidate subset to exact optimality\n");
+    WORDLE_INFO("                          path: one word per line ('-' = stdin)\n");
+    WORDLE_INFO("                          seq:  word.score[.word.score...] (0=gray, 1=yellow, 2=green)\n");
+    WORDLE_INFO("  --top <N>             Heuristically pre-rank openers, then exactly solve the top N\n");
+    WORDLE_INFO("  --all                 Exactly solve every possible opening word\n");
+    WORDLE_INFO("  --threads <N>         Number of worker threads (default: hardware concurrency)\n");
+    WORDLE_INFO("  --max-memory <MB>     Maximum memory budget for caches (default: auto)\n");
+    WORDLE_INFO("  --log <path>          Path to append real-time JSONL results\n");
+    WORDLE_INFO("  --save-tree <prefix>  Checkpoint tree filename prefix whenever a new best opener is found\n");
+    WORDLE_INFO("  --tree, --dump-tree <path> Dump optimal solution tree to JSON\n");
+    WORDLE_INFO("  --quiet, -q           Compact progress output\n");
+    WORDLE_INFO("  --help                Display this help message\n\n");
 }
 
 uint32_t
-gd_find_target(const GameData *game, const char *word)
+wordle_find_target(const GameData *game, const char *word)
 {
     uint32_t t;
     for (t = 0; t < game->num_targets; t++) {
@@ -2636,13 +2636,13 @@ load_subset(const GameData *game, const char *path, uint32_t *out_count,
 
     fp = (strcmp(path, "-") == 0) ? stdin : fopen(path, "r");
     if (!fp) {
-        GD_ERROR("Error: cannot open subset file '%s'\n", path);
+        WORDLE_ERROR("Error: cannot open subset file '%s'\n", path);
         return NULL;
     }
 
     indices = malloc(cap * sizeof(uint32_t));
     if (!indices) {
-        GD_ERROR("Fatal: Out of memory allocating subset indices\n");
+        WORDLE_ERROR("Fatal: Out of memory allocating subset indices\n");
         if (fp != stdin) fclose(fp);
         return NULL;
     }
@@ -2658,21 +2658,21 @@ load_subset(const GameData *game, const char *path, uint32_t *out_count,
             continue;
         }
         if (strlen(word) != WORD_LEN) {
-            GD_ERROR("Error: subset word '%s' is not %d letters\n", word, WORD_LEN);
+            WORDLE_ERROR("Error: subset word '%s' is not %d letters\n", word, WORD_LEN);
             free(indices);
             if (fp != stdin) fclose(fp);
             return NULL;
         }
-        t = gd_find_target(game, word);
+        t = wordle_find_target(game, word);
         if (t == UINT32_MAX) {
-            GD_ERROR("Error: subset word '%s' is not a valid target word\n", word);
+            WORDLE_ERROR("Error: subset word '%s' is not a valid target word\n", word);
             free(indices);
             if (fp != stdin) fclose(fp);
             return NULL;
         }
         for (i = 0; i < count; i++) {
             if (indices[i] == t) {
-                GD_ERROR("Error: duplicate subset word '%s'\n", word);
+                WORDLE_ERROR("Error: duplicate subset word '%s'\n", word);
                 free(indices);
                 if (fp != stdin) fclose(fp);
                 return NULL;
@@ -2682,7 +2682,7 @@ load_subset(const GameData *game, const char *path, uint32_t *out_count,
             cap *= 2;
             indices = realloc(indices, cap * sizeof(uint32_t));
             if (!indices) {
-                GD_ERROR("Fatal: Out of memory expanding subset indices\n");
+                WORDLE_ERROR("Fatal: Out of memory expanding subset indices\n");
                 if (fp != stdin) fclose(fp);
                 return NULL;
             }
@@ -2702,7 +2702,7 @@ load_subset(const GameData *game, const char *path, uint32_t *out_count,
 }
 
 uint32_t
-gd_find_guess(const GameData *game, const char *word)
+wordle_find_guess(const GameData *game, const char *word)
 {
     uint32_t g;
     for (g = 0; g < game->num_guesses; g++) {
@@ -2764,7 +2764,7 @@ parse_sequence_subset(GameData *game, const char *seq, uint32_t *out_count,
     cap = game->num_targets;
     subset = malloc(cap * sizeof(uint32_t));
     if (!subset) {
-        GD_ERROR("Fatal: Out of memory allocating sequence subset\n");
+        WORDLE_ERROR("Fatal: Out of memory allocating sequence subset\n");
         return NULL;
     }
     for (t = 0; t < count; t++) {
@@ -2773,7 +2773,7 @@ parse_sequence_subset(GameData *game, const char *seq, uint32_t *out_count,
 
     buf = strdup(seq);
     if (!buf) {
-        GD_ERROR("Fatal: Out of memory duplicating sequence\n");
+        WORDLE_ERROR("Fatal: Out of memory duplicating sequence\n");
         free(subset);
         return NULL;
     }
@@ -2787,20 +2787,20 @@ parse_sequence_subset(GameData *game, const char *seq, uint32_t *out_count,
             const uint8_t *row;
 
             if (strlen(tok) != WORD_LEN) {
-                GD_ERROR("Error: score '%s' is not %d digits\n", tok, WORD_LEN);
+                WORDLE_ERROR("Error: score '%s' is not %d digits\n", tok, WORD_LEN);
                 free(buf); free(subset); return NULL;
             }
             for (i = 0; i < WORD_LEN; i++) {
                 if (tok[i] < '0' || tok[i] > '2') {
-                    GD_ERROR("Error: score '%s' must contain only 0/1/2 digits\n", tok);
+                    WORDLE_ERROR("Error: score '%s' must contain only 0/1/2 digits\n", tok);
                     free(buf); free(subset); return NULL;
                 }
                 sc = sc * 3 + (uint32_t)(tok[i] - '0');
             }
 
-            g = gd_find_guess(game, word);
+            g = wordle_find_guess(game, word);
             if (g == UINT32_MAX) {
-                GD_ERROR("Error: guess word '%s' not found in word list\n", word);
+                WORDLE_ERROR("Error: guess word '%s' not found in word list\n", word);
                 free(buf); free(subset); return NULL;
             }
 
@@ -2819,7 +2819,7 @@ parse_sequence_subset(GameData *game, const char *seq, uint32_t *out_count,
     free(buf);
 
     if (part % 2 != 0) {
-        GD_ERROR("Error: sequence must be word.score[.word.score...] pairs\n");
+        WORDLE_ERROR("Error: sequence must be word.score[.word.score...] pairs\n");
         free(subset);
         return NULL;
     }
@@ -2839,18 +2839,18 @@ parse_sequence_subset(GameData *game, const char *seq, uint32_t *out_count,
  *
  * The CLI below uses the same entry points, so a shared-library build can
  * expose exactly this surface. GameData is read-only during a solve, the
- * shared transposition table is lock-free, and gd_subset_solve allocates
+ * shared transposition table is lock-free, and wordle_subset_solve allocates
  * its own Solver state, so concurrent solves are safe (each uses one core
- * and its own local TT). Defaults to GD_LOG_QUIET: no stdout/stderr output
+ * and its own local TT). Defaults to WORDLE_LOG_QUIET: no stdout/stderr output
  * unless the caller raises the log level.
  * ------------------------------------------------------------- */
 
 GameData *
-gd_init(const char *wordlist_path, int num_threads, uint64_t max_memory_mb)
+wordle_init(const char *wordlist_path, int num_threads, uint64_t max_memory_mb)
 {
     GameData *game = calloc(1, sizeof(GameData));
     if (!game) {
-        GD_ERROR("Fatal: Out of memory allocating GameData\n");
+        WORDLE_ERROR("Fatal: Out of memory allocating GameData\n");
         return NULL;
     }
     if (load_wordlist(wordlist_path, game) != 0) {
@@ -2868,7 +2868,7 @@ gd_init(const char *wordlist_path, int num_threads, uint64_t max_memory_mb)
 }
 
 void
-gd_free(GameData *game)
+wordle_free(GameData *game)
 {
     if (game) {
         free_game_data(game);
@@ -2877,31 +2877,31 @@ gd_free(GameData *game)
 }
 
 uint32_t
-gd_num_targets(const GameData *game)
+wordle_num_targets(const GameData *game)
 {
     return game->num_targets;
 }
 
 uint32_t
-gd_num_guesses(const GameData *game)
+wordle_num_guesses(const GameData *game)
 {
     return game->num_guesses;
 }
 
 const char *
-gd_target_word(const GameData *game, uint32_t t)
+wordle_target_word(const GameData *game, uint32_t t)
 {
     return game->targets[t].word;
 }
 
 const char *
-gd_guess_word(const GameData *game, uint32_t g)
+wordle_guess_word(const GameData *game, uint32_t g)
 {
     return game->guesses[g].word;
 }
 
 void
-gd_subset_hash(const GameData *game, const uint32_t *targets, uint32_t count,
+wordle_subset_hash(const GameData *game, const uint32_t *targets, uint32_t count,
                uint64_t *out_h1, uint64_t *out_h2)
 {
     uint64_t h1 = 0;
@@ -2918,7 +2918,7 @@ gd_subset_hash(const GameData *game, const uint32_t *targets, uint32_t count,
 /* Solve `targets` (target indices) to exact optimality. Returns the exact
  * total cost, or UINT32_MAX on error (best_guess is then UINT32_MAX). */
 uint32_t
-gd_subset_solve(GameData *game, const uint32_t *targets, uint32_t count,
+wordle_subset_solve(GameData *game, const uint32_t *targets, uint32_t count,
                 uint64_t h1, uint64_t h2, uint32_t *best_guess)
 {
     Solver solver;
@@ -2976,7 +2976,7 @@ main(int argc, char **argv)
     if (num_threads < 1) {
         num_threads = 4;
     }
-    gd_log_set_level(GD_LOG_INFO);
+    wordle_log_set_level(WORDLE_LOG_INFO);
 
     for (i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--wordlist") == 0 && i + 1 < argc) {
@@ -3016,9 +3016,9 @@ main(int argc, char **argv)
         }
     }
 
-    GD_INFO("=================================================================\n");
-    GD_INFO("      WORDLE OPTIMAL FULL-TREE SOLVER (gemini_solver)\n");
-    GD_INFO("=================================================================\n");
+    WORDLE_INFO("=================================================================\n");
+    WORDLE_INFO("      WORDLE OPTIMAL FULL-TREE SOLVER (gemini_solver)\n");
+    WORDLE_INFO("=================================================================\n");
 
     if (load_wordlist(wordlist_path, &game) != 0) {
         return 1;
@@ -3026,13 +3026,13 @@ main(int argc, char **argv)
     game.max_candidates = max_candidates;
 
     clock_gettime(CLOCK_MONOTONIC, &t0);
-    GD_INFO("Precomputing %u x %u score matrix using %d threads...\n", game.num_guesses, game.num_targets, num_threads);
+    WORDLE_INFO("Precomputing %u x %u score matrix using %d threads...\n", game.num_guesses, game.num_targets, num_threads);
     if (init_game_data(&game, num_threads, max_memory_mb) != 0) {
         free_game_data(&game);
         return 1;
     }
     clock_gettime(CLOCK_MONOTONIC, &t1);
-    GD_INFO("Ready in %.3f seconds (%.1f MB matrix).\n\n",
+    WORDLE_INFO("Ready in %.3f seconds (%.1f MB matrix).\n\n",
            (t1.tv_sec - t0.tv_sec) + (t1.tv_nsec - t0.tv_nsec) * 1e-9,
            (double)((size_t)game.num_guesses * game.num_targets) / (1024.0 * 1024.0));
 
@@ -3055,7 +3055,7 @@ main(int argc, char **argv)
             return 1;
         }
         if (count == 0) {
-            GD_ERROR("Error: subset is empty\n");
+            WORDLE_ERROR("Error: subset is empty\n");
             free(subset);
             free_game_data(&game);
             return 1;
@@ -3068,25 +3068,25 @@ main(int argc, char **argv)
         }
         solver.max_candidates = UINT32_MAX;
 
-        GD_INFO("Solving subset of %u target word(s) to exact optimality...\n", count);
+        WORDLE_INFO("Solving subset of %u target word(s) to exact optimality...\n", count);
         clock_gettime(CLOCK_MONOTONIC, &st0);
         cost = solve_subset(&solver, subset, count, h1, h2, UINT32_MAX, &best_g, 0);
         clock_gettime(CLOCK_MONOTONIC, &st1);
         solve_sec = (st1.tv_sec - st0.tv_sec) + (st1.tv_nsec - st0.tv_nsec) * 1e-9;
 
-        GD_INFO("{\n");
-        GD_INFO("  \"mode\": \"subset\",\n");
-        GD_INFO("  \"num_targets\": %u,\n", count);
+        WORDLE_INFO("{\n");
+        WORDLE_INFO("  \"mode\": \"subset\",\n");
+        WORDLE_INFO("  \"num_targets\": %u,\n", count);
         if (best_g != UINT32_MAX) {
-            GD_INFO("  \"best_guess\": \"%s\",\n", game.guesses[best_g].word);
+            WORDLE_INFO("  \"best_guess\": \"%s\",\n", game.guesses[best_g].word);
         } else {
-            GD_INFO("  \"best_guess\": null,\n");
+            WORDLE_INFO("  \"best_guess\": null,\n");
         }
-        GD_INFO("  \"exact_cost\": %u,\n", cost);
-        GD_INFO("  \"avg_score\": %.17g,\n", (double)cost / (double)count);
-        GD_INFO("  \"nodes\": %llu,\n", (unsigned long long)solver.nodes_visited);
-        GD_INFO("  \"time_sec\": %.4f\n", solve_sec);
-        GD_INFO("}\n");
+        WORDLE_INFO("  \"exact_cost\": %u,\n", cost);
+        WORDLE_INFO("  \"avg_score\": %.17g,\n", (double)cost / (double)count);
+        WORDLE_INFO("  \"nodes\": %llu,\n", (unsigned long long)solver.nodes_visited);
+        WORDLE_INFO("  \"time_sec\": %.4f\n", solve_sec);
+        WORDLE_INFO("}\n");
 
         if (tree_dump_path) {
             TreeNode *root;
@@ -3118,30 +3118,30 @@ main(int argc, char **argv)
             }
         }
         if (opener_idx == UINT32_MAX) {
-            GD_ERROR("Error: Opening word '%s' not found in word list.\n", single_opener);
+            WORDLE_ERROR("Error: Opening word '%s' not found in word list.\n", single_opener);
             return 1;
         }
 
-        GD_INFO("Evaluating opener: '%s' to exact mathematical optimality...\n", game.guesses[opener_idx].word);
+        WORDLE_INFO("Evaluating opener: '%s' to exact mathematical optimality...\n", game.guesses[opener_idx].word);
         res = evaluate_opener_parallel(&game, opener_idx, num_threads);
 
         if (res.is_exact) {
-            GD_INFO("\n======================= EXACT RESULT =======================\n");
-            GD_INFO("  Opener:               %-5s\n", game.guesses[opener_idx].word);
-            GD_INFO("  Total Target Words:   %u\n", game.num_targets);
-            GD_INFO("  Exact Total Guesses:  %u\n", res.exact_total_cost);
-            GD_INFO("  Exact Average Score:  %.5f guesses/game\n", res.avg_guesses);
-            GD_INFO("  Computation Time:     %.3f seconds\n", res.time_sec);
-            GD_INFO("  Tree Nodes Visited:   %llu\n", (unsigned long long)res.nodes);
-            GD_INFO("============================================================\n");
+            WORDLE_INFO("\n======================= EXACT RESULT =======================\n");
+            WORDLE_INFO("  Opener:               %-5s\n", game.guesses[opener_idx].word);
+            WORDLE_INFO("  Total Target Words:   %u\n", game.num_targets);
+            WORDLE_INFO("  Exact Total Guesses:  %u\n", res.exact_total_cost);
+            WORDLE_INFO("  Exact Average Score:  %.5f guesses/game\n", res.avg_guesses);
+            WORDLE_INFO("  Computation Time:     %.3f seconds\n", res.time_sec);
+            WORDLE_INFO("  Tree Nodes Visited:   %llu\n", (unsigned long long)res.nodes);
+            WORDLE_INFO("============================================================\n");
         } else {
-            GD_INFO("\n====================== PRUNED RESULT =======================\n");
-            GD_INFO("  Opener:               %-5s (Pruned)\n", game.guesses[opener_idx].word);
-            GD_INFO("  Total Target Words:   %u\n", game.num_targets);
-            GD_INFO("  Status:               Exceeds Aspiration Bound\n");
-            GD_INFO("  Computation Time:     %.3f seconds\n", res.time_sec);
-            GD_INFO("  Tree Nodes Visited:   %llu\n", (unsigned long long)res.nodes);
-            GD_INFO("============================================================\n");
+            WORDLE_INFO("\n====================== PRUNED RESULT =======================\n");
+            WORDLE_INFO("  Opener:               %-5s (Pruned)\n", game.guesses[opener_idx].word);
+            WORDLE_INFO("  Total Target Words:   %u\n", game.num_targets);
+            WORDLE_INFO("  Status:               Exceeds Aspiration Bound\n");
+            WORDLE_INFO("  Computation Time:     %.3f seconds\n", res.time_sec);
+            WORDLE_INFO("  Tree Nodes Visited:   %llu\n", (unsigned long long)res.nodes);
+            WORDLE_INFO("============================================================\n");
         }
 
         if (log_path) {
@@ -3158,7 +3158,7 @@ main(int argc, char **argv)
 
         if (tree_dump_path) {
             TreeNode *root;
-            GD_INFO("\nBuilding full decision tree for opener '%s'...\n", game.guesses[opener_idx].word);
+            WORDLE_INFO("\nBuilding full decision tree for opener '%s'...\n", game.guesses[opener_idx].word);
             root = build_solution_tree(&game, opener_idx, num_threads);
             if (root) {
                 dump_tree_to_json(root, tree_dump_path, game.num_targets, game.num_guesses, res.exact_total_cost);
@@ -3170,7 +3170,7 @@ main(int argc, char **argv)
         return 0;
     }
 
-    GD_INFO("Ranking opening guesses by partition variance (heuristic pre-filter)...\n");
+    WORDLE_INFO("Ranking opening guesses by partition variance (heuristic pre-filter)...\n");
     cands = malloc(game.num_guesses * sizeof(HeuristicCandidate));
     for (g = 0; g < game.num_guesses; g++) {
         uint32_t chist[NUM_SCORES] = {0};
@@ -3199,16 +3199,16 @@ main(int argc, char **argv)
     free(cands);
 
     initial_seed = compute_opener_greedy_upper_bound(&game, openers_to_eval[0]);
-    GD_INFO("Initial aspiration seed for top opener '%s': %u total guesses (%.4f avg)\n",
+    WORDLE_INFO("Initial aspiration seed for top opener '%s': %u total guesses (%.4f avg)\n",
            game.guesses[openers_to_eval[0]].word, initial_seed, (double)initial_seed / game.num_targets);
 
-    GD_INFO("Evaluating %zu opener(s) in parallel using %d threads%s...\n\n",
+    WORDLE_INFO("Evaluating %zu opener(s) in parallel using %d threads%s...\n\n",
            count_to_eval, num_threads, quiet ? " (quiet mode)" : "");
 
     if (log_path) {
         log_fp = fopen(log_path, "a");
         if (!log_fp) {
-            GD_ERROR("Warning: Unable to open log file '%s' for writing\n", log_path);
+            WORDLE_ERROR("Warning: Unable to open log file '%s' for writing\n", log_path);
         }
     }
 
@@ -3248,14 +3248,14 @@ main(int argc, char **argv)
         fclose(log_fp);
     }
     if (atomic_load(&pool.failed)) {
-        GD_ERROR("Fatal: Out of memory during opener evaluation\n");
+        WORDLE_ERROR("Fatal: Out of memory during opener evaluation\n");
         free(openers_to_eval);
         free(pool.results);
         free_game_data(&game);
         return 1;
     }
     if (quiet) {
-        GD_INFO("\n");
+        WORDLE_INFO("\n");
     }
 
     qsort(pool.results, count_to_eval, sizeof(OpenerResult), compare_opener_results_asc);
@@ -3270,29 +3270,29 @@ main(int argc, char **argv)
         best_avg = (double)best_total / (double)game.num_targets;
     }
 
-    GD_INFO("\n======================== TOP RESULTS ========================\n");
-    GD_INFO(" Rank | Opener | Exact Total | Exact Average | Time\n");
-    GD_INFO("------+--------+-------------+---------------+----------\n");
+    WORDLE_INFO("\n======================== TOP RESULTS ========================\n");
+    WORDLE_INFO(" Rank | Opener | Exact Total | Exact Average | Time\n");
+    WORDLE_INFO("------+--------+-------------+---------------+----------\n");
     for (i = 0; i < (int)count_to_eval && i < 20; i++) {
         if (pool.results[i].is_exact) {
-            GD_INFO(" %4d | %-6s | %11u | %11.5f | %6.2fs\n",
+            WORDLE_INFO(" %4d | %-6s | %11u | %11.5f | %6.2fs\n",
                    i + 1, game.guesses[pool.results[i].opener_idx].word,
                    pool.results[i].exact_total_cost, pool.results[i].avg_guesses, pool.results[i].time_sec);
         } else {
-            GD_INFO(" %4d | %-6s |    (pruned) |      (pruned) | %6.2fs\n",
+            WORDLE_INFO(" %4d | %-6s |    (pruned) |      (pruned) | %6.2fs\n",
                    i + 1, game.guesses[pool.results[i].opener_idx].word,
                    pool.results[i].time_sec);
         }
     }
-    GD_INFO("=============================================================\n");
-    GD_INFO("%s OPENER: '%s' with exact average score: %.5f (%u total guesses)\n",
+    WORDLE_INFO("=============================================================\n");
+    WORDLE_INFO("%s OPENER: '%s' with exact average score: %.5f (%u total guesses)\n",
            search_all ? "GLOBAL OPTIMAL" : "BEST OF TOP-N",
            game.guesses[best_opener_idx].word, best_avg, best_total);
-    GD_INFO("=============================================================\n");
+    WORDLE_INFO("=============================================================\n");
 
     if (tree_dump_path) {
         TreeNode *root;
-        GD_INFO("\nBuilding full decision tree for winning opener '%s'...\n", game.guesses[best_opener_idx].word);
+        WORDLE_INFO("\nBuilding full decision tree for winning opener '%s'...\n", game.guesses[best_opener_idx].word);
         root = build_solution_tree(&game, best_opener_idx, num_threads);
         if (root) {
             dump_tree_to_json(root, tree_dump_path, game.num_targets, game.num_guesses, best_total);
