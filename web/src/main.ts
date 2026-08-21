@@ -46,6 +46,47 @@ export function showToast(message: string, type: 'info' | 'success' | 'warning' 
   }, duration);
 }
 
+export async function fetchNYTWordle(dateStr?: string): Promise<{ solution: string; print_date: string; id: number } | null> {
+  const targetDate = dateStr || new Date().toISOString().split('T')[0];
+
+  // 1. Try local/edge API proxy route (/api/nyt)
+  try {
+    const res = await fetch(`/api/nyt?date=${targetDate}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.solution) return data;
+    }
+  } catch (err) {
+    // continue to fallback
+  }
+
+  // 2. Try direct CORS proxy
+  try {
+    const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(`https://www.nytimes.com/svc/wordle/v2/${targetDate}.json`)}`;
+    const res = await fetch(proxyUrl);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.solution) return data;
+    }
+  } catch (err) {
+    // continue to fallback
+  }
+
+  // 3. Fallback: allorigins proxy
+  try {
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://www.nytimes.com/svc/wordle/v2/${targetDate}.json`)}`;
+    const res = await fetch(proxyUrl);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.solution) return data;
+    }
+  } catch (err) {
+    // fallback failed
+  }
+
+  return null;
+}
+
 async function init() {
   const app = document.getElementById('app')!;
   app.innerHTML = `
@@ -1048,15 +1089,20 @@ function attachEventListeners() {
 
   const btnTodayWordle = document.getElementById('btn-today-wordle');
   if (btnTodayWordle) {
-    btnTodayWordle.addEventListener('click', () => {
-      const today = new Date();
-      const dayIndex = Math.abs((today.getFullYear() * 365 + today.getMonth() * 31 + today.getDate()) % wordList.target.length);
-      const todaysWord = wordList.target[dayIndex];
-      currentTypingWord = '';
-      engine.setSecretSolution(todaysWord, true);
-      engine.hideSecret = true;
-      showToast(`📅 Loaded Today's Wordle (${today.toISOString().split('T')[0]}) • Target is masked`, 'success');
-      render();
+    btnTodayWordle.addEventListener('click', async () => {
+      const today = new Date().toISOString().split('T')[0];
+      showToast("⏳ Fetching official NYT Wordle...", "info", 1500);
+
+      const nytData = await fetchNYTWordle(today);
+      if (nytData && nytData.solution) {
+        currentTypingWord = '';
+        engine.setSecretSolution(nytData.solution, true);
+        engine.hideSecret = true;
+        showToast(`📅 Loaded Official NYT Wordle #${nytData.id || ''} (${nytData.print_date || today}) • Target is masked`, 'success');
+        render();
+      } else {
+        showToast('⚠️ Could not fetch from NYT API. Please check connection.', 'warning');
+      }
     });
   }
 
