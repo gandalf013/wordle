@@ -182,12 +182,15 @@ function handleKeyPress(key: string) {
     }
   } else if (key === 'ENTER') {
     if (currentTypingWord.length === 5) {
-      if (wordList.allGuesses.includes(currentTypingWord.toLowerCase())) {
+      const lower = currentTypingWord.toLowerCase();
+      if (!wordList.allGuesses.includes(lower)) {
+        showToast(`"${currentTypingWord}" is not in the dictionary`, 'warning');
+      } else if (engine.activePath.some(n => n.guess === lower)) {
+        showToast(`"${currentTypingWord}" was already guessed on this branch`, 'warning');
+      } else {
         const guessToPlay = currentTypingWord;
         currentTypingWord = '';
         engine.addGuess(guessToPlay);
-      } else {
-        showToast(`"${currentTypingWord}" is not in the dictionary`, 'warning');
       }
     }
   } else if (/^[A-Z]$/.test(key)) {
@@ -268,8 +271,16 @@ function render() {
               </option>
             `).join('')}
           </select>
-          <label class="toggle-control-label" title="Weight word frequencies by usage">
-            <input type="checkbox" id="global-weighted-toggle" ${engine.isWeighted ? 'checked' : ''} />
+          <label
+            class="toggle-control-label ${!engine.activeStrategy.hasWeightedMode ? 'disabled' : ''}"
+            title="${engine.activeStrategy.hasWeightedMode ? 'Weight candidate words by real-world usage frequency' : `${engine.activeStrategy.label} does not support weighted mode`}"
+          >
+            <input
+              type="checkbox"
+              id="global-weighted-toggle"
+              ${engine.isWeighted && engine.activeStrategy.hasWeightedMode ? 'checked' : ''}
+              ${!engine.activeStrategy.hasWeightedMode ? 'disabled' : ''}
+            />
             <span>Weighted</span>
           </label>
         </div>
@@ -1192,17 +1203,43 @@ function attachEventListeners() {
 
       try {
         while (isAutoSolving && !autoSolveAbort) {
-          if (engine.activePath.length >= 6) break;
-          if (engine.activeNode && engine.activeNode.score === 242) break;
-          if (engine.currentCandidates.length === 0) break;
+          if (engine.activeNode && engine.activeNode.score === 242) {
+            showToast(`🎉 Solved in ${engine.activePath.length} moves!`, 'success');
+            break;
+          }
+
+          if (engine.activePath.length >= 6) {
+            const sol = engine.mode === 'known' && engine.secretSolution ? ` Target was: ${engine.secretSolution.toUpperCase()}` : '';
+            showToast(`🛑 Wordle limit reached (6 moves) without solving.${sol}`, 'warning', 4500);
+            break;
+          }
+
+          if (engine.currentCandidates.length === 0) {
+            showToast('⚠️ Auto-solve stopped: 0 candidate words match clues.', 'warning', 4000);
+            break;
+          }
 
           const nextNode = engine.playOptimalMove();
-          if (!nextNode) break;
+          if (!nextNode) {
+            if (engine.activePath.length >= 6 && (!engine.activeNode || engine.activeNode.score !== 242)) {
+              const sol = engine.mode === 'known' && engine.secretSolution ? ` Target was: ${engine.secretSolution.toUpperCase()}` : '';
+              showToast(`🛑 Wordle limit reached (6 moves) without solving.${sol}`, 'warning', 4500);
+            } else {
+              showToast('⚠️ No further optimal moves available.', 'warning', 4000);
+            }
+            break;
+          }
 
           render();
 
           if (nextNode.score === 242) {
             showToast(`🎉 Solved in ${engine.activePath.length} moves!`, 'success');
+            break;
+          }
+
+          if (engine.activePath.length >= 6 && nextNode.score !== 242) {
+            const sol = engine.mode === 'known' && engine.secretSolution ? ` Target was: ${engine.secretSolution.toUpperCase()}` : '';
+            showToast(`🛑 Wordle limit reached (6 moves) without solving.${sol}`, 'warning', 4500);
             break;
           }
 

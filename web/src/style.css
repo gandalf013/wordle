@@ -191,11 +191,21 @@ body {
   color: var(--text-secondary);
   cursor: pointer;
   user-select: none;
+  transition: opacity 0.15s ease;
 }
 
 .toggle-control-label input {
   accent-color: var(--accent-blue);
   cursor: pointer;
+}
+
+.toggle-control-label.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.toggle-control-label.disabled input {
+  cursor: not-allowed;
 }
 
 .header-actions {

@@ -121,6 +121,11 @@ export class GameEngine {
       throw new Error(`Word length must be ${this.wordList.wordLength}`);
     }
 
+    // Prevent duplicate guess along the current active branch
+    if (this.activePath.some(n => n.guess === cleanGuess)) {
+      return null;
+    }
+
     let score = scoreOverride;
     if (score === undefined) {
       if (this.mode === 'known' && this.secretSolution) {
@@ -206,18 +211,23 @@ export class GameEngine {
   public getSuggestedNextGuess(): GuessAnalysis | null {
     const pool = this.currentCandidates;
     if (pool.length === 0) return null;
+    const playedGuesses = new Set(this.activePath.map(n => n.guess));
+
     if (pool.length === 1) {
+      if (playedGuesses.has(pool[0])) return null;
       return analyze(pool[0], pool, this.wordList.weights, true);
     }
-    const weights = this.isWeighted ? this.wordList.weights : undefined;
+    const weights = this.isWeighted && this.activeStrategy.hasWeightedMode ? this.wordList.weights : undefined;
 
     if (this.activeStrategy instanceof DecisionTreeStrategy) {
       if (pool.length === this.wordList.target.length) {
         const opener = this.activeStrategy.getOpener();
-        return analyze(opener, pool, weights, true);
+        if (!playedGuesses.has(opener)) {
+          return analyze(opener, pool, weights, true);
+        }
       }
       const opt = (this.activeStrategy as DecisionTreeStrategy).findOptimalGuess(pool, this.wordList.allGuesses);
-      if (opt) {
+      if (opt && !playedGuesses.has(opt)) {
         return analyze(opt, pool, weights, true);
       }
     }
@@ -227,9 +237,12 @@ export class GameEngine {
       : this.activeStrategy;
 
     const guessesToEvaluate = pool.length <= 500 ? this.wordList.allGuesses : TOP_OPENERS;
-    const analyses = analyzeAll(guessesToEvaluate, pool, weights, true, true);
+    const unplayedGuesses = guessesToEvaluate.filter(g => !playedGuesses.has(g));
+    if (unplayedGuesses.length === 0) return null;
+
+    const analyses = analyzeAll(unplayedGuesses, pool, weights, true, true);
     const ranked = evalStrategy.rank(analyses, this.isWeighted);
-    return ranked[0] || null;
+    return ranked.find(a => !playedGuesses.has(a.guess)) || null;
   }
 
   public getKeyboardKeyStates(): Record<string, Score> {

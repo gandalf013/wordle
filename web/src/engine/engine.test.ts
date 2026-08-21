@@ -144,4 +144,40 @@ describe('Wordlist & Strategy Parity', () => {
     const nextMainMove = engine.playOptimalMove();
     expect(nextMainMove).not.toBeNull();
   });
+
+  it('prevents playing the same word twice along the same branch', () => {
+    const engine = new GameEngine(wordList);
+    engine.setSecretSolution('pilot');
+    const move1 = engine.addGuess('tarse');
+    expect(move1).not.toBeNull();
+
+    // Try to guess tarse again on the same active branch -> must return null
+    const duplicateMove = engine.addGuess('tarse');
+    expect(duplicateMove).toBeNull();
+    expect(engine.activePath.length).toBe(1);
+
+    // Playing a different word should work
+    const move2 = engine.addGuess('donut');
+    expect(move2).not.toBeNull();
+    expect(engine.activePath.length).toBe(2);
+
+    // Try guessing donut again -> must return null
+    expect(engine.addGuess('donut')).toBeNull();
+  });
+
+  it('enforces strict 6-move maximum limit per game line', () => {
+    const engine = new GameEngine(wordList);
+    engine.setSecretSolution('pilot');
+    const moves = ['tarse', 'crane', 'slate', 'roate', 'adieu', 'media'];
+    for (const m of moves) {
+      const node = engine.addGuess(m);
+      expect(node).not.toBeNull();
+    }
+    expect(engine.activePath.length).toBe(6);
+
+    // 7th move must be blocked
+    const move7 = engine.addGuess('chalk');
+    expect(move7).toBeNull();
+    expect(engine.activePath.length).toBe(6);
+  });
 });
