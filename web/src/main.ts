@@ -22,6 +22,7 @@ let isComputingOptimal = false;
 let isAutoSolving = false;
 let autoSolveAbort = false;
 let treeViewMode: 'inline' | 'tree' = 'inline';
+let mobileActiveTab: 'board' | 'tree' | 'candidates' = 'board';
 let toastTimeout: any = null;
 
 export function showToast(message: string, type: 'info' | 'success' | 'warning' = 'info', duration: number = 3000) {
@@ -319,7 +320,7 @@ function render() {
         <span class="app-logo">🟩🟨⬛</span>
         <div>
           <h1 class="app-title">${APP_CONFIG.name}</h1>
-          <span class="app-subtitle">Lichess-style Analysis & Optimal Solver Studio</span>
+          <span class="app-subtitle">${APP_CONFIG.tagline}</span>
         </div>
       </div>
 
@@ -436,8 +437,21 @@ function render() {
       `}
     </div>
 
+    <!-- MOBILE VIEW TABS (VISIBLE ON SMALL SCREENS ONLY) -->
+    <div class="mobile-tab-bar">
+      <button class="mobile-tab-btn ${mobileActiveTab === 'board' ? 'active' : ''}" data-mobile-tab="board">
+        🎮 Board & Play
+      </button>
+      <button class="mobile-tab-btn ${mobileActiveTab === 'tree' ? 'active' : ''}" data-mobile-tab="tree">
+        🌳 Tree ${activePath.length > 0 ? `(${activePath.length})` : ''}
+      </button>
+      <button class="mobile-tab-btn ${mobileActiveTab === 'candidates' ? 'active' : ''}" data-mobile-tab="candidates">
+        📊 Words (${candidates.length})
+      </button>
+    </div>
+
     <!-- MAIN TWO-COLUMN STUDIO LAYOUT -->
-    <main class="studio-layout">
+    <main class="studio-layout" data-mobile-tab="${mobileActiveTab}">
       <!-- LEFT PANEL: WORDLE BOARD & TOOLBAR -->
       <section class="left-panel">
         <div class="board-top-meta">
@@ -1150,6 +1164,14 @@ function renderBinsTab(): string {
 }
 
 function attachEventListeners() {
+  // Mobile tab switcher
+  document.querySelectorAll('[data-mobile-tab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      mobileActiveTab = (btn as HTMLElement).dataset.mobileTab as 'board' | 'tree' | 'candidates';
+      render();
+    });
+  });
+
   // Mode switcher buttons
   document.querySelectorAll('.mode-btn').forEach(btn => {
     btn.addEventListener('click', () => {
