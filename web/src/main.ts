@@ -187,6 +187,8 @@ function handleKeyPress(key: string) {
         showToast(`"${currentTypingWord}" is not in the dictionary`, 'warning');
       } else if (engine.activePath.some(n => n.guess === lower)) {
         showToast(`"${currentTypingWord}" was already guessed on this branch`, 'warning');
+        currentTypingWord = '';
+        updateTypingRow();
       } else {
         const guessToPlay = currentTypingWord;
         currentTypingWord = '';
