@@ -1,0 +1,9451 @@
+{
+  "2021-06-19": {
+    "id": 1,
+    "solution": "cigar"
+  },
+  "2021-06-20": {
+    "id": 2,
+    "solution": "rebut",
+    "days_since_launch": 1
+  },
+  "2021-06-28": {
+    "id": 10,
+    "solution": "serve",
+    "days_since_launch": 9
+  },
+  "2021-06-22": {
+    "id": 4,
+    "solution": "humph",
+    "days_since_launch": 3
+  },
+  "2021-07-01": {
+    "id": 13,
+    "solution": "model",
+    "days_since_launch": 12
+  },
+  "2021-07-20": {
+    "id": 32,
+    "solution": "floss",
+    "days_since_launch": 31
+  },
+  "2021-07-16": {
+    "id": 28,
+    "solution": "marry",
+    "days_since_launch": 27
+  },
+  "2021-07-04": {
+    "id": 16,
+    "solution": "grade",
+    "days_since_launch": 15
+  },
+  "2021-07-12": {
+    "id": 24,
+    "solution": "crust",
+    "days_since_launch": 23
+  },
+  "2021-06-25": {
+    "id": 7,
+    "solution": "focal",
+    "days_since_launch": 6
+  },
+  "2021-06-27": {
+    "id": 9,
+    "solution": "naval",
+    "days_since_launch": 8
+  },
+  "2021-06-24": {
+    "id": 6,
+    "solution": "blush",
+    "days_since_launch": 5
+  },
+  "2021-07-22": {
+    "id": 34,
+    "solution": "croak",
+    "days_since_launch": 33
+  },
+  "2021-06-26": {
+    "id": 8,
+    "solution": "evade",
+    "days_since_launch": 7
+  },
+  "2021-06-23": {
+    "id": 5,
+    "solution": "awake",
+    "days_since_launch": 4
+  },
+  "2021-07-26": {
+    "id": 38,
+    "solution": "whelp",
+    "days_since_launch": 37
+  },
+  "2021-07-18": {
+    "id": 30,
+    "solution": "batty",
+    "days_since_launch": 29
+  },
+  "2021-07-19": {
+    "id": 31,
+    "solution": "pride",
+    "days_since_launch": 30
+  },
+  "2021-07-15": {
+    "id": 27,
+    "solution": "abase",
+    "days_since_launch": 26
+  },
+  "2021-06-30": {
+    "id": 12,
+    "solution": "dwarf",
+    "days_since_launch": 11
+  },
+  "2021-07-03": {
+    "id": 15,
+    "solution": "stink",
+    "days_since_launch": 14
+  },
+  "2021-07-02": {
+    "id": 14,
+    "solution": "karma",
+    "days_since_launch": 13
+  },
+  "2021-07-07": {
+    "id": 19,
+    "solution": "abate",
+    "days_since_launch": 18
+  },
+  "2021-07-11": {
+    "id": 23,
+    "solution": "fresh",
+    "days_since_launch": 22
+  },
+  "2021-06-21": {
+    "id": 3,
+    "solution": "sissy",
+    "days_since_launch": 2
+  },
+  "2021-06-29": {
+    "id": 11,
+    "solution": "heath",
+    "days_since_launch": 10
+  },
+  "2021-07-06": {
+    "id": 18,
+    "solution": "bench",
+    "days_since_launch": 17
+  },
+  "2021-07-17": {
+    "id": 29,
+    "solution": "react",
+    "days_since_launch": 28
+  },
+  "2021-07-13": {
+    "id": 25,
+    "solution": "stool",
+    "days_since_launch": 24
+  },
+  "2021-07-08": {
+    "id": 20,
+    "solution": "feign",
+    "days_since_launch": 19
+  },
+  "2021-07-28": {
+    "id": 40,
+    "solution": "outdo",
+    "days_since_launch": 39
+  },
+  "2021-07-25": {
+    "id": 37,
+    "solution": "unfed",
+    "days_since_launch": 36
+  },
+  "2021-07-27": {
+    "id": 39,
+    "solution": "trawl",
+    "days_since_launch": 38
+  },
+  "2021-07-10": {
+    "id": 22,
+    "solution": "death",
+    "days_since_launch": 21
+  },
+  "2021-07-05": {
+    "id": 17,
+    "solution": "quiet",
+    "days_since_launch": 16
+  },
+  "2021-07-09": {
+    "id": 21,
+    "solution": "major",
+    "days_since_launch": 20
+  },
+  "2021-07-23": {
+    "id": 35,
+    "solution": "staff",
+    "days_since_launch": 34
+  },
+  "2021-07-21": {
+    "id": 33,
+    "solution": "helix",
+    "days_since_launch": 32
+  },
+  "2021-07-24": {
+    "id": 36,
+    "solution": "paper",
+    "days_since_launch": 35
+  },
+  "2021-07-14": {
+    "id": 26,
+    "solution": "colon",
+    "days_since_launch": 25
+  },
+  "2021-08-10": {
+    "id": 53,
+    "solution": "unmet",
+    "days_since_launch": 52
+  },
+  "2021-08-08": {
+    "id": 51,
+    "solution": "maxim",
+    "days_since_launch": 50
+  },
+  "2021-08-05": {
+    "id": 48,
+    "solution": "spike",
+    "days_since_launch": 47
+  },
+  "2021-08-09": {
+    "id": 52,
+    "solution": "linen",
+    "days_since_launch": 51
+  },
+  "2021-08-14": {
+    "id": 57,
+    "solution": "first",
+    "days_since_launch": 56
+  },
+  "2021-08-13": {
+    "id": 56,
+    "solution": "forth",
+    "days_since_launch": 55
+  },
+  "2021-09-03": {
+    "id": 77,
+    "solution": "flick",
+    "days_since_launch": 76
+  },
+  "2021-08-24": {
+    "id": 67,
+    "solution": "panel",
+    "days_since_launch": 66
+  },
+  "2021-08-28": {
+    "id": 71,
+    "solution": "agree",
+    "days_since_launch": 70
+  },
+  "2021-08-15": {
+    "id": 58,
+    "solution": "stand",
+    "days_since_launch": 57
+  },
+  "2021-08-25": {
+    "id": 68,
+    "solution": "crass",
+    "days_since_launch": 67
+  },
+  "2021-08-18": {
+    "id": 61,
+    "solution": "seedy",
+    "days_since_launch": 60
+  },
+  "2021-09-05": {
+    "id": 79,
+    "solution": "wooer",
+    "days_since_launch": 78
+  },
+  "2021-07-31": {
+    "id": 43,
+    "solution": "sower",
+    "days_since_launch": 42
+  },
+  "2021-08-17": {
+    "id": 60,
+    "solution": "ivory",
+    "days_since_launch": 59
+  },
+  "2021-08-07": {
+    "id": 50,
+    "solution": "pound",
+    "days_since_launch": 49
+  },
+  "2021-09-01": {
+    "id": 75,
+    "solution": "bleed",
+    "days_since_launch": 74
+  },
+  "2021-09-02": {
+    "id": 76,
+    "solution": "delta",
+    "days_since_launch": 75
+  },
+  "2021-08-20": {
+    "id": 63,
+    "solution": "yearn",
+    "days_since_launch": 62
+  },
+  "2021-08-22": {
+    "id": 65,
+    "solution": "bribe",
+    "days_since_launch": 64
+  },
+  "2021-08-01": {
+    "id": 44,
+    "solution": "repay",
+    "days_since_launch": 43
+  },
+  "2021-08-21": {
+    "id": 64,
+    "solution": "drain",
+    "days_since_launch": 63
+  },
+  "2021-08-19": {
+    "id": 62,
+    "solution": "print",
+    "days_since_launch": 61
+  },
+  "2021-08-30": {
+    "id": 73,
+    "solution": "swirl",
+    "days_since_launch": 72
+  },
+  "2021-08-02": {
+    "id": 45,
+    "solution": "digit",
+    "days_since_launch": 44
+  },
+  "2021-08-27": {
+    "id": 70,
+    "solution": "offal",
+    "days_since_launch": 69
+  },
+  "2021-08-03": {
+    "id": 46,
+    "solution": "crate",
+    "days_since_launch": 45
+  },
+  "2021-08-12": {
+    "id": 55,
+    "solution": "booby",
+    "days_since_launch": 54
+  },
+  "2021-08-26": {
+    "id": 69,
+    "solution": "flume",
+    "days_since_launch": 68
+  },
+  "2021-09-06": {
+    "id": 80,
+    "solution": "front",
+    "days_since_launch": 79
+  },
+  "2021-07-30": {
+    "id": 42,
+    "solution": "crazy",
+    "days_since_launch": 41
+  },
+  "2021-08-11": {
+    "id": 54,
+    "solution": "flesh",
+    "days_since_launch": 53
+  },
+  "2021-08-06": {
+    "id": 49,
+    "solution": "mimic",
+    "days_since_launch": 48
+  },
+  "2021-08-29": {
+    "id": 72,
+    "solution": "error",
+    "days_since_launch": 71
+  },
+  "2021-08-04": {
+    "id": 47,
+    "solution": "cluck",
+    "days_since_launch": 46
+  },
+  "2021-08-23": {
+    "id": 66,
+    "solution": "stout",
+    "days_since_launch": 65
+  },
+  "2021-08-31": {
+    "id": 74,
+    "solution": "argue",
+    "days_since_launch": 73
+  },
+  "2021-07-29": {
+    "id": 41,
+    "solution": "adobe",
+    "days_since_launch": 40
+  },
+  "2021-09-04": {
+    "id": 78,
+    "solution": "totem",
+    "days_since_launch": 77
+  },
+  "2021-08-16": {
+    "id": 59,
+    "solution": "belly",
+    "days_since_launch": 58
+  },
+  "2021-09-13": {
+    "id": 87,
+    "solution": "goner",
+    "days_since_launch": 86
+  },
+  "2021-10-07": {
+    "id": 111,
+    "solution": "aback",
+    "days_since_launch": 110
+  },
+  "2021-09-16": {
+    "id": 90,
+    "solution": "loopy",
+    "days_since_launch": 89
+  },
+  "2021-09-18": {
+    "id": 92,
+    "solution": "audit",
+    "days_since_launch": 91
+  },
+  "2021-09-23": {
+    "id": 97,
+    "solution": "civic",
+    "days_since_launch": 96
+  },
+  "2021-09-19": {
+    "id": 93,
+    "solution": "lying",
+    "days_since_launch": 92
+  },
+  "2021-09-21": {
+    "id": 95,
+    "solution": "labor",
+    "days_since_launch": 94
+  },
+  "2021-09-28": {
+    "id": 102,
+    "solution": "salad",
+    "days_since_launch": 101
+  },
+  "2021-10-16": {
+    "id": 120,
+    "solution": "dutch",
+    "days_since_launch": 119
+  },
+  "2021-09-14": {
+    "id": 88,
+    "solution": "golem",
+    "days_since_launch": 87
+  },
+  "2021-09-08": {
+    "id": 82,
+    "solution": "parry",
+    "days_since_launch": 81
+  },
+  "2021-09-29": {
+    "id": 103,
+    "solution": "agate",
+    "days_since_launch": 102
+  },
+  "2021-10-13": {
+    "id": 117,
+    "solution": "dowry",
+    "days_since_launch": 116
+  },
+  "2021-10-09": {
+    "id": 113,
+    "solution": "alone",
+    "days_since_launch": 112
+  },
+  "2021-10-06": {
+    "id": 110,
+    "solution": "guild",
+    "days_since_launch": 109
+  },
+  "2021-09-09": {
+    "id": 83,
+    "solution": "biome",
+    "days_since_launch": 82
+  },
+  "2021-09-15": {
+    "id": 89,
+    "solution": "lusty",
+    "days_since_launch": 88
+  },
+  "2021-09-20": {
+    "id": 94,
+    "solution": "gamma",
+    "days_since_launch": 93
+  },
+  "2021-10-01": {
+    "id": 105,
+    "solution": "spray",
+    "days_since_launch": 104
+  },
+  "2021-09-10": {
+    "id": 84,
+    "solution": "lapel",
+    "days_since_launch": 83
+  },
+  "2021-10-14": {
+    "id": 118,
+    "solution": "ought",
+    "days_since_launch": 117
+  },
+  "2021-10-02": {
+    "id": 106,
+    "solution": "essay",
+    "days_since_launch": 105
+  },
+  "2021-10-04": {
+    "id": 108,
+    "solution": "spend",
+    "days_since_launch": 107
+  },
+  "2021-09-26": {
+    "id": 100,
+    "solution": "moult",
+    "days_since_launch": 99
+  },
+  "2021-10-10": {
+    "id": 114,
+    "solution": "hatch",
+    "days_since_launch": 113
+  },
+  "2021-09-17": {
+    "id": 91,
+    "solution": "round",
+    "days_since_launch": 90
+  },
+  "2021-09-27": {
+    "id": 101,
+    "solution": "basic",
+    "days_since_launch": 100
+  },
+  "2021-09-12": {
+    "id": 86,
+    "solution": "greet",
+    "days_since_launch": 85
+  },
+  "2021-09-24": {
+    "id": 98,
+    "solution": "forge",
+    "days_since_launch": 97
+  },
+  "2021-10-11": {
+    "id": 115,
+    "solution": "hyper",
+    "days_since_launch": 114
+  },
+  "2021-10-15": {
+    "id": 119,
+    "solution": "belch",
+    "days_since_launch": 118
+  },
+  "2021-09-07": {
+    "id": 81,
+    "solution": "shrub",
+    "days_since_launch": 80
+  },
+  "2021-10-12": {
+    "id": 116,
+    "solution": "thumb",
+    "days_since_launch": 115
+  },
+  "2021-10-03": {
+    "id": 107,
+    "solution": "fjord",
+    "days_since_launch": 106
+  },
+  "2021-10-05": {
+    "id": 109,
+    "solution": "kebab",
+    "days_since_launch": 108
+  },
+  "2021-09-25": {
+    "id": 99,
+    "solution": "corny",
+    "days_since_launch": 98
+  },
+  "2021-09-22": {
+    "id": 96,
+    "solution": "islet",
+    "days_since_launch": 95
+  },
+  "2021-10-08": {
+    "id": 112,
+    "solution": "motor",
+    "days_since_launch": 111
+  },
+  "2021-09-30": {
+    "id": 104,
+    "solution": "spicy",
+    "days_since_launch": 103
+  },
+  "2021-09-11": {
+    "id": 85,
+    "solution": "start",
+    "days_since_launch": 84
+  },
+  "2021-11-18": {
+    "id": 153,
+    "solution": "vodka",
+    "days_since_launch": 152
+  },
+  "2021-11-21": {
+    "id": 156,
+    "solution": "radio",
+    "days_since_launch": 155
+  },
+  "2021-10-24": {
+    "id": 128,
+    "solution": "growl",
+    "days_since_launch": 127
+  },
+  "2021-11-13": {
+    "id": 148,
+    "solution": "smart",
+    "days_since_launch": 147
+  },
+  "2021-11-06": {
+    "id": 141,
+    "solution": "coast",
+    "days_since_launch": 140
+  },
+  "2021-11-15": {
+    "id": 150,
+    "solution": "gaudy",
+    "days_since_launch": 149
+  },
+  "2021-10-30": {
+    "id": 134,
+    "solution": "gouge",
+    "days_since_launch": 133
+  },
+  "2021-11-20": {
+    "id": 155,
+    "solution": "surer",
+    "days_since_launch": 154
+  },
+  "2021-11-01": {
+    "id": 136,
+    "solution": "briar",
+    "days_since_launch": 135
+  },
+  "2021-10-26": {
+    "id": 130,
+    "solution": "dozen",
+    "days_since_launch": 129
+  },
+  "2021-10-27": {
+    "id": 131,
+    "solution": "boozy",
+    "days_since_launch": 130
+  },
+  "2021-10-29": {
+    "id": 133,
+    "solution": "world",
+    "days_since_launch": 132
+  },
+  "2021-11-03": {
+    "id": 138,
+    "solution": "altar",
+    "days_since_launch": 137
+  },
+  "2021-10-31": {
+    "id": 135,
+    "solution": "click",
+    "days_since_launch": 134
+  },
+  "2021-11-07": {
+    "id": 142,
+    "solution": "duchy",
+    "days_since_launch": 141
+  },
+  "2021-10-28": {
+    "id": 132,
+    "solution": "erode",
+    "days_since_launch": 131
+  },
+  "2021-10-25": {
+    "id": 129,
+    "solution": "fling",
+    "days_since_launch": 128
+  },
+  "2021-11-19": {
+    "id": 154,
+    "solution": "finer",
+    "days_since_launch": 153
+  },
+  "2021-11-08": {
+    "id": 143,
+    "solution": "groin",
+    "days_since_launch": 142
+  },
+  "2021-10-17": {
+    "id": 121,
+    "solution": "pilot",
+    "days_since_launch": 120
+  },
+  "2021-10-21": {
+    "id": 125,
+    "solution": "enema",
+    "days_since_launch": 124
+  },
+  "2021-10-19": {
+    "id": 123,
+    "solution": "comet",
+    "days_since_launch": 122
+  },
+  "2021-11-25": {
+    "id": 160,
+    "solution": "wrote",
+    "days_since_launch": 159
+  },
+  "2021-10-18": {
+    "id": 122,
+    "solution": "tweed",
+    "days_since_launch": 121
+  },
+  "2021-11-09": {
+    "id": 144,
+    "solution": "fixer",
+    "days_since_launch": 143
+  },
+  "2021-11-16": {
+    "id": 151,
+    "solution": "chill",
+    "days_since_launch": 150
+  },
+  "2021-11-14": {
+    "id": 149,
+    "solution": "pithy",
+    "days_since_launch": 148
+  },
+  "2021-11-22": {
+    "id": 157,
+    "solution": "rouge",
+    "days_since_launch": 156
+  },
+  "2021-10-22": {
+    "id": 126,
+    "solution": "steed",
+    "days_since_launch": 125
+  },
+  "2021-10-23": {
+    "id": 127,
+    "solution": "abyss",
+    "days_since_launch": 126
+  },
+  "2021-11-23": {
+    "id": 158,
+    "solution": "perch",
+    "days_since_launch": 157
+  },
+  "2021-11-12": {
+    "id": 147,
+    "solution": "badly",
+    "days_since_launch": 146
+  },
+  "2021-11-17": {
+    "id": 152,
+    "solution": "heron",
+    "days_since_launch": 151
+  },
+  "2021-11-24": {
+    "id": 159,
+    "solution": "retch",
+    "days_since_launch": 158
+  },
+  "2021-11-11": {
+    "id": 146,
+    "solution": "rogue",
+    "days_since_launch": 145
+  },
+  "2021-11-05": {
+    "id": 140,
+    "solution": "blurt",
+    "days_since_launch": 139
+  },
+  "2021-11-04": {
+    "id": 139,
+    "solution": "pulpy",
+    "days_since_launch": 138
+  },
+  "2021-11-10": {
+    "id": 145,
+    "solution": "group",
+    "days_since_launch": 144
+  },
+  "2021-10-20": {
+    "id": 124,
+    "solution": "jaunt",
+    "days_since_launch": 123
+  },
+  "2021-11-02": {
+    "id": 137,
+    "solution": "great",
+    "days_since_launch": 136
+  },
+  "2021-12-07": {
+    "id": 172,
+    "solution": "triad",
+    "days_since_launch": 171
+  },
+  "2021-12-05": {
+    "id": 170,
+    "solution": "usher",
+    "days_since_launch": 169
+  },
+  "2022-01-01": {
+    "id": 197,
+    "solution": "rebus",
+    "days_since_launch": 196
+  },
+  "2021-12-06": {
+    "id": 171,
+    "solution": "epoch",
+    "days_since_launch": 170
+  },
+  "2021-11-28": {
+    "id": 163,
+    "solution": "store",
+    "days_since_launch": 162
+  },
+  "2021-12-09": {
+    "id": 174,
+    "solution": "rhino",
+    "days_since_launch": 173
+  },
+  "2021-12-13": {
+    "id": 178,
+    "solution": "sonic",
+    "days_since_launch": 177
+  },
+  "2021-12-24": {
+    "id": 189,
+    "solution": "weary",
+    "days_since_launch": 188
+  },
+  "2022-01-04": {
+    "id": 200,
+    "solution": "siege",
+    "days_since_launch": 199
+  },
+  "2021-12-30": {
+    "id": 195,
+    "solution": "troll",
+    "days_since_launch": 194
+  },
+  "2021-12-22": {
+    "id": 187,
+    "solution": "craze",
+    "days_since_launch": 186
+  },
+  "2021-11-29": {
+    "id": 164,
+    "solution": "prove",
+    "days_since_launch": 163
+  },
+  "2021-12-14": {
+    "id": 179,
+    "solution": "vital",
+    "days_since_launch": 178
+  },
+  "2021-12-11": {
+    "id": 176,
+    "solution": "conic",
+    "days_since_launch": 175
+  },
+  "2021-12-20": {
+    "id": 185,
+    "solution": "brake",
+    "days_since_launch": 184
+  },
+  "2021-12-18": {
+    "id": 183,
+    "solution": "champ",
+    "days_since_launch": 182
+  },
+  "2021-12-16": {
+    "id": 181,
+    "solution": "using",
+    "days_since_launch": 180
+  },
+  "2021-12-31": {
+    "id": 196,
+    "solution": "unify",
+    "days_since_launch": 195
+  },
+  "2021-12-02": {
+    "id": 167,
+    "solution": "cheat",
+    "days_since_launch": 166
+  },
+  "2021-12-26": {
+    "id": 191,
+    "solution": "acute",
+    "days_since_launch": 190
+  },
+  "2021-11-26": {
+    "id": 161,
+    "solution": "clock",
+    "days_since_launch": 160
+  },
+  "2022-01-02": {
+    "id": 198,
+    "solution": "boost",
+    "days_since_launch": 197
+  },
+  "2021-12-28": {
+    "id": 193,
+    "solution": "aside",
+    "days_since_launch": 192
+  },
+  "2021-12-23": {
+    "id": 188,
+    "solution": "gripe",
+    "days_since_launch": 187
+  },
+  "2021-12-17": {
+    "id": 182,
+    "solution": "peach",
+    "days_since_launch": 181
+  },
+  "2021-12-03": {
+    "id": 168,
+    "solution": "grime",
+    "days_since_launch": 167
+  },
+  "2021-12-29": {
+    "id": 194,
+    "solution": "tapir",
+    "days_since_launch": 193
+  },
+  "2021-12-19": {
+    "id": 184,
+    "solution": "baton",
+    "days_since_launch": 183
+  },
+  "2021-12-10": {
+    "id": 175,
+    "solution": "viral",
+    "days_since_launch": 174
+  },
+  "2021-12-04": {
+    "id": 169,
+    "solution": "exult",
+    "days_since_launch": 168
+  },
+  "2021-12-27": {
+    "id": 192,
+    "solution": "ferry",
+    "days_since_launch": 191
+  },
+  "2021-11-30": {
+    "id": 165,
+    "solution": "bring",
+    "days_since_launch": 164
+  },
+  "2021-12-25": {
+    "id": 190,
+    "solution": "picky",
+    "days_since_launch": 189
+  },
+  "2022-01-03": {
+    "id": 199,
+    "solution": "truss",
+    "days_since_launch": 198
+  },
+  "2021-12-12": {
+    "id": 177,
+    "solution": "masse",
+    "days_since_launch": 176
+  },
+  "2021-12-01": {
+    "id": 166,
+    "solution": "solve",
+    "days_since_launch": 165
+  },
+  "2021-11-27": {
+    "id": 162,
+    "solution": "tilde",
+    "days_since_launch": 161
+  },
+  "2021-12-15": {
+    "id": 180,
+    "solution": "trace",
+    "days_since_launch": 179
+  },
+  "2021-12-21": {
+    "id": 186,
+    "solution": "pluck",
+    "days_since_launch": 185
+  },
+  "2021-12-08": {
+    "id": 173,
+    "solution": "break",
+    "days_since_launch": 172
+  },
+  "2022-01-31": {
+    "id": 227,
+    "solution": "light",
+    "days_since_launch": 226
+  },
+  "2022-02-13": {
+    "id": 240,
+    "solution": "robin",
+    "days_since_launch": 239
+  },
+  "2022-01-13": {
+    "id": 209,
+    "solution": "abbey",
+    "days_since_launch": 208
+  },
+  "2022-02-08": {
+    "id": 235,
+    "solution": "frame",
+    "days_since_launch": 234
+  },
+  "2022-01-06": {
+    "id": 202,
+    "solution": "banal",
+    "days_since_launch": 201
+  },
+  "2022-01-15": {
+    "id": 211,
+    "solution": "panic",
+    "days_since_launch": 210
+  },
+  "2022-01-30": {
+    "id": 226,
+    "solution": "wrung",
+    "days_since_launch": 225
+  },
+  "2022-01-11": {
+    "id": 207,
+    "solution": "drink",
+    "days_since_launch": 206
+  },
+  "2022-02-07": {
+    "id": 234,
+    "solution": "elder",
+    "days_since_launch": 233
+  },
+  "2022-01-12": {
+    "id": 208,
+    "solution": "favor",
+    "days_since_launch": 207
+  },
+  "2022-02-10": {
+    "id": 237,
+    "solution": "pause",
+    "days_since_launch": 236
+  },
+  "2022-01-27": {
+    "id": 223,
+    "solution": "mount",
+    "days_since_launch": 222
+  },
+  "2022-01-09": {
+    "id": 205,
+    "solution": "gorge",
+    "days_since_launch": 204
+  },
+  "2022-01-10": {
+    "id": 206,
+    "solution": "query",
+    "days_since_launch": 205
+  },
+  "2022-02-02": {
+    "id": 229,
+    "solution": "moist",
+    "days_since_launch": 228
+  },
+  "2022-02-11": {
+    "id": 238,
+    "solution": "ulcer",
+    "days_since_launch": 237
+  },
+  "2022-01-28": {
+    "id": 224,
+    "solution": "perky",
+    "days_since_launch": 223
+  },
+  "2022-01-25": {
+    "id": 221,
+    "solution": "sugar",
+    "days_since_launch": 220
+  },
+  "2022-02-01": {
+    "id": 228,
+    "solution": "those",
+    "days_since_launch": 227
+  },
+  "2022-02-06": {
+    "id": 233,
+    "solution": "skill",
+    "days_since_launch": 232
+  },
+  "2022-01-22": {
+    "id": 218,
+    "solution": "wince",
+    "days_since_launch": 217
+  },
+  "2022-01-23": {
+    "id": 219,
+    "solution": "crimp",
+    "days_since_launch": 218
+  },
+  "2022-01-14": {
+    "id": 210,
+    "solution": "tangy",
+    "days_since_launch": 209
+  },
+  "2022-01-08": {
+    "id": 204,
+    "solution": "crank",
+    "days_since_launch": 203
+  },
+  "2022-02-03": {
+    "id": 230,
+    "solution": "shard",
+    "days_since_launch": 229
+  },
+  "2022-01-07": {
+    "id": 203,
+    "solution": "slump",
+    "days_since_launch": 202
+  },
+  "2022-01-26": {
+    "id": 222,
+    "solution": "whack",
+    "days_since_launch": 221
+  },
+  "2022-02-12": {
+    "id": 239,
+    "solution": "ultra",
+    "days_since_launch": 238
+  },
+  "2022-01-19": {
+    "id": 215,
+    "solution": "point",
+    "days_since_launch": 214
+  },
+  "2022-02-09": {
+    "id": 236,
+    "solution": "humor",
+    "days_since_launch": 235
+  },
+  "2022-01-24": {
+    "id": 220,
+    "solution": "knoll",
+    "days_since_launch": 219
+  },
+  "2022-01-16": {
+    "id": 212,
+    "solution": "solar",
+    "days_since_launch": 211
+  },
+  "2022-01-29": {
+    "id": 225,
+    "solution": "could",
+    "days_since_launch": 224
+  },
+  "2022-01-05": {
+    "id": 201,
+    "solution": "tiger",
+    "days_since_launch": 200
+  },
+  "2022-01-18": {
+    "id": 214,
+    "solution": "proxy",
+    "days_since_launch": 213
+  },
+  "2022-01-17": {
+    "id": 213,
+    "solution": "shire",
+    "days_since_launch": 212
+  },
+  "2022-02-05": {
+    "id": 232,
+    "solution": "aloft",
+    "days_since_launch": 231
+  },
+  "2022-01-21": {
+    "id": 217,
+    "solution": "prick",
+    "days_since_launch": 216
+  },
+  "2022-01-20": {
+    "id": 216,
+    "solution": "robot",
+    "days_since_launch": 215
+  },
+  "2022-02-04": {
+    "id": 231,
+    "solution": "pleat",
+    "days_since_launch": 230
+  },
+  "2022-03-18": {
+    "id": 273,
+    "solution": "saute",
+    "days_since_launch": 272
+  },
+  "2022-02-28": {
+    "id": 255,
+    "solution": "choke",
+    "days_since_launch": 254
+  },
+  "2022-03-01": {
+    "id": 256,
+    "solution": "rupee",
+    "days_since_launch": 255
+  },
+  "2022-03-04": {
+    "id": 259,
+    "solution": "ahead",
+    "days_since_launch": 258
+  },
+  "2022-02-19": {
+    "id": 246,
+    "solution": "swill",
+    "days_since_launch": 245
+  },
+  "2022-03-07": {
+    "id": 262,
+    "solution": "hoard",
+    "days_since_launch": 261
+  },
+  "2022-02-27": {
+    "id": 254,
+    "solution": "chant",
+    "days_since_launch": 253
+  },
+  "2022-02-16": {
+    "id": 243,
+    "solution": "caulk",
+    "days_since_launch": 242
+  },
+  "2022-03-06": {
+    "id": 261,
+    "solution": "cloth",
+    "days_since_launch": 260
+  },
+  "2022-02-21": {
+    "id": 248,
+    "solution": "other",
+    "days_since_launch": 247
+  },
+  "2022-03-03": {
+    "id": 258,
+    "solution": "mourn",
+    "days_since_launch": 257
+  },
+  "2022-03-24": {
+    "id": 279,
+    "solution": "chest",
+    "days_since_launch": 278
+  },
+  "2022-03-16": {
+    "id": 271,
+    "solution": "cater",
+    "days_since_launch": 270
+  },
+  "2022-03-10": {
+    "id": 265,
+    "solution": "lapse",
+    "days_since_launch": 264
+  },
+  "2022-03-05": {
+    "id": 260,
+    "solution": "brine",
+    "days_since_launch": 259
+  },
+  "2022-02-20": {
+    "id": 247,
+    "solution": "tacit",
+    "days_since_launch": 246
+  },
+  "2022-02-17": {
+    "id": 244,
+    "solution": "shake",
+    "days_since_launch": 243
+  },
+  "2022-03-21": {
+    "id": 276,
+    "solution": "their",
+    "days_since_launch": 275
+  },
+  "2022-02-18": {
+    "id": 245,
+    "solution": "dodge",
+    "days_since_launch": 244
+  },
+  "2022-02-22": {
+    "id": 249,
+    "solution": "thorn",
+    "days_since_launch": 248
+  },
+  "2022-03-23": {
+    "id": 278,
+    "solution": "purge",
+    "days_since_launch": 277
+  },
+  "2022-03-17": {
+    "id": 272,
+    "solution": "movie",
+    "days_since_launch": 271
+  },
+  "2022-02-26": {
+    "id": 253,
+    "solution": "spill",
+    "days_since_launch": 252
+  },
+  "2022-02-23": {
+    "id": 250,
+    "solution": "trove",
+    "days_since_launch": 249
+  },
+  "2022-03-02": {
+    "id": 257,
+    "solution": "nasty",
+    "days_since_launch": 256
+  },
+  "2022-02-24": {
+    "id": 251,
+    "solution": "bloke",
+    "days_since_launch": 250
+  },
+  "2022-03-19": {
+    "id": 274,
+    "solution": "allow",
+    "days_since_launch": 273
+  },
+  "2022-02-14": {
+    "id": 241,
+    "solution": "cynic",
+    "days_since_launch": 240
+  },
+  "2022-03-14": {
+    "id": 269,
+    "solution": "smelt",
+    "days_since_launch": 268
+  },
+  "2022-03-08": {
+    "id": 263,
+    "solution": "sweet",
+    "days_since_launch": 262
+  },
+  "2022-03-25": {
+    "id": 280,
+    "solution": "depot",
+    "days_since_launch": 279
+  },
+  "2022-03-13": {
+    "id": 268,
+    "solution": "focus",
+    "days_since_launch": 267
+  },
+  "2022-03-20": {
+    "id": 275,
+    "solution": "renew",
+    "days_since_launch": 274
+  },
+  "2022-03-15": {
+    "id": 270,
+    "solution": "tease",
+    "days_since_launch": 269
+  },
+  "2022-02-15": {
+    "id": 242,
+    "solution": "aroma",
+    "days_since_launch": 241
+  },
+  "2022-03-12": {
+    "id": 267,
+    "solution": "today",
+    "days_since_launch": 266
+  },
+  "2022-03-09": {
+    "id": 264,
+    "solution": "month",
+    "days_since_launch": 263
+  },
+  "2022-03-22": {
+    "id": 277,
+    "solution": "slosh",
+    "days_since_launch": 276
+  },
+  "2022-02-25": {
+    "id": 252,
+    "solution": "vivid",
+    "days_since_launch": 251
+  },
+  "2022-03-11": {
+    "id": 266,
+    "solution": "watch",
+    "days_since_launch": 265
+  },
+  "2022-04-16": {
+    "id": 302,
+    "solution": "cheek",
+    "days_since_launch": 301
+  },
+  "2022-04-28": {
+    "id": 314,
+    "solution": "zesty",
+    "days_since_launch": 313
+  },
+  "2022-05-04": {
+    "id": 320,
+    "solution": "train",
+    "days_since_launch": 319
+  },
+  "2022-04-05": {
+    "id": 291,
+    "solution": "natal",
+    "days_since_launch": 290
+  },
+  "2022-04-12": {
+    "id": 298,
+    "solution": "royal",
+    "days_since_launch": 297
+  },
+  "2022-05-03": {
+    "id": 319,
+    "solution": "hairy",
+    "days_since_launch": 318
+  },
+  "2022-04-09": {
+    "id": 295,
+    "solution": "stair",
+    "days_since_launch": 294
+  },
+  "2022-04-01": {
+    "id": 287,
+    "solution": "snout",
+    "days_since_launch": 286
+  },
+  "2022-05-01": {
+    "id": 317,
+    "solution": "forgo",
+    "days_since_launch": 316
+  },
+  "2022-04-18": {
+    "id": 304,
+    "solution": "flair",
+    "days_since_launch": 303
+  },
+  "2022-04-02": {
+    "id": 288,
+    "solution": "trope",
+    "days_since_launch": 287
+  },
+  "2022-04-11": {
+    "id": 297,
+    "solution": "squad",
+    "days_since_launch": 296
+  },
+  "2022-04-03": {
+    "id": 289,
+    "solution": "fewer",
+    "days_since_launch": 288
+  },
+  "2022-04-06": {
+    "id": 292,
+    "solution": "comma",
+    "days_since_launch": 291
+  },
+  "2022-05-02": {
+    "id": 318,
+    "solution": "story",
+    "days_since_launch": 317
+  },
+  "2022-04-26": {
+    "id": 312,
+    "solution": "heist",
+    "days_since_launch": 311
+  },
+  "2022-03-28": {
+    "id": 283,
+    "solution": "found",
+    "days_since_launch": 282
+  },
+  "2022-03-30": {
+    "id": 285,
+    "solution": "stove",
+    "days_since_launch": 284
+  },
+  "2022-04-07": {
+    "id": 293,
+    "solution": "foray",
+    "days_since_launch": 292
+  },
+  "2022-04-27": {
+    "id": 313,
+    "solution": "shown",
+    "days_since_launch": 312
+  },
+  "2022-04-29": {
+    "id": 315,
+    "solution": "trash",
+    "days_since_launch": 314
+  },
+  "2022-04-21": {
+    "id": 307,
+    "solution": "oxide",
+    "days_since_launch": 306
+  },
+  "2022-04-17": {
+    "id": 303,
+    "solution": "ample",
+    "days_since_launch": 302
+  },
+  "2022-04-20": {
+    "id": 306,
+    "solution": "cargo",
+    "days_since_launch": 305
+  },
+  "2022-03-29": {
+    "id": 284,
+    "solution": "shall",
+    "days_since_launch": 283
+  },
+  "2022-04-14": {
+    "id": 300,
+    "solution": "mince",
+    "days_since_launch": 299
+  },
+  "2022-04-10": {
+    "id": 296,
+    "solution": "black",
+    "days_since_launch": 295
+  },
+  "2022-04-25": {
+    "id": 311,
+    "solution": "askew",
+    "days_since_launch": 310
+  },
+  "2022-04-08": {
+    "id": 294,
+    "solution": "scare",
+    "days_since_launch": 293
+  },
+  "2022-04-23": {
+    "id": 309,
+    "solution": "olive",
+    "days_since_launch": 308
+  },
+  "2022-04-24": {
+    "id": 310,
+    "solution": "inert",
+    "days_since_launch": 309
+  },
+  "2022-03-26": {
+    "id": 281,
+    "solution": "epoxy",
+    "days_since_launch": 280
+  },
+  "2022-04-15": {
+    "id": 301,
+    "solution": "shame",
+    "days_since_launch": 300
+  },
+  "2022-04-04": {
+    "id": 290,
+    "solution": "shawl",
+    "days_since_launch": 289
+  },
+  "2022-03-31": {
+    "id": 286,
+    "solution": "lowly",
+    "days_since_launch": 285
+  },
+  "2022-03-27": {
+    "id": 282,
+    "solution": "nymph",
+    "days_since_launch": 281
+  },
+  "2022-04-30": {
+    "id": 316,
+    "solution": "larva",
+    "days_since_launch": 315
+  },
+  "2022-04-13": {
+    "id": 299,
+    "solution": "chunk",
+    "days_since_launch": 298
+  },
+  "2022-04-22": {
+    "id": 308,
+    "solution": "plant",
+    "days_since_launch": 307
+  },
+  "2022-04-19": {
+    "id": 305,
+    "solution": "foyer",
+    "days_since_launch": 304
+  },
+  "2022-05-17": {
+    "id": 333,
+    "solution": "being",
+    "days_since_launch": 332
+  },
+  "2022-06-10": {
+    "id": 357,
+    "solution": "piety",
+    "days_since_launch": 356
+  },
+  "2022-06-09": {
+    "id": 356,
+    "solution": "girth",
+    "days_since_launch": 355
+  },
+  "2022-05-22": {
+    "id": 338,
+    "solution": "money",
+    "days_since_launch": 337
+  },
+  "2022-05-21": {
+    "id": 337,
+    "solution": "scrap",
+    "days_since_launch": 336
+  },
+  "2022-05-31": {
+    "id": 347,
+    "solution": "manor",
+    "days_since_launch": 346
+  },
+  "2022-06-03": {
+    "id": 350,
+    "solution": "phase",
+    "days_since_launch": 349
+  },
+  "2022-06-05": {
+    "id": 352,
+    "solution": "depth",
+    "days_since_launch": 351
+  },
+  "2022-05-16": {
+    "id": 332,
+    "solution": "delve",
+    "days_since_launch": 331
+  },
+  "2022-05-28": {
+    "id": 344,
+    "solution": "crept",
+    "days_since_launch": 343
+  },
+  "2022-05-14": {
+    "id": 330,
+    "solution": "metal",
+    "days_since_launch": 329
+  },
+  "2022-05-20": {
+    "id": 336,
+    "solution": "gamer",
+    "days_since_launch": 335
+  },
+  "2022-06-04": {
+    "id": 351,
+    "solution": "froth",
+    "days_since_launch": 350
+  },
+  "2022-05-11": {
+    "id": 327,
+    "solution": "farce",
+    "days_since_launch": 326
+  },
+  "2022-06-11": {
+    "id": 358,
+    "solution": "goose",
+    "days_since_launch": 357
+  },
+  "2022-06-08": {
+    "id": 355,
+    "solution": "trait",
+    "days_since_launch": 354
+  },
+  "2022-05-18": {
+    "id": 334,
+    "solution": "scour",
+    "days_since_launch": 333
+  },
+  "2022-05-24": {
+    "id": 340,
+    "solution": "album",
+    "days_since_launch": 339
+  },
+  "2022-05-09": {
+    "id": 325,
+    "solution": "shine",
+    "days_since_launch": 324
+  },
+  "2022-05-06": {
+    "id": 322,
+    "solution": "badge",
+    "days_since_launch": 321
+  },
+  "2022-05-30": {
+    "id": 346,
+    "solution": "atoll",
+    "days_since_launch": 345
+  },
+  "2022-06-02": {
+    "id": 349,
+    "solution": "showy",
+    "days_since_launch": 348
+  },
+  "2022-06-01": {
+    "id": 348,
+    "solution": "creak",
+    "days_since_launch": 347
+  },
+  "2022-05-23": {
+    "id": 339,
+    "solution": "hinge",
+    "days_since_launch": 338
+  },
+  "2022-05-25": {
+    "id": 341,
+    "solution": "vouch",
+    "days_since_launch": 340
+  },
+  "2022-05-07": {
+    "id": 323,
+    "solution": "midst",
+    "days_since_launch": 322
+  },
+  "2022-05-19": {
+    "id": 335,
+    "solution": "glass",
+    "days_since_launch": 334
+  },
+  "2022-05-08": {
+    "id": 324,
+    "solution": "canny",
+    "days_since_launch": 323
+  },
+  "2022-06-12": {
+    "id": 359,
+    "solution": "float",
+    "days_since_launch": 358
+  },
+  "2022-06-13": {
+    "id": 360,
+    "solution": "donor",
+    "days_since_launch": 359
+  },
+  "2022-05-13": {
+    "id": 329,
+    "solution": "tipsy",
+    "days_since_launch": 328
+  },
+  "2022-05-26": {
+    "id": 342,
+    "solution": "asset",
+    "days_since_launch": 341
+  },
+  "2022-05-05": {
+    "id": 321,
+    "solution": "homer",
+    "days_since_launch": 320
+  },
+  "2022-06-06": {
+    "id": 353,
+    "solution": "gloom",
+    "days_since_launch": 352
+  },
+  "2022-05-15": {
+    "id": 331,
+    "solution": "yield",
+    "days_since_launch": 330
+  },
+  "2022-06-07": {
+    "id": 354,
+    "solution": "flood",
+    "days_since_launch": 353
+  },
+  "2022-05-10": {
+    "id": 326,
+    "solution": "gecko",
+    "days_since_launch": 325
+  },
+  "2022-05-12": {
+    "id": 328,
+    "solution": "slung",
+    "days_since_launch": 327
+  },
+  "2022-05-27": {
+    "id": 343,
+    "solution": "tiara",
+    "days_since_launch": 342
+  },
+  "2022-05-29": {
+    "id": 345,
+    "solution": "bayou",
+    "days_since_launch": 344
+  },
+  "2022-07-10": {
+    "id": 387,
+    "solution": "berth",
+    "days_since_launch": 386
+  },
+  "2022-07-23": {
+    "id": 400,
+    "solution": "midge",
+    "days_since_launch": 399
+  },
+  "2022-06-25": {
+    "id": 372,
+    "solution": "beady",
+    "days_since_launch": 371
+  },
+  "2022-07-20": {
+    "id": 397,
+    "solution": "trite",
+    "days_since_launch": 396
+  },
+  "2022-06-17": {
+    "id": 364,
+    "solution": "blown",
+    "days_since_launch": 363
+  },
+  "2022-07-05": {
+    "id": 382,
+    "solution": "field",
+    "days_since_launch": 381
+  },
+  "2022-07-17": {
+    "id": 394,
+    "solution": "wacky",
+    "days_since_launch": 393
+  },
+  "2022-06-14": {
+    "id": 361,
+    "solution": "atone",
+    "days_since_launch": 360
+  },
+  "2022-06-30": {
+    "id": 377,
+    "solution": "hutch",
+    "days_since_launch": 376
+  },
+  "2022-07-15": {
+    "id": 392,
+    "solution": "wedge",
+    "days_since_launch": 391
+  },
+  "2022-06-28": {
+    "id": 375,
+    "solution": "droll",
+    "days_since_launch": 374
+  },
+  "2022-06-27": {
+    "id": 374,
+    "solution": "retro",
+    "days_since_launch": 373
+  },
+  "2022-07-07": {
+    "id": 384,
+    "solution": "agape",
+    "days_since_launch": 383
+  },
+  "2022-06-23": {
+    "id": 370,
+    "solution": "brink",
+    "days_since_launch": 369
+  },
+  "2022-07-19": {
+    "id": 396,
+    "solution": "angry",
+    "days_since_launch": 395
+  },
+  "2022-07-03": {
+    "id": 380,
+    "solution": "lilac",
+    "days_since_launch": 379
+  },
+  "2022-06-26": {
+    "id": 373,
+    "solution": "rusty",
+    "days_since_launch": 372
+  },
+  "2022-06-21": {
+    "id": 368,
+    "solution": "gloat",
+    "days_since_launch": 367
+  },
+  "2022-07-02": {
+    "id": 379,
+    "solution": "egret",
+    "days_since_launch": 378
+  },
+  "2022-07-11": {
+    "id": 388,
+    "solution": "madam",
+    "days_since_launch": 387
+  },
+  "2022-07-21": {
+    "id": 398,
+    "solution": "aphid",
+    "days_since_launch": 397
+  },
+  "2022-06-29": {
+    "id": 376,
+    "solution": "gawky",
+    "days_since_launch": 375
+  },
+  "2022-07-22": {
+    "id": 399,
+    "solution": "tryst",
+    "days_since_launch": 398
+  },
+  "2022-06-22": {
+    "id": 369,
+    "solution": "awful",
+    "days_since_launch": 368
+  },
+  "2022-07-14": {
+    "id": 391,
+    "solution": "liver",
+    "days_since_launch": 390
+  },
+  "2022-07-08": {
+    "id": 385,
+    "solution": "voice",
+    "days_since_launch": 384
+  },
+  "2022-06-20": {
+    "id": 367,
+    "solution": "input",
+    "days_since_launch": 366
+  },
+  "2022-06-24": {
+    "id": 371,
+    "solution": "smite",
+    "days_since_launch": 370
+  },
+  "2022-07-01": {
+    "id": 378,
+    "solution": "pinto",
+    "days_since_launch": 377
+  },
+  "2022-07-18": {
+    "id": 395,
+    "solution": "flock",
+    "days_since_launch": 394
+  },
+  "2022-06-18": {
+    "id": 365,
+    "solution": "cacao",
+    "days_since_launch": 364
+  },
+  "2022-07-04": {
+    "id": 381,
+    "solution": "sever",
+    "days_since_launch": 380
+  },
+  "2022-07-12": {
+    "id": 389,
+    "solution": "night",
+    "days_since_launch": 388
+  },
+  "2022-07-06": {
+    "id": 383,
+    "solution": "fluff",
+    "days_since_launch": 382
+  },
+  "2022-07-13": {
+    "id": 390,
+    "solution": "bland",
+    "days_since_launch": 389
+  },
+  "2022-06-16": {
+    "id": 363,
+    "solution": "apron",
+    "days_since_launch": 362
+  },
+  "2022-06-15": {
+    "id": 362,
+    "solution": "primo",
+    "days_since_launch": 361
+  },
+  "2022-07-09": {
+    "id": 386,
+    "solution": "stead",
+    "days_since_launch": 385
+  },
+  "2022-06-19": {
+    "id": 366,
+    "solution": "loser",
+    "days_since_launch": 365
+  },
+  "2022-07-16": {
+    "id": 393,
+    "solution": "roomy",
+    "days_since_launch": 392
+  },
+  "2022-08-05": {
+    "id": 413,
+    "solution": "buggy",
+    "days_since_launch": 412
+  },
+  "2022-08-22": {
+    "id": 430,
+    "solution": "merit",
+    "days_since_launch": 429
+  },
+  "2022-08-27": {
+    "id": 435,
+    "solution": "ruder",
+    "days_since_launch": 434
+  },
+  "2022-07-29": {
+    "id": 406,
+    "solution": "upset",
+    "days_since_launch": 405
+  },
+  "2022-07-31": {
+    "id": 408,
+    "solution": "cramp",
+    "days_since_launch": 407
+  },
+  "2022-08-18": {
+    "id": 426,
+    "solution": "twang",
+    "days_since_launch": 425
+  },
+  "2022-07-27": {
+    "id": 404,
+    "solution": "motto",
+    "days_since_launch": 403
+  },
+  "2022-08-11": {
+    "id": 419,
+    "solution": "glean",
+    "days_since_launch": 418
+  },
+  "2022-08-01": {
+    "id": 409,
+    "solution": "quart",
+    "days_since_launch": 408
+  },
+  "2022-08-16": {
+    "id": 424,
+    "solution": "gruel",
+    "days_since_launch": 423
+  },
+  "2022-08-09": {
+    "id": 417,
+    "solution": "patty",
+    "days_since_launch": 416
+  },
+  "2022-08-21": {
+    "id": 429,
+    "solution": "waste",
+    "days_since_launch": 428
+  },
+  "2022-08-10": {
+    "id": 418,
+    "solution": "cling",
+    "days_since_launch": 417
+  },
+  "2022-07-26": {
+    "id": 403,
+    "solution": "cinch",
+    "days_since_launch": 402
+  },
+  "2022-08-03": {
+    "id": 411,
+    "solution": "youth",
+    "days_since_launch": 410
+  },
+  "2022-07-25": {
+    "id": 402,
+    "solution": "elope",
+    "days_since_launch": 401
+  },
+  "2022-08-02": {
+    "id": 410,
+    "solution": "coyly",
+    "days_since_launch": 409
+  },
+  "2022-08-31": {
+    "id": 439,
+    "solution": "prize",
+    "days_since_launch": 438
+  },
+  "2022-08-17": {
+    "id": 425,
+    "solution": "twice",
+    "days_since_launch": 424
+  },
+  "2022-08-23": {
+    "id": 431,
+    "solution": "woven",
+    "days_since_launch": 430
+  },
+  "2022-07-24": {
+    "id": 401,
+    "solution": "power",
+    "days_since_launch": 400
+  },
+  "2022-08-28": {
+    "id": 436,
+    "solution": "gauze",
+    "days_since_launch": 435
+  },
+  "2022-09-01": {
+    "id": 440,
+    "solution": "fungi",
+    "days_since_launch": 439
+  },
+  "2022-08-19": {
+    "id": 427,
+    "solution": "shrug",
+    "days_since_launch": 426
+  },
+  "2022-08-14": {
+    "id": 422,
+    "solution": "khaki",
+    "days_since_launch": 421
+  },
+  "2022-08-04": {
+    "id": 412,
+    "solution": "rhyme",
+    "days_since_launch": 411
+  },
+  "2022-08-13": {
+    "id": 421,
+    "solution": "hunky",
+    "days_since_launch": 420
+  },
+  "2022-08-24": {
+    "id": 432,
+    "solution": "needy",
+    "days_since_launch": 431
+  },
+  "2022-08-26": {
+    "id": 434,
+    "solution": "irony",
+    "days_since_launch": 433
+  },
+  "2022-08-30": {
+    "id": 438,
+    "solution": "onset",
+    "days_since_launch": 437
+  },
+  "2022-08-08": {
+    "id": 416,
+    "solution": "unfit",
+    "days_since_launch": 415
+  },
+  "2022-07-30": {
+    "id": 407,
+    "solution": "bluff",
+    "days_since_launch": 406
+  },
+  "2022-08-29": {
+    "id": 437,
+    "solution": "chief",
+    "days_since_launch": 436
+  },
+  "2022-08-07": {
+    "id": 415,
+    "solution": "smear",
+    "days_since_launch": 414
+  },
+  "2022-08-12": {
+    "id": 420,
+    "solution": "label",
+    "days_since_launch": 419
+  },
+  "2022-08-25": {
+    "id": 433,
+    "solution": "clown",
+    "days_since_launch": 432
+  },
+  "2022-08-15": {
+    "id": 423,
+    "solution": "poker",
+    "days_since_launch": 422
+  },
+  "2022-08-20": {
+    "id": 428,
+    "solution": "treat",
+    "days_since_launch": 427
+  },
+  "2022-08-06": {
+    "id": 414,
+    "solution": "alien",
+    "days_since_launch": 413
+  },
+  "2022-07-28": {
+    "id": 405,
+    "solution": "stomp",
+    "days_since_launch": 404
+  },
+  "2022-09-16": {
+    "id": 455,
+    "solution": "parer",
+    "days_since_launch": 454
+  },
+  "2022-10-08": {
+    "id": 477,
+    "solution": "vigor",
+    "days_since_launch": 476
+  },
+  "2022-10-07": {
+    "id": 476,
+    "solution": "dandy",
+    "days_since_launch": 475
+  },
+  "2022-09-05": {
+    "id": 444,
+    "solution": "whoop",
+    "days_since_launch": 443
+  },
+  "2022-09-15": {
+    "id": 454,
+    "solution": "doubt",
+    "days_since_launch": 453
+  },
+  "2022-09-12": {
+    "id": 451,
+    "solution": "booze",
+    "days_since_launch": 450
+  },
+  "2022-09-20": {
+    "id": 459,
+    "solution": "alike",
+    "days_since_launch": 458
+  },
+  "2022-10-11": {
+    "id": 480,
+    "solution": "valid",
+    "days_since_launch": 479
+  },
+  "2022-09-29": {
+    "id": 468,
+    "solution": "scald",
+    "days_since_launch": 467
+  },
+  "2022-10-01": {
+    "id": 470,
+    "solution": "leave",
+    "days_since_launch": 469
+  },
+  "2022-09-02": {
+    "id": 441,
+    "solution": "charm",
+    "days_since_launch": 440
+  },
+  "2022-09-27": {
+    "id": 466,
+    "solution": "soggy",
+    "days_since_launch": 465
+  },
+  "2022-10-04": {
+    "id": 473,
+    "solution": "bough",
+    "days_since_launch": 472
+  },
+  "2022-09-25": {
+    "id": 464,
+    "solution": "admit",
+    "days_since_launch": 463
+  },
+  "2022-09-04": {
+    "id": 443,
+    "solution": "inter",
+    "days_since_launch": 442
+  },
+  "2022-09-28": {
+    "id": 467,
+    "solution": "usurp",
+    "days_since_launch": 466
+  },
+  "2022-09-11": {
+    "id": 450,
+    "solution": "tibia",
+    "days_since_launch": 449
+  },
+  "2022-09-30": {
+    "id": 469,
+    "solution": "scorn",
+    "days_since_launch": 468
+  },
+  "2022-09-21": {
+    "id": 460,
+    "solution": "recap",
+    "days_since_launch": 459
+  },
+  "2022-09-07": {
+    "id": 446,
+    "solution": "leery",
+    "days_since_launch": 445
+  },
+  "2022-09-22": {
+    "id": 461,
+    "solution": "saint",
+    "days_since_launch": 460
+  },
+  "2022-10-03": {
+    "id": 472,
+    "solution": "sting",
+    "days_since_launch": 471
+  },
+  "2022-09-19": {
+    "id": 458,
+    "solution": "trice",
+    "days_since_launch": 457
+  },
+  "2022-09-13": {
+    "id": 452,
+    "solution": "alpha",
+    "days_since_launch": 451
+  },
+  "2022-09-03": {
+    "id": 442,
+    "solution": "gully",
+    "days_since_launch": 441
+  },
+  "2022-09-06": {
+    "id": 445,
+    "solution": "taunt",
+    "days_since_launch": 444
+  },
+  "2022-09-14": {
+    "id": 453,
+    "solution": "thyme",
+    "days_since_launch": 452
+  },
+  "2022-10-02": {
+    "id": 471,
+    "solution": "twine",
+    "days_since_launch": 470
+  },
+  "2022-10-10": {
+    "id": 479,
+    "solution": "enjoy",
+    "days_since_launch": 478
+  },
+  "2022-10-09": {
+    "id": 478,
+    "solution": "howdy",
+    "days_since_launch": 477
+  },
+  "2022-09-17": {
+    "id": 456,
+    "solution": "chute",
+    "days_since_launch": 455
+  },
+  "2022-09-18": {
+    "id": 457,
+    "solution": "stick",
+    "days_since_launch": 456
+  },
+  "2022-09-08": {
+    "id": 447,
+    "solution": "class",
+    "days_since_launch": 446
+  },
+  "2022-09-10": {
+    "id": 449,
+    "solution": "lofty",
+    "days_since_launch": 448
+  },
+  "2022-10-05": {
+    "id": 474,
+    "solution": "marsh",
+    "days_since_launch": 473
+  },
+  "2022-09-24": {
+    "id": 463,
+    "solution": "grate",
+    "days_since_launch": 462
+  },
+  "2022-09-23": {
+    "id": 462,
+    "solution": "glory",
+    "days_since_launch": 461
+  },
+  "2022-10-06": {
+    "id": 475,
+    "solution": "sloth",
+    "days_since_launch": 474
+  },
+  "2022-09-09": {
+    "id": 448,
+    "solution": "theme",
+    "days_since_launch": 447
+  },
+  "2022-09-26": {
+    "id": 465,
+    "solution": "brisk",
+    "days_since_launch": 464
+  },
+  "2022-10-17": {
+    "id": 486,
+    "solution": "stein",
+    "days_since_launch": 485
+  },
+  "2022-11-17": {
+    "id": 510,
+    "solution": "there",
+    "days_since_launch": 516
+  },
+  "2022-10-14": {
+    "id": 483,
+    "solution": "floor",
+    "days_since_launch": 482
+  },
+  "2022-10-23": {
+    "id": 492,
+    "solution": "mummy",
+    "days_since_launch": 491
+  },
+  "2022-10-27": {
+    "id": 496,
+    "solution": "carry",
+    "days_since_launch": 495
+  },
+  "2022-10-18": {
+    "id": 487,
+    "solution": "exist",
+    "days_since_launch": 486
+  },
+  "2022-10-19": {
+    "id": 488,
+    "solution": "quirk",
+    "days_since_launch": 487
+  },
+  "2022-11-02": {
+    "id": 502,
+    "solution": "inept",
+    "days_since_launch": 501
+  },
+  "2022-10-25": {
+    "id": 494,
+    "solution": "foggy",
+    "days_since_launch": 493
+  },
+  "2022-11-16": {
+    "id": 509,
+    "solution": "baker",
+    "days_since_launch": 515
+  },
+  "2022-10-30": {
+    "id": 499,
+    "solution": "waltz",
+    "days_since_launch": 498
+  },
+  "2022-11-06": {
+    "id": 506,
+    "solution": "stale",
+    "days_since_launch": 505
+  },
+  "2022-11-18": {
+    "id": 511,
+    "solution": "glyph",
+    "days_since_launch": 517
+  },
+  "2022-10-20": {
+    "id": 489,
+    "solution": "denim",
+    "days_since_launch": 488
+  },
+  "2022-11-01": {
+    "id": 501,
+    "solution": "piney",
+    "days_since_launch": 500
+  },
+  "2022-10-15": {
+    "id": 484,
+    "solution": "catch",
+    "days_since_launch": 483
+  },
+  "2022-10-26": {
+    "id": 495,
+    "solution": "flout",
+    "days_since_launch": 494
+  },
+  "2022-11-13": {
+    "id": 523,
+    "solution": "inane",
+    "days_since_launch": 512
+  },
+  "2022-10-28": {
+    "id": 497,
+    "solution": "sneak",
+    "days_since_launch": 496
+  },
+  "2022-10-29": {
+    "id": 498,
+    "solution": "libel",
+    "days_since_launch": 497
+  },
+  "2022-11-14": {
+    "id": 1255,
+    "solution": "maple",
+    "days_since_launch": 513
+  },
+  "2022-11-10": {
+    "id": 507,
+    "solution": "unite",
+    "days_since_launch": 509
+  },
+  "2022-11-05": {
+    "id": 505,
+    "solution": "dream",
+    "days_since_launch": 504
+  },
+  "2022-11-12": {
+    "id": 537,
+    "solution": "valet",
+    "days_since_launch": 511
+  },
+  "2022-10-31": {
+    "id": 500,
+    "solution": "aptly",
+    "days_since_launch": 499
+  },
+  "2022-10-16": {
+    "id": 485,
+    "solution": "spade",
+    "days_since_launch": 484
+  },
+  "2022-11-20": {
+    "id": 969,
+    "solution": "brave",
+    "days_since_launch": 519
+  },
+  "2022-10-12": {
+    "id": 481,
+    "solution": "ionic",
+    "days_since_launch": 480
+  },
+  "2022-11-04": {
+    "id": 504,
+    "solution": "photo",
+    "days_since_launch": 503
+  },
+  "2022-11-11": {
+    "id": 1249,
+    "solution": "medal",
+    "days_since_launch": 510
+  },
+  "2022-11-09": {
+    "id": 530,
+    "solution": "rainy",
+    "days_since_launch": 508
+  },
+  "2022-10-24": {
+    "id": 493,
+    "solution": "fault",
+    "days_since_launch": 492
+  },
+  "2022-10-21": {
+    "id": 490,
+    "solution": "grove",
+    "days_since_launch": 489
+  },
+  "2022-11-07": {
+    "id": 1623,
+    "solution": "begin",
+    "days_since_launch": 506
+  },
+  "2022-11-19": {
+    "id": 539,
+    "solution": "avert",
+    "days_since_launch": 518
+  },
+  "2022-11-03": {
+    "id": 503,
+    "solution": "aloud",
+    "days_since_launch": 502
+  },
+  "2022-10-13": {
+    "id": 482,
+    "solution": "equal",
+    "days_since_launch": 481
+  },
+  "2022-10-22": {
+    "id": 491,
+    "solution": "spiel",
+    "days_since_launch": 490
+  },
+  "2022-11-08": {
+    "id": 514,
+    "solution": "spell",
+    "days_since_launch": 507
+  },
+  "2022-11-15": {
+    "id": 508,
+    "solution": "snarl",
+    "days_since_launch": 514
+  },
+  "2022-12-22": {
+    "id": 952,
+    "solution": "excel",
+    "days_since_launch": 551
+  },
+  "2022-12-24": {
+    "id": 1155,
+    "solution": "poise",
+    "days_since_launch": 553
+  },
+  "2022-12-29": {
+    "id": 1279,
+    "solution": "havoc",
+    "days_since_launch": 558
+  },
+  "2022-12-28": {
+    "id": 2208,
+    "solution": "impel",
+    "days_since_launch": 557
+  },
+  "2022-12-23": {
+    "id": 2281,
+    "solution": "aorta",
+    "days_since_launch": 552
+  },
+  "2022-12-14": {
+    "id": 621,
+    "solution": "usual",
+    "days_since_launch": 543
+  },
+  "2022-12-11": {
+    "id": 923,
+    "solution": "naive",
+    "days_since_launch": 540
+  },
+  "2022-12-08": {
+    "id": 1149,
+    "solution": "infer",
+    "days_since_launch": 537
+  },
+  "2022-12-26": {
+    "id": 2283,
+    "solution": "judge",
+    "days_since_launch": 555
+  },
+  "2022-12-15": {
+    "id": 2278,
+    "solution": "rival",
+    "days_since_launch": 544
+  },
+  "2022-12-18": {
+    "id": 962,
+    "solution": "taper",
+    "days_since_launch": 547
+  },
+  "2022-12-21": {
+    "id": 694,
+    "solution": "lunar",
+    "days_since_launch": 550
+  },
+  "2022-11-27": {
+    "id": 2180,
+    "solution": "happy",
+    "days_since_launch": 526
+  },
+  "2022-11-22": {
+    "id": 929,
+    "solution": "prime",
+    "days_since_launch": 521
+  },
+  "2022-12-16": {
+    "id": 1591,
+    "solution": "probe",
+    "days_since_launch": 545
+  },
+  "2022-12-10": {
+    "id": 2256,
+    "solution": "knock",
+    "days_since_launch": 539
+  },
+  "2022-11-26": {
+    "id": 736,
+    "solution": "clean",
+    "days_since_launch": 525
+  },
+  "2022-12-17": {
+    "id": 801,
+    "solution": "chord",
+    "days_since_launch": 546
+  },
+  "2022-12-06": {
+    "id": 2008,
+    "solution": "amber",
+    "days_since_launch": 535
+  },
+  "2022-12-02": {
+    "id": 1311,
+    "solution": "chafe",
+    "days_since_launch": 531
+  },
+  "2022-11-25": {
+    "id": 1680,
+    "solution": "itchy",
+    "days_since_launch": 524
+  },
+  "2022-12-19": {
+    "id": 853,
+    "solution": "slate",
+    "days_since_launch": 548
+  },
+  "2022-11-28": {
+    "id": 2268,
+    "solution": "tepid",
+    "days_since_launch": 527
+  },
+  "2022-12-09": {
+    "id": 840,
+    "solution": "braid",
+    "days_since_launch": 538
+  },
+  "2022-11-30": {
+    "id": 552,
+    "solution": "study",
+    "days_since_launch": 529
+  },
+  "2022-12-07": {
+    "id": 1246,
+    "solution": "joust",
+    "days_since_launch": 536
+  },
+  "2022-12-13": {
+    "id": 895,
+    "solution": "spoke",
+    "days_since_launch": 542
+  },
+  "2022-12-03": {
+    "id": 2265,
+    "solution": "torso",
+    "days_since_launch": 532
+  },
+  "2022-11-21": {
+    "id": 1685,
+    "solution": "axiom",
+    "days_since_launch": 520
+  },
+  "2022-11-29": {
+    "id": 559,
+    "solution": "undue",
+    "days_since_launch": 528
+  },
+  "2022-12-20": {
+    "id": 1045,
+    "solution": "third",
+    "days_since_launch": 549
+  },
+  "2022-12-30": {
+    "id": 771,
+    "solution": "molar",
+    "days_since_launch": 559
+  },
+  "2022-11-23": {
+    "id": 2166,
+    "solution": "drive",
+    "days_since_launch": 522
+  },
+  "2022-12-27": {
+    "id": 2258,
+    "solution": "condo",
+    "days_since_launch": 556
+  },
+  "2022-12-05": {
+    "id": 849,
+    "solution": "woken",
+    "days_since_launch": 534
+  },
+  "2022-12-04": {
+    "id": 1106,
+    "solution": "adore",
+    "days_since_launch": 533
+  },
+  "2022-12-25": {
+    "id": 2257,
+    "solution": "extra",
+    "days_since_launch": 554
+  },
+  "2022-11-24": {
+    "id": 1438,
+    "solution": "feast",
+    "days_since_launch": 523
+  },
+  "2022-12-01": {
+    "id": 2276,
+    "solution": "eject",
+    "days_since_launch": 530
+  },
+  "2022-12-12": {
+    "id": 1168,
+    "solution": "apply",
+    "days_since_launch": 541
+  },
+  "2023-01-15": {
+    "id": 1277,
+    "solution": "spire",
+    "days_since_launch": 575
+  },
+  "2023-01-01": {
+    "id": 2191,
+    "solution": "whine",
+    "days_since_launch": 561
+  },
+  "2023-01-23": {
+    "id": 713,
+    "solution": "elude",
+    "days_since_launch": 583
+  },
+  "2023-01-09": {
+    "id": 1132,
+    "solution": "pixie",
+    "days_since_launch": 569
+  },
+  "2023-01-05": {
+    "id": 2269,
+    "solution": "sleek",
+    "days_since_launch": 565
+  },
+  "2023-01-24": {
+    "id": 546,
+    "solution": "count",
+    "days_since_launch": 584
+  },
+  "2023-01-19": {
+    "id": 1332,
+    "solution": "mucky",
+    "days_since_launch": 579
+  },
+  "2023-01-06": {
+    "id": 1847,
+    "solution": "belie",
+    "days_since_launch": 566
+  },
+  "2023-01-30": {
+    "id": 525,
+    "solution": "crave",
+    "days_since_launch": 590
+  },
+  "2023-02-04": {
+    "id": 2301,
+    "solution": "unlit",
+    "days_since_launch": 595
+  },
+  "2023-01-10": {
+    "id": 2026,
+    "solution": "grimy",
+    "days_since_launch": 570
+  },
+  "2023-02-03": {
+    "id": 1075,
+    "solution": "tasty",
+    "days_since_launch": 594
+  },
+  "2023-01-20": {
+    "id": 1483,
+    "solution": "alter",
+    "days_since_launch": 580
+  },
+  "2023-01-27": {
+    "id": 1074,
+    "solution": "worry",
+    "days_since_launch": 587
+  },
+  "2023-01-14": {
+    "id": 1343,
+    "solution": "koala",
+    "days_since_launch": 574
+  },
+  "2023-01-28": {
+    "id": 1211,
+    "solution": "flirt",
+    "days_since_launch": 588
+  },
+  "2023-01-07": {
+    "id": 2110,
+    "solution": "lemon",
+    "days_since_launch": 567
+  },
+  "2023-01-08": {
+    "id": 1969,
+    "solution": "opera",
+    "days_since_launch": 568
+  },
+  "2023-01-29": {
+    "id": 1159,
+    "solution": "fishy",
+    "days_since_launch": 589
+  },
+  "2023-01-11": {
+    "id": 560,
+    "solution": "sedan",
+    "days_since_launch": 571
+  },
+  "2023-01-26": {
+    "id": 1384,
+    "solution": "beefy",
+    "days_since_launch": 586
+  },
+  "2023-01-31": {
+    "id": 1007,
+    "solution": "cross",
+    "days_since_launch": 591
+  },
+  "2023-01-16": {
+    "id": 1062,
+    "solution": "frock",
+    "days_since_launch": 576
+  },
+  "2023-01-21": {
+    "id": 1049,
+    "solution": "blurb",
+    "days_since_launch": 581
+  },
+  "2022-12-31": {
+    "id": 2251,
+    "solution": "manly",
+    "days_since_launch": 560
+  },
+  "2023-01-04": {
+    "id": 818,
+    "solution": "layer",
+    "days_since_launch": 564
+  },
+  "2023-01-17": {
+    "id": 965,
+    "solution": "adopt",
+    "days_since_launch": 577
+  },
+  "2023-02-05": {
+    "id": 1556,
+    "solution": "dance",
+    "days_since_launch": 596
+  },
+  "2023-02-02": {
+    "id": 1182,
+    "solution": "shirk",
+    "days_since_launch": 593
+  },
+  "2023-01-12": {
+    "id": 1836,
+    "solution": "leapt",
+    "days_since_launch": 572
+  },
+  "2023-02-07": {
+    "id": 590,
+    "solution": "apple",
+    "days_since_launch": 598
+  },
+  "2023-02-06": {
+    "id": 1245,
+    "solution": "ninth",
+    "days_since_launch": 597
+  },
+  "2023-02-08": {
+    "id": 1927,
+    "solution": "flail",
+    "days_since_launch": 599
+  },
+  "2023-01-25": {
+    "id": 1517,
+    "solution": "maize",
+    "days_since_launch": 585
+  },
+  "2023-01-18": {
+    "id": 1686,
+    "solution": "chard",
+    "days_since_launch": 578
+  },
+  "2023-01-22": {
+    "id": 825,
+    "solution": "matey",
+    "days_since_launch": 582
+  },
+  "2023-01-13": {
+    "id": 570,
+    "solution": "human",
+    "days_since_launch": 573
+  },
+  "2023-01-02": {
+    "id": 2263,
+    "solution": "skirt",
+    "days_since_launch": 562
+  },
+  "2023-01-03": {
+    "id": 2117,
+    "solution": "antic",
+    "days_since_launch": 563
+  },
+  "2023-02-01": {
+    "id": 1502,
+    "solution": "scold",
+    "days_since_launch": 592
+  },
+  "2023-02-25": {
+    "id": 1715,
+    "solution": "fifty",
+    "days_since_launch": 616
+  },
+  "2023-02-24": {
+    "id": 805,
+    "solution": "arbor",
+    "days_since_launch": 615
+  },
+  "2023-02-23": {
+    "id": 1881,
+    "solution": "vague",
+    "days_since_launch": 614
+  },
+  "2023-03-05": {
+    "id": 1795,
+    "solution": "toxic",
+    "days_since_launch": 624
+  },
+  "2023-02-13": {
+    "id": 1154,
+    "solution": "usage",
+    "days_since_launch": 604
+  },
+  "2023-03-15": {
+    "id": 883,
+    "solution": "sweep",
+    "days_since_launch": 634
+  },
+  "2023-03-02": {
+    "id": 1852,
+    "solution": "above",
+    "days_since_launch": 621
+  },
+  "2023-02-27": {
+    "id": 1805,
+    "solution": "worse",
+    "days_since_launch": 618
+  },
+  "2023-02-18": {
+    "id": 1207,
+    "solution": "avail",
+    "days_since_launch": 609
+  },
+  "2023-03-12": {
+    "id": 1754,
+    "solution": "birth",
+    "days_since_launch": 631
+  },
+  "2023-03-08": {
+    "id": 975,
+    "solution": "regal",
+    "days_since_launch": 627
+  },
+  "2023-02-16": {
+    "id": 776,
+    "solution": "magic",
+    "days_since_launch": 607
+  },
+  "2023-02-09": {
+    "id": 730,
+    "solution": "stage",
+    "days_since_launch": 600
+  },
+  "2023-02-19": {
+    "id": 815,
+    "solution": "kiosk",
+    "days_since_launch": 610
+  },
+  "2023-03-07": {
+    "id": 1977,
+    "solution": "horse",
+    "days_since_launch": 626
+  },
+  "2023-03-14": {
+    "id": 1718,
+    "solution": "surly",
+    "days_since_launch": 633
+  },
+  "2023-03-19": {
+    "id": 1172,
+    "solution": "credo",
+    "days_since_launch": 638
+  },
+  "2023-03-06": {
+    "id": 1879,
+    "solution": "pinky",
+    "days_since_launch": 625
+  },
+  "2023-02-17": {
+    "id": 1312,
+    "solution": "cache",
+    "days_since_launch": 608
+  },
+  "2023-02-21": {
+    "id": 1439,
+    "solution": "ruddy",
+    "days_since_launch": 612
+  },
+  "2023-02-10": {
+    "id": 1129,
+    "solution": "heady",
+    "days_since_launch": 601
+  },
+  "2023-02-12": {
+    "id": 1717,
+    "solution": "giant",
+    "days_since_launch": 603
+  },
+  "2023-03-10": {
+    "id": 1867,
+    "solution": "revel",
+    "days_since_launch": 629
+  },
+  "2023-03-18": {
+    "id": 2022,
+    "solution": "yacht",
+    "days_since_launch": 637
+  },
+  "2023-02-22": {
+    "id": 1528,
+    "solution": "riper",
+    "days_since_launch": 613
+  },
+  "2023-02-26": {
+    "id": 1462,
+    "solution": "syrup",
+    "days_since_launch": 617
+  },
+  "2023-03-01": {
+    "id": 2116,
+    "solution": "moose",
+    "days_since_launch": 620
+  },
+  "2023-03-03": {
+    "id": 1240,
+    "solution": "squat",
+    "days_since_launch": 622
+  },
+  "2023-02-20": {
+    "id": 1104,
+    "solution": "sweat",
+    "days_since_launch": 611
+  },
+  "2023-02-11": {
+    "id": 1873,
+    "solution": "debug",
+    "days_since_launch": 602
+  },
+  "2023-03-20": {
+    "id": 839,
+    "solution": "glove",
+    "days_since_launch": 639
+  },
+  "2023-02-28": {
+    "id": 2261,
+    "solution": "polka",
+    "days_since_launch": 619
+  },
+  "2023-03-17": {
+    "id": 1922,
+    "solution": "mealy",
+    "days_since_launch": 636
+  },
+  "2023-02-14": {
+    "id": 838,
+    "solution": "sound",
+    "days_since_launch": 605
+  },
+  "2023-03-09": {
+    "id": 1052,
+    "solution": "where",
+    "days_since_launch": 628
+  },
+  "2023-03-04": {
+    "id": 1834,
+    "solution": "trend",
+    "days_since_launch": 623
+  },
+  "2023-03-16": {
+    "id": 1342,
+    "solution": "cider",
+    "days_since_launch": 635
+  },
+  "2023-03-13": {
+    "id": 2239,
+    "solution": "blame",
+    "days_since_launch": 632
+  },
+  "2023-02-15": {
+    "id": 1584,
+    "solution": "salsa",
+    "days_since_launch": 606
+  },
+  "2023-03-11": {
+    "id": 2168,
+    "solution": "email",
+    "days_since_launch": 630
+  },
+  "2023-04-18": {
+    "id": 2233,
+    "solution": "hound",
+    "days_since_launch": 668
+  },
+  "2023-04-29": {
+    "id": 1297,
+    "solution": "cedar",
+    "days_since_launch": 679
+  },
+  "2023-04-22": {
+    "id": 1782,
+    "solution": "broke",
+    "days_since_launch": 672
+  },
+  "2023-04-24": {
+    "id": 618,
+    "solution": "ditto",
+    "days_since_launch": 674
+  },
+  "2023-04-07": {
+    "id": 1307,
+    "solution": "locus",
+    "days_since_launch": 657
+  },
+  "2023-04-17": {
+    "id": 1522,
+    "solution": "whiff",
+    "days_since_launch": 667
+  },
+  "2023-04-14": {
+    "id": 1271,
+    "solution": "thief",
+    "days_since_launch": 664
+  },
+  "2023-04-03": {
+    "id": 1412,
+    "solution": "flora",
+    "days_since_launch": 653
+  },
+  "2023-04-16": {
+    "id": 852,
+    "solution": "dwelt",
+    "days_since_launch": 666
+  },
+  "2023-03-22": {
+    "id": 1344,
+    "solution": "duvet",
+    "days_since_launch": 641
+  },
+  "2023-04-02": {
+    "id": 1305,
+    "solution": "stock",
+    "days_since_launch": 652
+  },
+  "2023-03-30": {
+    "id": 1002,
+    "solution": "bread",
+    "days_since_launch": 649
+  },
+  "2023-04-10": {
+    "id": 1648,
+    "solution": "under",
+    "days_since_launch": 660
+  },
+  "2023-04-15": {
+    "id": 1025,
+    "solution": "agony",
+    "days_since_launch": 665
+  },
+  "2023-03-21": {
+    "id": 566,
+    "solution": "tough",
+    "days_since_launch": 640
+  },
+  "2023-04-20": {
+    "id": 1216,
+    "solution": "plate",
+    "days_since_launch": 670
+  },
+  "2023-04-06": {
+    "id": 887,
+    "solution": "leafy",
+    "days_since_launch": 656
+  },
+  "2023-03-31": {
+    "id": 977,
+    "solution": "every",
+    "days_since_launch": 650
+  },
+  "2023-03-25": {
+    "id": 1738,
+    "solution": "voter",
+    "days_since_launch": 644
+  },
+  "2023-03-28": {
+    "id": 2104,
+    "solution": "hurry",
+    "days_since_launch": 647
+  },
+  "2023-04-25": {
+    "id": 875,
+    "solution": "joker",
+    "days_since_launch": 675
+  },
+  "2023-04-12": {
+    "id": 699,
+    "solution": "borax",
+    "days_since_launch": 662
+  },
+  "2023-04-08": {
+    "id": 1895,
+    "solution": "ledge",
+    "days_since_launch": 658
+  },
+  "2023-04-27": {
+    "id": 1316,
+    "solution": "logic",
+    "days_since_launch": 677
+  },
+  "2023-03-26": {
+    "id": 2279,
+    "solution": "untie",
+    "days_since_launch": 645
+  },
+  "2023-03-24": {
+    "id": 1471,
+    "solution": "grout",
+    "days_since_launch": 643
+  },
+  "2023-03-27": {
+    "id": 2312,
+    "solution": "guano",
+    "days_since_launch": 646
+  },
+  "2023-04-19": {
+    "id": 798,
+    "solution": "thump",
+    "days_since_launch": 669
+  },
+  "2023-04-13": {
+    "id": 2010,
+    "solution": "carat",
+    "days_since_launch": 663
+  },
+  "2023-04-23": {
+    "id": 955,
+    "solution": "unzip",
+    "days_since_launch": 673
+  },
+  "2023-04-04": {
+    "id": 1809,
+    "solution": "ratio",
+    "days_since_launch": 654
+  },
+  "2023-04-09": {
+    "id": 2317,
+    "solution": "snafu",
+    "days_since_launch": 659
+  },
+  "2023-04-21": {
+    "id": 2075,
+    "solution": "kayak",
+    "days_since_launch": 671
+  },
+  "2023-04-11": {
+    "id": 726,
+    "solution": "qualm",
+    "days_since_launch": 661
+  },
+  "2023-03-23": {
+    "id": 2221,
+    "solution": "staid",
+    "days_since_launch": 642
+  },
+  "2023-04-26": {
+    "id": 2081,
+    "solution": "metro",
+    "days_since_launch": 676
+  },
+  "2023-04-05": {
+    "id": 1229,
+    "solution": "smash",
+    "days_since_launch": 655
+  },
+  "2023-03-29": {
+    "id": 773,
+    "solution": "beset",
+    "days_since_launch": 648
+  },
+  "2023-04-28": {
+    "id": 1978,
+    "solution": "circa",
+    "days_since_launch": 678
+  },
+  "2023-04-01": {
+    "id": 803,
+    "solution": "march",
+    "days_since_launch": 651
+  },
+  "2023-04-30": {
+    "id": 1894,
+    "solution": "plaza",
+    "days_since_launch": 680
+  },
+  "2023-05-31": {
+    "id": 1222,
+    "solution": "agile",
+    "days_since_launch": 711
+  },
+  "2023-05-16": {
+    "id": 2142,
+    "solution": "latte",
+    "days_since_launch": 696
+  },
+  "2023-05-27": {
+    "id": 1146,
+    "solution": "ramen",
+    "days_since_launch": 707
+  },
+  "2023-05-23": {
+    "id": 1657,
+    "solution": "clerk",
+    "days_since_launch": 703
+  },
+  "2023-05-21": {
+    "id": 1392,
+    "solution": "brash",
+    "days_since_launch": 701
+  },
+  "2023-05-04": {
+    "id": 2121,
+    "solution": "guppy",
+    "days_since_launch": 684
+  },
+  "2023-05-03": {
+    "id": 1300,
+    "solution": "horde",
+    "days_since_launch": 683
+  },
+  "2023-05-07": {
+    "id": 1663,
+    "solution": "ghoul",
+    "days_since_launch": 687
+  },
+  "2023-05-09": {
+    "id": 1530,
+    "solution": "cocoa",
+    "days_since_launch": 689
+  },
+  "2023-05-11": {
+    "id": 1476,
+    "solution": "broom",
+    "days_since_launch": 691
+  },
+  "2023-05-24": {
+    "id": 1493,
+    "solution": "utter",
+    "days_since_launch": 704
+  },
+  "2023-05-30": {
+    "id": 755,
+    "solution": "kneel",
+    "days_since_launch": 710
+  },
+  "2023-05-12": {
+    "id": 1858,
+    "solution": "snack",
+    "days_since_launch": 692
+  },
+  "2023-06-03": {
+    "id": 613,
+    "solution": "nanny",
+    "days_since_launch": 714
+  },
+  "2023-05-01": {
+    "id": 785,
+    "solution": "range",
+    "days_since_launch": 681
+  },
+  "2023-05-15": {
+    "id": 567,
+    "solution": "canoe",
+    "days_since_launch": 695
+  },
+  "2023-06-08": {
+    "id": 1459,
+    "solution": "crumb",
+    "days_since_launch": 719
+  },
+  "2023-05-13": {
+    "id": 1128,
+    "solution": "acrid",
+    "days_since_launch": 693
+  },
+  "2023-05-08": {
+    "id": 1265,
+    "solution": "aglow",
+    "days_since_launch": 688
+  },
+  "2023-06-02": {
+    "id": 657,
+    "solution": "humid",
+    "days_since_launch": 713
+  },
+  "2023-05-25": {
+    "id": 1682,
+    "solution": "bagel",
+    "days_since_launch": 705
+  },
+  "2023-05-22": {
+    "id": 1450,
+    "solution": "igloo",
+    "days_since_launch": 702
+  },
+  "2023-05-17": {
+    "id": 1636,
+    "solution": "plank",
+    "days_since_launch": 697
+  },
+  "2023-05-26": {
+    "id": 562,
+    "solution": "swine",
+    "days_since_launch": 706
+  },
+  "2023-06-01": {
+    "id": 1714,
+    "solution": "jazzy",
+    "days_since_launch": 712
+  },
+  "2023-05-29": {
+    "id": 1331,
+    "solution": "mouse",
+    "days_since_launch": 709
+  },
+  "2023-05-14": {
+    "id": 1441,
+    "solution": "scarf",
+    "days_since_launch": 694
+  },
+  "2023-05-28": {
+    "id": 528,
+    "solution": "skimp",
+    "days_since_launch": 708
+  },
+  "2023-05-18": {
+    "id": 2106,
+    "solution": "shorn",
+    "days_since_launch": 698
+  },
+  "2023-05-05": {
+    "id": 1389,
+    "solution": "below",
+    "days_since_launch": 685
+  },
+  "2023-05-02": {
+    "id": 1333,
+    "solution": "sulky",
+    "days_since_launch": 682
+  },
+  "2023-06-06": {
+    "id": 1877,
+    "solution": "scout",
+    "days_since_launch": 717
+  },
+  "2023-06-04": {
+    "id": 1491,
+    "solution": "beast",
+    "days_since_launch": 715
+  },
+  "2023-06-05": {
+    "id": 817,
+    "solution": "ennui",
+    "days_since_launch": 716
+  },
+  "2023-05-10": {
+    "id": 1660,
+    "solution": "ethic",
+    "days_since_launch": 690
+  },
+  "2023-05-20": {
+    "id": 2038,
+    "solution": "flask",
+    "days_since_launch": 700
+  },
+  "2023-06-07": {
+    "id": 682,
+    "solution": "hater",
+    "days_since_launch": 718
+  },
+  "2023-05-19": {
+    "id": 1050,
+    "solution": "grief",
+    "days_since_launch": 699
+  },
+  "2023-05-06": {
+    "id": 2165,
+    "solution": "anger",
+    "days_since_launch": 686
+  },
+  "2023-07-08": {
+    "id": 1931,
+    "solution": "cower",
+    "days_since_launch": 749
+  },
+  "2023-07-05": {
+    "id": 674,
+    "solution": "venom",
+    "days_since_launch": 746
+  },
+  "2023-07-11": {
+    "id": 959,
+    "solution": "earth",
+    "days_since_launch": 752
+  },
+  "2023-06-18": {
+    "id": 1268,
+    "solution": "shyly",
+    "days_since_launch": 729
+  },
+  "2023-07-12": {
+    "id": 2162,
+    "solution": "whirl",
+    "days_since_launch": 753
+  },
+  "2023-07-15": {
+    "id": 2218,
+    "solution": "crone",
+    "days_since_launch": 756
+  },
+  "2023-07-13": {
+    "id": 824,
+    "solution": "barge",
+    "days_since_launch": 754
+  },
+  "2023-07-09": {
+    "id": 963,
+    "solution": "enter",
+    "days_since_launch": 750
+  },
+  "2023-07-17": {
+    "id": 1215,
+    "solution": "droop",
+    "days_since_launch": 758
+  },
+  "2023-07-03": {
+    "id": 1546,
+    "solution": "hotel",
+    "days_since_launch": 744
+  },
+  "2023-07-18": {
+    "id": 765,
+    "solution": "flyer",
+    "days_since_launch": 759
+  },
+  "2023-07-02": {
+    "id": 2220,
+    "solution": "mossy",
+    "days_since_launch": 743
+  },
+  "2023-06-27": {
+    "id": 703,
+    "solution": "about",
+    "days_since_launch": 738
+  },
+  "2023-06-20": {
+    "id": 1888,
+    "solution": "frost",
+    "days_since_launch": 731
+  },
+  "2023-07-16": {
+    "id": 1194,
+    "solution": "topaz",
+    "days_since_launch": 757
+  },
+  "2023-06-13": {
+    "id": 1218,
+    "solution": "plunk",
+    "days_since_launch": 724
+  },
+  "2023-06-21": {
+    "id": 1704,
+    "solution": "crane",
+    "days_since_launch": 732
+  },
+  "2023-06-24": {
+    "id": 2083,
+    "solution": "grand",
+    "days_since_launch": 735
+  },
+  "2023-06-26": {
+    "id": 976,
+    "solution": "guest",
+    "days_since_launch": 737
+  },
+  "2023-06-12": {
+    "id": 1536,
+    "solution": "wrong",
+    "days_since_launch": 723
+  },
+  "2023-06-09": {
+    "id": 2310,
+    "solution": "balsa",
+    "days_since_launch": 720
+  },
+  "2023-06-25": {
+    "id": 2245,
+    "solution": "rodeo",
+    "days_since_launch": 736
+  },
+  "2023-06-30": {
+    "id": 1041,
+    "solution": "straw",
+    "days_since_launch": 741
+  },
+  "2023-06-23": {
+    "id": 569,
+    "solution": "covet",
+    "days_since_launch": 734
+  },
+  "2023-06-14": {
+    "id": 1875,
+    "solution": "crime",
+    "days_since_launch": 725
+  },
+  "2023-06-28": {
+    "id": 1992,
+    "solution": "tract",
+    "days_since_launch": 739
+  },
+  "2023-06-16": {
+    "id": 1117,
+    "solution": "strap",
+    "days_since_launch": 727
+  },
+  "2023-06-10": {
+    "id": 1480,
+    "solution": "again",
+    "days_since_launch": 721
+  },
+  "2023-07-06": {
+    "id": 1447,
+    "solution": "windy",
+    "days_since_launch": 747
+  },
+  "2023-06-29": {
+    "id": 633,
+    "solution": "diner",
+    "days_since_launch": 740
+  },
+  "2023-07-04": {
+    "id": 847,
+    "solution": "irate",
+    "days_since_launch": 745
+  },
+  "2023-07-10": {
+    "id": 515,
+    "solution": "folly",
+    "days_since_launch": 751
+  },
+  "2023-07-01": {
+    "id": 2171,
+    "solution": "bleep",
+    "days_since_launch": 742
+  },
+  "2023-06-11": {
+    "id": 2246,
+    "solution": "guard",
+    "days_since_launch": 722
+  },
+  "2023-06-22": {
+    "id": 1694,
+    "solution": "taste",
+    "days_since_launch": 733
+  },
+  "2023-07-07": {
+    "id": 988,
+    "solution": "donut",
+    "days_since_launch": 748
+  },
+  "2023-06-19": {
+    "id": 2313,
+    "solution": "kazoo",
+    "days_since_launch": 730
+  },
+  "2023-06-17": {
+    "id": 2108,
+    "solution": "ranch",
+    "days_since_launch": 728
+  },
+  "2023-07-14": {
+    "id": 1315,
+    "solution": "fiend",
+    "days_since_launch": 755
+  },
+  "2023-06-15": {
+    "id": 1823,
+    "solution": "maybe",
+    "days_since_launch": 726
+  },
+  "2023-08-25": {
+    "id": 845,
+    "solution": "ocean",
+    "days_since_launch": 797
+  },
+  "2023-08-26": {
+    "id": 893,
+    "solution": "choir",
+    "days_since_launch": 798
+  },
+  "2023-08-13": {
+    "id": 1914,
+    "solution": "wrath",
+    "days_since_launch": 785
+  },
+  "2023-08-24": {
+    "id": 1786,
+    "solution": "wordy",
+    "days_since_launch": 796
+  },
+  "2023-08-16": {
+    "id": 992,
+    "solution": "scrub",
+    "days_since_launch": 788
+  },
+  "2023-08-18": {
+    "id": 2128,
+    "solution": "exact",
+    "days_since_launch": 790
+  },
+  "2023-08-12": {
+    "id": 578,
+    "solution": "quick",
+    "days_since_launch": 784
+  },
+  "2023-08-09": {
+    "id": 553,
+    "solution": "lover",
+    "days_since_launch": 781
+  },
+  "2023-08-02": {
+    "id": 1189,
+    "solution": "beget",
+    "days_since_launch": 774
+  },
+  "2023-07-26": {
+    "id": 631,
+    "solution": "heart",
+    "days_since_launch": 767
+  },
+  "2023-08-07": {
+    "id": 1713,
+    "solution": "brook",
+    "days_since_launch": 779
+  },
+  "2023-08-01": {
+    "id": 2056,
+    "solution": "tenth",
+    "days_since_launch": 773
+  },
+  "2023-08-03": {
+    "id": 1091,
+    "solution": "party",
+    "days_since_launch": 775
+  },
+  "2023-07-29": {
+    "id": 1296,
+    "solution": "curly",
+    "days_since_launch": 770
+  },
+  "2023-08-04": {
+    "id": 1784,
+    "solution": "chart",
+    "days_since_launch": 776
+  },
+  "2023-07-28": {
+    "id": 1486,
+    "solution": "ethos",
+    "days_since_launch": 769
+  },
+  "2023-08-23": {
+    "id": 792,
+    "solution": "verve",
+    "days_since_launch": 795
+  },
+  "2023-07-31": {
+    "id": 2115,
+    "solution": "style",
+    "days_since_launch": 772
+  },
+  "2023-08-22": {
+    "id": 1398,
+    "solution": "spice",
+    "days_since_launch": 794
+  },
+  "2023-08-05": {
+    "id": 1874,
+    "solution": "anode",
+    "days_since_launch": 777
+  },
+  "2023-07-30": {
+    "id": 926,
+    "solution": "bathe",
+    "days_since_launch": 771
+  },
+  "2023-08-17": {
+    "id": 1837,
+    "solution": "amiss",
+    "days_since_launch": 789
+  },
+  "2023-07-27": {
+    "id": 1051,
+    "solution": "disco",
+    "days_since_launch": 768
+  },
+  "2023-07-25": {
+    "id": 1190,
+    "solution": "wheel",
+    "days_since_launch": 766
+  },
+  "2023-08-14": {
+    "id": 1241,
+    "solution": "snaky",
+    "days_since_launch": 786
+  },
+  "2023-08-08": {
+    "id": 1199,
+    "solution": "bully",
+    "days_since_launch": 780
+  },
+  "2023-08-11": {
+    "id": 2252,
+    "solution": "hello",
+    "days_since_launch": 783
+  },
+  "2023-07-21": {
+    "id": 1378,
+    "solution": "burly",
+    "days_since_launch": 762
+  },
+  "2023-08-10": {
+    "id": 1354,
+    "solution": "empty",
+    "days_since_launch": 782
+  },
+  "2023-08-19": {
+    "id": 2154,
+    "solution": "magma",
+    "days_since_launch": 791
+  },
+  "2023-07-22": {
+    "id": 2113,
+    "solution": "froze",
+    "days_since_launch": 763
+  },
+  "2023-07-24": {
+    "id": 1490,
+    "solution": "hobby",
+    "days_since_launch": 765
+  },
+  "2023-08-20": {
+    "id": 1674,
+    "solution": "quest",
+    "days_since_launch": 792
+  },
+  "2023-07-19": {
+    "id": 1948,
+    "solution": "tonic",
+    "days_since_launch": 760
+  },
+  "2023-08-06": {
+    "id": 958,
+    "solution": "polyp",
+    "days_since_launch": 778
+  },
+  "2023-07-20": {
+    "id": 1252,
+    "solution": "flank",
+    "days_since_launch": 761
+  },
+  "2023-08-21": {
+    "id": 1054,
+    "solution": "beach",
+    "days_since_launch": 793
+  },
+  "2023-07-23": {
+    "id": 1454,
+    "solution": "whale",
+    "days_since_launch": 764
+  },
+  "2023-08-27": {
+    "id": 2272,
+    "solution": "peace",
+    "days_since_launch": 799
+  },
+  "2023-08-15": {
+    "id": 723,
+    "solution": "index",
+    "days_since_launch": 787
+  },
+  "2023-09-24": {
+    "id": 2001,
+    "solution": "right",
+    "days_since_launch": 827
+  },
+  "2023-10-01": {
+    "id": 1963,
+    "solution": "beret",
+    "days_since_launch": 834
+  },
+  "2023-10-02": {
+    "id": 1926,
+    "solution": "merry",
+    "days_since_launch": 835
+  },
+  "2023-09-02": {
+    "id": 635,
+    "solution": "onion",
+    "days_since_launch": 805
+  },
+  "2023-08-31": {
+    "id": 1487,
+    "solution": "bride",
+    "days_since_launch": 803
+  },
+  "2023-10-03": {
+    "id": 1166,
+    "solution": "while",
+    "days_since_launch": 836
+  },
+  "2023-09-29": {
+    "id": 835,
+    "solution": "azure",
+    "days_since_launch": 832
+  },
+  "2023-09-20": {
+    "id": 696,
+    "solution": "snare",
+    "days_since_launch": 823
+  },
+  "2023-09-07": {
+    "id": 1224,
+    "solution": "dwell",
+    "days_since_launch": 810
+  },
+  "2023-09-21": {
+    "id": 1885,
+    "solution": "stone",
+    "days_since_launch": 824
+  },
+  "2023-09-14": {
+    "id": 2262,
+    "solution": "rayon",
+    "days_since_launch": 817
+  },
+  "2023-09-06": {
+    "id": 2097,
+    "solution": "gnash",
+    "days_since_launch": 809
+  },
+  "2023-09-23": {
+    "id": 1366,
+    "solution": "carol",
+    "days_since_launch": 826
+  },
+  "2023-09-03": {
+    "id": 2209,
+    "solution": "await",
+    "days_since_launch": 806
+  },
+  "2023-09-27": {
+    "id": 641,
+    "solution": "smile",
+    "days_since_launch": 830
+  },
+  "2023-09-22": {
+    "id": 1703,
+    "solution": "brush",
+    "days_since_launch": 825
+  },
+  "2023-09-15": {
+    "id": 1983,
+    "solution": "exert",
+    "days_since_launch": 818
+  },
+  "2023-09-16": {
+    "id": 1819,
+    "solution": "angel",
+    "days_since_launch": 819
+  },
+  "2023-09-05": {
+    "id": 688,
+    "solution": "birch",
+    "days_since_launch": 808
+  },
+  "2023-09-19": {
+    "id": 2055,
+    "solution": "close",
+    "days_since_launch": 822
+  },
+  "2023-09-28": {
+    "id": 601,
+    "solution": "coach",
+    "days_since_launch": 831
+  },
+  "2023-09-04": {
+    "id": 1954,
+    "solution": "giddy",
+    "days_since_launch": 807
+  },
+  "2023-09-12": {
+    "id": 786,
+    "solution": "whisk",
+    "days_since_launch": 815
+  },
+  "2023-09-18": {
+    "id": 1995,
+    "solution": "frank",
+    "days_since_launch": 821
+  },
+  "2023-09-11": {
+    "id": 1668,
+    "solution": "older",
+    "days_since_launch": 814
+  },
+  "2023-08-29": {
+    "id": 1201,
+    "solution": "caper",
+    "days_since_launch": 801
+  },
+  "2023-09-13": {
+    "id": 1338,
+    "solution": "clear",
+    "days_since_launch": 816
+  },
+  "2023-09-09": {
+    "id": 689,
+    "solution": "lucky",
+    "days_since_launch": 812
+  },
+  "2023-10-04": {
+    "id": 1569,
+    "solution": "spurt",
+    "days_since_launch": 837
+  },
+  "2023-08-30": {
+    "id": 1564,
+    "solution": "audio",
+    "days_since_launch": 802
+  },
+  "2023-09-26": {
+    "id": 1210,
+    "solution": "loyal",
+    "days_since_launch": 829
+  },
+  "2023-10-06": {
+    "id": 2133,
+    "solution": "chime",
+    "days_since_launch": 839
+  },
+  "2023-10-05": {
+    "id": 2144,
+    "solution": "bunch",
+    "days_since_launch": 838
+  },
+  "2023-09-01": {
+    "id": 1206,
+    "solution": "space",
+    "days_since_launch": 804
+  },
+  "2023-09-30": {
+    "id": 533,
+    "solution": "daddy",
+    "days_since_launch": 833
+  },
+  "2023-08-28": {
+    "id": 668,
+    "solution": "write",
+    "days_since_launch": 800
+  },
+  "2023-09-08": {
+    "id": 862,
+    "solution": "rouse",
+    "days_since_launch": 811
+  },
+  "2023-09-17": {
+    "id": 2169,
+    "solution": "music",
+    "days_since_launch": 820
+  },
+  "2023-09-10": {
+    "id": 1958,
+    "solution": "quote",
+    "days_since_launch": 813
+  },
+  "2023-09-25": {
+    "id": 1274,
+    "solution": "rocky",
+    "days_since_launch": 828
+  },
+  "2023-11-05": {
+    "id": 1972,
+    "solution": "flare",
+    "days_since_launch": 869
+  },
+  "2023-10-15": {
+    "id": 584,
+    "solution": "leaky",
+    "days_since_launch": 848
+  },
+  "2023-11-08": {
+    "id": 625,
+    "solution": "ninja",
+    "days_since_launch": 872
+  },
+  "2023-10-07": {
+    "id": 1039,
+    "solution": "viola",
+    "days_since_launch": 840
+  },
+  "2023-11-01": {
+    "id": 1964,
+    "solution": "noise",
+    "days_since_launch": 865
+  },
+  "2023-11-14": {
+    "id": 1053,
+    "solution": "sassy",
+    "days_since_launch": 878
+  },
+  "2023-11-12": {
+    "id": 906,
+    "solution": "meant",
+    "days_since_launch": 876
+  },
+  "2023-10-27": {
+    "id": 1485,
+    "solution": "noble",
+    "days_since_launch": 860
+  },
+  "2023-10-14": {
+    "id": 1599,
+    "solution": "agent",
+    "days_since_launch": 847
+  },
+  "2023-11-03": {
+    "id": 612,
+    "solution": "ardor",
+    "days_since_launch": 867
+  },
+  "2023-11-13": {
+    "id": 1698,
+    "solution": "green",
+    "days_since_launch": 877
+  },
+  "2023-10-19": {
+    "id": 764,
+    "solution": "splat",
+    "days_since_launch": 852
+  },
+  "2023-10-23": {
+    "id": 1214,
+    "solution": "tempo",
+    "days_since_launch": 856
+  },
+  "2023-10-20": {
+    "id": 2087,
+    "solution": "occur",
+    "days_since_launch": 853
+  },
+  "2023-10-24": {
+    "id": 1263,
+    "solution": "cause",
+    "days_since_launch": 857
+  },
+  "2023-11-07": {
+    "id": 1630,
+    "solution": "limit",
+    "days_since_launch": 871
+  },
+  "2023-10-12": {
+    "id": 1870,
+    "solution": "knelt",
+    "days_since_launch": 845
+  },
+  "2023-10-13": {
+    "id": 1284,
+    "solution": "uncle",
+    "days_since_launch": 846
+  },
+  "2023-10-16": {
+    "id": 1755,
+    "solution": "graph",
+    "days_since_launch": 849
+  },
+  "2023-10-26": {
+    "id": 532,
+    "solution": "pique",
+    "days_since_launch": 859
+  },
+  "2023-10-28": {
+    "id": 767,
+    "solution": "mason",
+    "days_since_launch": 861
+  },
+  "2023-11-02": {
+    "id": 961,
+    "solution": "until",
+    "days_since_launch": 866
+  },
+  "2023-10-21": {
+    "id": 1535,
+    "solution": "smirk",
+    "days_since_launch": 854
+  },
+  "2023-10-09": {
+    "id": 2129,
+    "solution": "truth",
+    "days_since_launch": 842
+  },
+  "2023-10-31": {
+    "id": 1294,
+    "solution": "bleak",
+    "days_since_launch": 864
+  },
+  "2023-10-10": {
+    "id": 745,
+    "solution": "snail",
+    "days_since_launch": 843
+  },
+  "2023-10-22": {
+    "id": 580,
+    "solution": "given",
+    "days_since_launch": 855
+  },
+  "2023-11-06": {
+    "id": 1077,
+    "solution": "trade",
+    "days_since_launch": 870
+  },
+  "2023-10-25": {
+    "id": 1417,
+    "solution": "retry",
+    "days_since_launch": 858
+  },
+  "2023-11-11": {
+    "id": 1649,
+    "solution": "actor",
+    "days_since_launch": 875
+  },
+  "2023-10-11": {
+    "id": 1339,
+    "solution": "skunk",
+    "days_since_launch": 844
+  },
+  "2023-10-17": {
+    "id": 2282,
+    "solution": "adult",
+    "days_since_launch": 850
+  },
+  "2023-11-09": {
+    "id": 2072,
+    "solution": "glaze",
+    "days_since_launch": 873
+  },
+  "2023-11-10": {
+    "id": 1554,
+    "solution": "leash",
+    "days_since_launch": 874
+  },
+  "2023-10-18": {
+    "id": 2267,
+    "solution": "mercy",
+    "days_since_launch": 851
+  },
+  "2023-10-08": {
+    "id": 1833,
+    "solution": "binge",
+    "days_since_launch": 841
+  },
+  "2023-11-15": {
+    "id": 1781,
+    "solution": "sight",
+    "days_since_launch": 879
+  },
+  "2023-11-04": {
+    "id": 683,
+    "solution": "mania",
+    "days_since_launch": 868
+  },
+  "2023-10-29": {
+    "id": 1405,
+    "solution": "phony",
+    "days_since_launch": 862
+  },
+  "2023-10-30": {
+    "id": 2059,
+    "solution": "grail",
+    "days_since_launch": 863
+  },
+  "2023-12-19": {
+    "id": 1534,
+    "solution": "table",
+    "days_since_launch": 913
+  },
+  "2023-12-04": {
+    "id": 882,
+    "solution": "worst",
+    "days_since_launch": 898
+  },
+  "2023-12-11": {
+    "id": 698,
+    "solution": "house",
+    "days_since_launch": 905
+  },
+  "2023-12-18": {
+    "id": 556,
+    "solution": "funny",
+    "days_since_launch": 912
+  },
+  "2023-12-14": {
+    "id": 1021,
+    "solution": "would",
+    "days_since_launch": 908
+  },
+  "2023-12-03": {
+    "id": 2259,
+    "solution": "adapt",
+    "days_since_launch": 897
+  },
+  "2023-12-20": {
+    "id": 1724,
+    "solution": "small",
+    "days_since_launch": 914
+  },
+  "2023-11-26": {
+    "id": 855,
+    "solution": "solid",
+    "days_since_launch": 890
+  },
+  "2023-12-05": {
+    "id": 1113,
+    "solution": "young",
+    "days_since_launch": 899
+  },
+  "2023-12-15": {
+    "id": 1701,
+    "solution": "topic",
+    "days_since_launch": 909
+  },
+  "2023-12-23": {
+    "id": 1291,
+    "solution": "slope",
+    "days_since_launch": 917
+  },
+  "2023-12-13": {
+    "id": 1525,
+    "solution": "spent",
+    "days_since_launch": 907
+  },
+  "2023-12-02": {
+    "id": 543,
+    "solution": "genre",
+    "days_since_launch": 896
+  },
+  "2023-11-27": {
+    "id": 1436,
+    "solution": "tawny",
+    "days_since_launch": 891
+  },
+  "2023-12-17": {
+    "id": 1900,
+    "solution": "bacon",
+    "days_since_launch": 911
+  },
+  "2023-11-24": {
+    "id": 1608,
+    "solution": "throw",
+    "days_since_launch": 888
+  },
+  "2023-12-10": {
+    "id": 2088,
+    "solution": "chain",
+    "days_since_launch": 904
+  },
+  "2023-12-24": {
+    "id": 617,
+    "solution": "grace",
+    "days_since_launch": 918
+  },
+  "2023-12-22": {
+    "id": 1092,
+    "solution": "touch",
+    "days_since_launch": 916
+  },
+  "2023-12-16": {
+    "id": 860,
+    "solution": "globe",
+    "days_since_launch": 910
+  },
+  "2023-11-29": {
+    "id": 793,
+    "solution": "sushi",
+    "days_since_launch": 893
+  },
+  "2023-11-17": {
+    "id": 1107,
+    "solution": "tardy",
+    "days_since_launch": 881
+  },
+  "2023-12-12": {
+    "id": 1494,
+    "solution": "these",
+    "days_since_launch": 906
+  },
+  "2023-11-30": {
+    "id": 1541,
+    "solution": "resin",
+    "days_since_launch": 894
+  },
+  "2023-12-09": {
+    "id": 1175,
+    "solution": "shift",
+    "days_since_launch": 903
+  },
+  "2023-11-20": {
+    "id": 800,
+    "solution": "candy",
+    "days_since_launch": 884
+  },
+  "2023-11-23": {
+    "id": 956,
+    "solution": "queen",
+    "days_since_launch": 887
+  },
+  "2023-12-08": {
+    "id": 1401,
+    "solution": "sharp",
+    "days_since_launch": 902
+  },
+  "2023-12-21": {
+    "id": 648,
+    "solution": "built",
+    "days_since_launch": 915
+  },
+  "2023-12-01": {
+    "id": 1731,
+    "solution": "taken",
+    "days_since_launch": 895
+  },
+  "2023-11-19": {
+    "id": 774,
+    "solution": "queue",
+    "days_since_launch": 883
+  },
+  "2023-11-25": {
+    "id": 1645,
+    "solution": "guide",
+    "days_since_launch": 889
+  },
+  "2023-11-22": {
+    "id": 1544,
+    "solution": "pixel",
+    "days_since_launch": 886
+  },
+  "2023-11-21": {
+    "id": 1140,
+    "solution": "piano",
+    "days_since_launch": 885
+  },
+  "2023-11-16": {
+    "id": 2003,
+    "solution": "trust",
+    "days_since_launch": 880
+  },
+  "2023-12-06": {
+    "id": 2156,
+    "solution": "woman",
+    "days_since_launch": 900
+  },
+  "2023-12-07": {
+    "id": 611,
+    "solution": "sleep",
+    "days_since_launch": 901
+  },
+  "2023-12-25": {
+    "id": 642,
+    "solution": "evoke",
+    "days_since_launch": 919
+  },
+  "2023-11-28": {
+    "id": 841,
+    "solution": "scope",
+    "days_since_launch": 892
+  },
+  "2023-11-18": {
+    "id": 1808,
+    "solution": "think",
+    "days_since_launch": 882
+  },
+  "2024-01-01": {
+    "id": 1705,
+    "solution": "mural",
+    "days_since_launch": 926
+  },
+  "2024-01-07": {
+    "id": 953,
+    "solution": "stony",
+    "days_since_launch": 932
+  },
+  "2024-01-27": {
+    "id": 1565,
+    "solution": "snake",
+    "days_since_launch": 952
+  },
+  "2024-01-11": {
+    "id": 1328,
+    "solution": "brief",
+    "days_since_launch": 936
+  },
+  "2024-01-28": {
+    "id": 1351,
+    "solution": "ember",
+    "days_since_launch": 953
+  },
+  "2024-01-04": {
+    "id": 1855,
+    "solution": "scant",
+    "days_since_launch": 929
+  },
+  "2024-01-23": {
+    "id": 677,
+    "solution": "still",
+    "days_since_launch": 948
+  },
+  "2024-01-25": {
+    "id": 905,
+    "solution": "block",
+    "days_since_launch": 950
+  },
+  "2024-01-19": {
+    "id": 2102,
+    "solution": "thing",
+    "days_since_launch": 944
+  },
+  "2023-12-28": {
+    "id": 1253,
+    "solution": "learn",
+    "days_since_launch": 922
+  },
+  "2024-01-14": {
+    "id": 768,
+    "solution": "doing",
+    "days_since_launch": 939
+  },
+  "2024-02-02": {
+    "id": 1887,
+    "solution": "cleft",
+    "days_since_launch": 958
+  },
+  "2024-01-09": {
+    "id": 1561,
+    "solution": "liner",
+    "days_since_launch": 934
+  },
+  "2024-01-20": {
+    "id": 1023,
+    "solution": "large",
+    "days_since_launch": 945
+  },
+  "2023-12-27": {
+    "id": 912,
+    "solution": "daisy",
+    "days_since_launch": 921
+  },
+  "2024-01-02": {
+    "id": 536,
+    "solution": "aging",
+    "days_since_launch": 927
+  },
+  "2024-01-31": {
+    "id": 1975,
+    "solution": "bulky",
+    "days_since_launch": 956
+  },
+  "2023-12-30": {
+    "id": 1179,
+    "solution": "three",
+    "days_since_launch": 924
+  },
+  "2024-01-21": {
+    "id": 1853,
+    "solution": "north",
+    "days_since_launch": 946
+  },
+  "2024-01-16": {
+    "id": 816,
+    "solution": "blond",
+    "days_since_launch": 941
+  },
+  "2023-12-26": {
+    "id": 1814,
+    "solution": "phone",
+    "days_since_launch": 920
+  },
+  "2024-01-13": {
+    "id": 1818,
+    "solution": "heard",
+    "days_since_launch": 938
+  },
+  "2024-01-17": {
+    "id": 1815,
+    "solution": "court",
+    "days_since_launch": 942
+  },
+  "2024-01-24": {
+    "id": 2183,
+    "solution": "relic",
+    "days_since_launch": 949
+  },
+  "2024-02-03": {
+    "id": 1250,
+    "solution": "micro",
+    "days_since_launch": 959
+  },
+  "2024-01-03": {
+    "id": 781,
+    "solution": "twirl",
+    "days_since_launch": 928
+  },
+  "2024-01-12": {
+    "id": 1400,
+    "solution": "route",
+    "days_since_launch": 937
+  },
+  "2024-01-05": {
+    "id": 1205,
+    "solution": "lunge",
+    "days_since_launch": 930
+  },
+  "2023-12-29": {
+    "id": 964,
+    "solution": "child",
+    "days_since_launch": 923
+  },
+  "2024-01-08": {
+    "id": 593,
+    "solution": "final",
+    "days_since_launch": 933
+  },
+  "2024-01-30": {
+    "id": 1849,
+    "solution": "expel",
+    "days_since_launch": 955
+  },
+  "2024-01-18": {
+    "id": 1193,
+    "solution": "stole",
+    "days_since_launch": 943
+  },
+  "2024-01-22": {
+    "id": 1896,
+    "solution": "tweak",
+    "days_since_launch": 947
+  },
+  "2024-01-29": {
+    "id": 1934,
+    "solution": "leggy",
+    "days_since_launch": 954
+  },
+  "2024-01-15": {
+    "id": 572,
+    "solution": "lunch",
+    "days_since_launch": 940
+  },
+  "2024-01-06": {
+    "id": 1901,
+    "solution": "cable",
+    "days_since_launch": 931
+  },
+  "2024-01-26": {
+    "id": 1780,
+    "solution": "aloof",
+    "days_since_launch": 951
+  },
+  "2023-12-31": {
+    "id": 1563,
+    "solution": "salty",
+    "days_since_launch": 925
+  },
+  "2024-01-10": {
+    "id": 520,
+    "solution": "threw",
+    "days_since_launch": 935
+  },
+  "2024-02-01": {
+    "id": 867,
+    "solution": "alive",
+    "days_since_launch": 957
+  },
+  "2024-03-09": {
+    "id": 1681,
+    "solution": "cheer",
+    "days_since_launch": 994
+  },
+  "2024-03-06": {
+    "id": 1783,
+    "solution": "teary",
+    "days_since_launch": 991
+  },
+  "2024-03-03": {
+    "id": 2031,
+    "solution": "state",
+    "days_since_launch": 988
+  },
+  "2024-03-10": {
+    "id": 2032,
+    "solution": "grasp",
+    "days_since_launch": 995
+  },
+  "2024-02-05": {
+    "id": 2145,
+    "solution": "repel",
+    "days_since_launch": 961
+  },
+  "2024-02-10": {
+    "id": 2023,
+    "solution": "fried",
+    "days_since_launch": 966
+  },
+  "2024-03-12": {
+    "id": 1999,
+    "solution": "heave",
+    "days_since_launch": 997
+  },
+  "2024-02-21": {
+    "id": 1139,
+    "solution": "build",
+    "days_since_launch": 977
+  },
+  "2024-02-07": {
+    "id": 1349,
+    "solution": "after",
+    "days_since_launch": 963
+  },
+  "2024-02-25": {
+    "id": 2065,
+    "solution": "smith",
+    "days_since_launch": 981
+  },
+  "2024-02-27": {
+    "id": 1716,
+    "solution": "sense",
+    "days_since_launch": 983
+  },
+  "2024-03-01": {
+    "id": 1282,
+    "solution": "forty",
+    "days_since_launch": 986
+  },
+  "2024-02-24": {
+    "id": 1500,
+    "solution": "piper",
+    "days_since_launch": 980
+  },
+  "2024-02-23": {
+    "id": 1666,
+    "solution": "apart",
+    "days_since_launch": 979
+  },
+  "2024-02-12": {
+    "id": 1776,
+    "solution": "pasta",
+    "days_since_launch": 968
+  },
+  "2024-02-13": {
+    "id": 2250,
+    "solution": "scram",
+    "days_since_launch": 969
+  },
+  "2024-02-15": {
+    "id": 1032,
+    "solution": "ascot",
+    "days_since_launch": 971
+  },
+  "2024-03-05": {
+    "id": 1543,
+    "solution": "hunch",
+    "days_since_launch": 990
+  },
+  "2024-03-02": {
+    "id": 1035,
+    "solution": "urban",
+    "days_since_launch": 987
+  },
+  "2024-03-14": {
+    "id": 876,
+    "solution": "since",
+    "days_since_launch": 999
+  },
+  "2024-03-08": {
+    "id": 1574,
+    "solution": "early",
+    "days_since_launch": 993
+  },
+  "2024-03-04": {
+    "id": 1778,
+    "solution": "flame",
+    "days_since_launch": 989
+  },
+  "2024-02-22": {
+    "id": 1513,
+    "solution": "heavy",
+    "days_since_launch": 978
+  },
+  "2024-03-11": {
+    "id": 1482,
+    "solution": "pesky",
+    "days_since_launch": 996
+  },
+  "2024-02-16": {
+    "id": 2201,
+    "solution": "stash",
+    "days_since_launch": 972
+  },
+  "2024-02-20": {
+    "id": 2266,
+    "solution": "match",
+    "days_since_launch": 976
+  },
+  "2024-02-04": {
+    "id": 1637,
+    "solution": "verge",
+    "days_since_launch": 960
+  },
+  "2024-02-28": {
+    "id": 1959,
+    "solution": "devil",
+    "days_since_launch": 984
+  },
+  "2024-02-17": {
+    "id": 1148,
+    "solution": "psalm",
+    "days_since_launch": 973
+  },
+  "2024-02-19": {
+    "id": 604,
+    "solution": "price",
+    "days_since_launch": 975
+  },
+  "2024-02-08": {
+    "id": 719,
+    "solution": "place",
+    "days_since_launch": 964
+  },
+  "2024-02-29": {
+    "id": 2125,
+    "solution": "image",
+    "days_since_launch": 985
+  },
+  "2024-02-18": {
+    "id": 738,
+    "solution": "ridge",
+    "days_since_launch": 974
+  },
+  "2024-03-13": {
+    "id": 1076,
+    "solution": "local",
+    "days_since_launch": 998
+  },
+  "2024-02-11": {
+    "id": 1329,
+    "solution": "never",
+    "days_since_launch": 967
+  },
+  "2024-03-07": {
+    "id": 2060,
+    "solution": "clone",
+    "days_since_launch": 992
+  },
+  "2024-02-26": {
+    "id": 872,
+    "solution": "often",
+    "days_since_launch": 982
+  },
+  "2024-02-09": {
+    "id": 1893,
+    "solution": "stiff",
+    "days_since_launch": 965
+  },
+  "2024-02-14": {
+    "id": 1868,
+    "solution": "talon",
+    "days_since_launch": 970
+  },
+  "2024-02-06": {
+    "id": 1017,
+    "solution": "which",
+    "days_since_launch": 962
+  },
+  "2024-04-20": {
+    "id": 1771,
+    "solution": "lucid",
+    "days_since_launch": 1036
+  },
+  "2024-04-03": {
+    "id": 2194,
+    "solution": "plait",
+    "days_since_launch": 1019
+  },
+  "2024-03-18": {
+    "id": 600,
+    "solution": "spelt",
+    "days_since_launch": 1003
+  },
+  "2024-04-07": {
+    "id": 1747,
+    "solution": "voila",
+    "days_since_launch": 1023
+  },
+  "2024-03-25": {
+    "id": 1449,
+    "solution": "sally",
+    "days_since_launch": 1010
+  },
+  "2024-03-21": {
+    "id": 632,
+    "solution": "shade",
+    "days_since_launch": 1006
+  },
+  "2024-04-01": {
+    "id": 1116,
+    "solution": "frond",
+    "days_since_launch": 1017
+  },
+  "2024-04-12": {
+    "id": 1507,
+    "solution": "whiny",
+    "days_since_launch": 1028
+  },
+  "2024-04-16": {
+    "id": 1014,
+    "solution": "shank",
+    "days_since_launch": 1032
+  },
+  "2024-04-06": {
+    "id": 1078,
+    "solution": "finch",
+    "days_since_launch": 1022
+  },
+  "2024-03-15": {
+    "id": 602,
+    "solution": "erupt",
+    "days_since_launch": 1000
+  },
+  "2024-04-10": {
+    "id": 2149,
+    "solution": "broth",
+    "days_since_launch": 1026
+  },
+  "2024-04-02": {
+    "id": 1178,
+    "solution": "serum",
+    "days_since_launch": 1018
+  },
+  "2024-03-16": {
+    "id": 705,
+    "solution": "toxin",
+    "days_since_launch": 1001
+  },
+  "2024-04-04": {
+    "id": 1654,
+    "solution": "climb",
+    "days_since_launch": 1020
+  },
+  "2024-03-27": {
+    "id": 812,
+    "solution": "stung",
+    "days_since_launch": 1012
+  },
+  "2024-04-23": {
+    "id": 843,
+    "solution": "rover",
+    "days_since_launch": 1039
+  },
+  "2024-03-17": {
+    "id": 1367,
+    "solution": "snort",
+    "days_since_launch": 1002
+  },
+  "2024-04-21": {
+    "id": 859,
+    "solution": "jolly",
+    "days_since_launch": 1037
+  },
+  "2024-03-28": {
+    "id": 2214,
+    "solution": "speak",
+    "days_since_launch": 1013
+  },
+  "2024-03-22": {
+    "id": 731,
+    "solution": "decay",
+    "days_since_launch": 1007
+  },
+  "2024-03-19": {
+    "id": 1038,
+    "solution": "abide",
+    "days_since_launch": 1004
+  },
+  "2024-04-18": {
+    "id": 1558,
+    "solution": "facet",
+    "days_since_launch": 1034
+  },
+  "2024-03-23": {
+    "id": 582,
+    "solution": "risen",
+    "days_since_launch": 1008
+  },
+  "2024-04-09": {
+    "id": 1360,
+    "solution": "merge",
+    "days_since_launch": 1025
+  },
+  "2024-03-24": {
+    "id": 1387,
+    "solution": "towel",
+    "days_since_launch": 1009
+  },
+  "2024-04-05": {
+    "id": 858,
+    "solution": "wrist",
+    "days_since_launch": 1021
+  },
+  "2024-04-11": {
+    "id": 516,
+    "solution": "louse",
+    "days_since_launch": 1027
+  },
+  "2024-03-20": {
+    "id": 1293,
+    "solution": "lingo",
+    "days_since_launch": 1005
+  },
+  "2024-04-22": {
+    "id": 2321,
+    "solution": "laser",
+    "days_since_launch": 1038
+  },
+  "2024-04-15": {
+    "id": 565,
+    "solution": "equip",
+    "days_since_launch": 1031
+  },
+  "2024-03-30": {
+    "id": 1594,
+    "solution": "force",
+    "days_since_launch": 1015
+  },
+  "2024-04-19": {
+    "id": 1643,
+    "solution": "raise",
+    "days_since_launch": 1035
+  },
+  "2024-04-17": {
+    "id": 1473,
+    "solution": "tithe",
+    "days_since_launch": 1033
+  },
+  "2024-04-08": {
+    "id": 1309,
+    "solution": "breed",
+    "days_since_launch": 1024
+  },
+  "2024-03-26": {
+    "id": 1151,
+    "solution": "mayor",
+    "days_since_launch": 1011
+  },
+  "2024-03-29": {
+    "id": 1119,
+    "solution": "realm",
+    "days_since_launch": 1014
+  },
+  "2024-04-13": {
+    "id": 1067,
+    "solution": "steel",
+    "days_since_launch": 1029
+  },
+  "2024-04-14": {
+    "id": 1313,
+    "solution": "blimp",
+    "days_since_launch": 1030
+  },
+  "2024-03-31": {
+    "id": 1956,
+    "solution": "taboo",
+    "days_since_launch": 1016
+  },
+  "2024-05-24": {
+    "id": 1153,
+    "solution": "glide",
+    "days_since_launch": 1070
+  },
+  "2024-05-16": {
+    "id": 1915,
+    "solution": "stall",
+    "days_since_launch": 1062
+  },
+  "2024-05-20": {
+    "id": 700,
+    "solution": "nicer",
+    "days_since_launch": 1066
+  },
+  "2024-05-28": {
+    "id": 1768,
+    "solution": "minus",
+    "days_since_launch": 1074
+  },
+  "2024-06-01": {
+    "id": 802,
+    "solution": "basin",
+    "days_since_launch": 1078
+  },
+  "2024-04-29": {
+    "id": 1767,
+    "solution": "craft",
+    "days_since_launch": 1045
+  },
+  "2024-05-17": {
+    "id": 1047,
+    "solution": "tutor",
+    "days_since_launch": 1063
+  },
+  "2024-05-10": {
+    "id": 1335,
+    "solution": "media",
+    "days_since_launch": 1056
+  },
+  "2024-05-30": {
+    "id": 2179,
+    "solution": "gummy",
+    "days_since_launch": 1076
+  },
+  "2024-05-29": {
+    "id": 1928,
+    "solution": "papal",
+    "days_since_launch": 1075
+  },
+  "2024-05-08": {
+    "id": 2325,
+    "solution": "pious",
+    "days_since_launch": 1054
+  },
+  "2024-04-30": {
+    "id": 1270,
+    "solution": "prowl",
+    "days_since_launch": 1046
+  },
+  "2024-05-27": {
+    "id": 1937,
+    "solution": "skier",
+    "days_since_launch": 1073
+  },
+  "2024-06-02": {
+    "id": 811,
+    "solution": "bravo",
+    "days_since_launch": 1079
+  },
+  "2024-05-23": {
+    "id": 1285,
+    "solution": "swish",
+    "days_since_launch": 1069
+  },
+  "2024-05-26": {
+    "id": 1288,
+    "solution": "bevel",
+    "days_since_launch": 1072
+  },
+  "2024-04-26": {
+    "id": 1097,
+    "solution": "vapid",
+    "days_since_launch": 1042
+  },
+  "2024-05-03": {
+    "id": 1741,
+    "solution": "ebony",
+    "days_since_launch": 1049
+  },
+  "2024-05-01": {
+    "id": 1125,
+    "solution": "diary",
+    "days_since_launch": 1047
+  },
+  "2024-05-11": {
+    "id": 1444,
+    "solution": "tidal",
+    "days_since_launch": 1057
+  },
+  "2024-05-31": {
+    "id": 568,
+    "solution": "chaos",
+    "days_since_launch": 1077
+  },
+  "2024-05-12": {
+    "id": 931,
+    "solution": "outer",
+    "days_since_launch": 1058
+  },
+  "2024-05-22": {
+    "id": 702,
+    "solution": "exalt",
+    "days_since_launch": 1068
+  },
+  "2024-05-19": {
+    "id": 1112,
+    "solution": "hitch",
+    "days_since_launch": 1065
+  },
+  "2024-05-13": {
+    "id": 1304,
+    "solution": "cumin",
+    "days_since_launch": 1059
+  },
+  "2024-05-04": {
+    "id": 1397,
+    "solution": "value",
+    "days_since_launch": 1050
+  },
+  "2024-05-02": {
+    "id": 1602,
+    "solution": "slice",
+    "days_since_launch": 1048
+  },
+  "2024-05-25": {
+    "id": 1770,
+    "solution": "titan",
+    "days_since_launch": 1071
+  },
+  "2024-04-27": {
+    "id": 1985,
+    "solution": "gleam",
+    "days_since_launch": 1043
+  },
+  "2024-05-18": {
+    "id": 1671,
+    "solution": "briny",
+    "days_since_launch": 1064
+  },
+  "2024-04-28": {
+    "id": 1723,
+    "solution": "prune",
+    "days_since_launch": 1044
+  },
+  "2024-05-21": {
+    "id": 998,
+    "solution": "dingo",
+    "days_since_launch": 1067
+  },
+  "2024-04-24": {
+    "id": 1150,
+    "solution": "overt",
+    "days_since_launch": 1040
+  },
+  "2024-04-25": {
+    "id": 2243,
+    "solution": "intro",
+    "days_since_launch": 1041
+  },
+  "2024-05-15": {
+    "id": 2223,
+    "solution": "pinch",
+    "days_since_launch": 1061
+  },
+  "2024-05-09": {
+    "id": 1382,
+    "solution": "jerky",
+    "days_since_launch": 1055
+  },
+  "2024-05-05": {
+    "id": 1419,
+    "solution": "decal",
+    "days_since_launch": 1051
+  },
+  "2024-05-07": {
+    "id": 531,
+    "solution": "musty",
+    "days_since_launch": 1053
+  },
+  "2024-05-06": {
+    "id": 2287,
+    "solution": "shave",
+    "days_since_launch": 1052
+  },
+  "2024-05-14": {
+    "id": 1044,
+    "solution": "amass",
+    "days_since_launch": 1060
+  },
+  "2024-07-04": {
+    "id": 1595,
+    "solution": "debut",
+    "days_since_launch": 1111
+  },
+  "2024-07-05": {
+    "id": 1988,
+    "solution": "crush",
+    "days_since_launch": 1112
+  },
+  "2024-06-28": {
+    "id": 1162,
+    "solution": "drove",
+    "days_since_launch": 1105
+  },
+  "2024-06-17": {
+    "id": 1869,
+    "solution": "prior",
+    "days_since_launch": 1094
+  },
+  "2024-06-26": {
+    "id": 2161,
+    "solution": "knead",
+    "days_since_launch": 1103
+  },
+  "2024-07-08": {
+    "id": 1188,
+    "solution": "shape",
+    "days_since_launch": 1115
+  },
+  "2024-06-13": {
+    "id": 1100,
+    "solution": "angst",
+    "days_since_launch": 1090
+  },
+  "2024-06-07": {
+    "id": 1744,
+    "solution": "melon",
+    "days_since_launch": 1084
+  },
+  "2024-06-16": {
+    "id": 585,
+    "solution": "grind",
+    "days_since_launch": 1093
+  },
+  "2024-06-03": {
+    "id": 1952,
+    "solution": "stark",
+    "days_since_launch": 1080
+  },
+  "2024-06-14": {
+    "id": 518,
+    "solution": "vault",
+    "days_since_launch": 1091
+  },
+  "2024-07-09": {
+    "id": 1588,
+    "solution": "blare",
+    "days_since_launch": 1116
+  },
+  "2024-06-22": {
+    "id": 780,
+    "solution": "edict",
+    "days_since_launch": 1099
+  },
+  "2024-06-30": {
+    "id": 797,
+    "solution": "buddy",
+    "days_since_launch": 1107
+  },
+  "2024-06-05": {
+    "id": 2254,
+    "solution": "organ",
+    "days_since_launch": 1082
+  },
+  "2024-06-15": {
+    "id": 1691,
+    "solution": "proud",
+    "days_since_launch": 1092
+  },
+  "2024-06-08": {
+    "id": 2222,
+    "solution": "hence",
+    "days_since_launch": 1085
+  },
+  "2024-06-21": {
+    "id": 1560,
+    "solution": "paint",
+    "days_since_launch": 1098
+  },
+  "2024-06-19": {
+    "id": 1463,
+    "solution": "terse",
+    "days_since_launch": 1096
+  },
+  "2024-06-29": {
+    "id": 823,
+    "solution": "zebra",
+    "days_since_launch": 1106
+  },
+  "2024-06-09": {
+    "id": 804,
+    "solution": "crowd",
+    "days_since_launch": 1086
+  },
+  "2024-07-01": {
+    "id": 1073,
+    "solution": "adage",
+    "days_since_launch": 1108
+  },
+  "2024-06-12": {
+    "id": 551,
+    "solution": "deter",
+    "days_since_launch": 1089
+  },
+  "2024-07-12": {
+    "id": 607,
+    "solution": "jiffy",
+    "days_since_launch": 1119
+  },
+  "2024-06-23": {
+    "id": 1435,
+    "solution": "bugle",
+    "days_since_launch": 1100
+  },
+  "2024-07-10": {
+    "id": 1081,
+    "solution": "gaunt",
+    "days_since_launch": 1117
+  },
+  "2024-07-11": {
+    "id": 1647,
+    "solution": "cameo",
+    "days_since_launch": 1118
+  },
+  "2024-07-02": {
+    "id": 708,
+    "solution": "inlay",
+    "days_since_launch": 1109
+  },
+  "2024-06-10": {
+    "id": 575,
+    "solution": "manga",
+    "days_since_launch": 1087
+  },
+  "2024-06-06": {
+    "id": 1161,
+    "solution": "ether",
+    "days_since_launch": 1083
+  },
+  "2024-06-11": {
+    "id": 1466,
+    "solution": "swung",
+    "days_since_launch": 1088
+  },
+  "2024-07-06": {
+    "id": 1726,
+    "solution": "scoff",
+    "days_since_launch": 1113
+  },
+  "2024-06-24": {
+    "id": 873,
+    "solution": "dolly",
+    "days_since_launch": 1101
+  },
+  "2024-06-20": {
+    "id": 1523,
+    "solution": "scent",
+    "days_since_launch": 1097
+  },
+  "2024-07-03": {
+    "id": 1970,
+    "solution": "thigh",
+    "days_since_launch": 1110
+  },
+  "2024-06-04": {
+    "id": 1110,
+    "solution": "groom",
+    "days_since_launch": 1081
+  },
+  "2024-06-27": {
+    "id": 1596,
+    "solution": "order",
+    "days_since_launch": 1104
+  },
+  "2024-07-07": {
+    "id": 1174,
+    "solution": "canon",
+    "days_since_launch": 1114
+  },
+  "2024-06-18": {
+    "id": 866,
+    "solution": "cover",
+    "days_since_launch": 1095
+  },
+  "2024-06-25": {
+    "id": 1791,
+    "solution": "savor",
+    "days_since_launch": 1102
+  },
+  "2024-08-06": {
+    "id": 2146,
+    "solution": "anvil",
+    "days_since_launch": 1144
+  },
+  "2024-08-12": {
+    "id": 1634,
+    "solution": "skiff",
+    "days_since_launch": 1150
+  },
+  "2024-08-21": {
+    "id": 542,
+    "solution": "mulch",
+    "days_since_launch": 1159
+  },
+  "2024-07-23": {
+    "id": 1065,
+    "solution": "prong",
+    "days_since_launch": 1130
+  },
+  "2024-07-29": {
+    "id": 1347,
+    "solution": "super",
+    "days_since_launch": 1136
+  },
+  "2024-07-24": {
+    "id": 2189,
+    "solution": "forte",
+    "days_since_launch": 1131
+  },
+  "2024-07-19": {
+    "id": 1655,
+    "solution": "refer",
+    "days_since_launch": 1126
+  },
+  "2024-07-17": {
+    "id": 1310,
+    "solution": "quite",
+    "days_since_launch": 1124
+  },
+  "2024-08-14": {
+    "id": 2111,
+    "solution": "shore",
+    "days_since_launch": 1152
+  },
+  "2024-08-09": {
+    "id": 1865,
+    "solution": "ounce",
+    "days_since_launch": 1147
+  },
+  "2024-07-27": {
+    "id": 1923,
+    "solution": "juice",
+    "days_since_launch": 1134
+  },
+  "2024-07-25": {
+    "id": 997,
+    "solution": "porch",
+    "days_since_launch": 1132
+  },
+  "2024-08-16": {
+    "id": 2092,
+    "solution": "brace",
+    "days_since_launch": 1154
+  },
+  "2024-08-08": {
+    "id": 1396,
+    "solution": "saucy",
+    "days_since_launch": 1146
+  },
+  "2024-07-16": {
+    "id": 1746,
+    "solution": "decoy",
+    "days_since_launch": 1123
+  },
+  "2024-07-30": {
+    "id": 2255,
+    "solution": "feral",
+    "days_since_launch": 1137
+  },
+  "2024-07-21": {
+    "id": 1086,
+    "solution": "speck",
+    "days_since_launch": 1128
+  },
+  "2024-08-15": {
+    "id": 678,
+    "solution": "acorn",
+    "days_since_launch": 1153
+  },
+  "2024-08-03": {
+    "id": 1667,
+    "solution": "scale",
+    "days_since_launch": 1141
+  },
+  "2024-08-04": {
+    "id": 1102,
+    "solution": "lower",
+    "days_since_launch": 1142
+  },
+  "2024-07-18": {
+    "id": 1451,
+    "solution": "nerdy",
+    "days_since_launch": 1125
+  },
+  "2024-07-15": {
+    "id": 1029,
+    "solution": "swoon",
+    "days_since_launch": 1122
+  },
+  "2024-07-20": {
+    "id": 734,
+    "solution": "shaft",
+    "days_since_launch": 1127
+  },
+  "2024-07-22": {
+    "id": 1828,
+    "solution": "cadet",
+    "days_since_launch": 1129
+  },
+  "2024-08-18": {
+    "id": 710,
+    "solution": "lanky",
+    "days_since_launch": 1156
+  },
+  "2024-08-10": {
+    "id": 1899,
+    "solution": "medic",
+    "days_since_launch": 1148
+  },
+  "2024-08-11": {
+    "id": 1393,
+    "solution": "scone",
+    "days_since_launch": 1149
+  },
+  "2024-08-17": {
+    "id": 960,
+    "solution": "storm",
+    "days_since_launch": 1155
+  },
+  "2024-08-13": {
+    "id": 1742,
+    "solution": "neigh",
+    "days_since_launch": 1151
+  },
+  "2024-07-28": {
+    "id": 1358,
+    "solution": "smock",
+    "days_since_launch": 1135
+  },
+  "2024-08-19": {
+    "id": 2148,
+    "solution": "meter",
+    "days_since_launch": 1157
+  },
+  "2024-07-31": {
+    "id": 1136,
+    "solution": "penne",
+    "days_since_launch": 1138
+  },
+  "2024-07-14": {
+    "id": 1884,
+    "solution": "video",
+    "days_since_launch": 1121
+  },
+  "2024-08-07": {
+    "id": 789,
+    "solution": "macaw",
+    "days_since_launch": 1145
+  },
+  "2024-08-02": {
+    "id": 1872,
+    "solution": "flake",
+    "days_since_launch": 1140
+  },
+  "2024-07-13": {
+    "id": 1083,
+    "solution": "enact",
+    "days_since_launch": 1120
+  },
+  "2024-08-20": {
+    "id": 897,
+    "solution": "delay",
+    "days_since_launch": 1158
+  },
+  "2024-08-01": {
+    "id": 1437,
+    "solution": "chalk",
+    "days_since_launch": 1139
+  },
+  "2024-07-26": {
+    "id": 1857,
+    "solution": "awash",
+    "days_since_launch": 1133
+  },
+  "2024-08-05": {
+    "id": 878,
+    "solution": "ensue",
+    "days_since_launch": 1143
+  },
+  "2024-09-17": {
+    "id": 2318,
+    "solution": "beaut",
+    "days_since_launch": 1186
+  },
+  "2024-09-22": {
+    "id": 1886,
+    "solution": "teach",
+    "days_since_launch": 1191
+  },
+  "2024-08-28": {
+    "id": 1712,
+    "solution": "lithe",
+    "days_since_launch": 1166
+  },
+  "2024-09-24": {
+    "id": 616,
+    "solution": "handy",
+    "days_since_launch": 1193
+  },
+  "2024-09-28": {
+    "id": 796,
+    "solution": "brain",
+    "days_since_launch": 1197
+  },
+  "2024-09-30": {
+    "id": 2052,
+    "solution": "cloud",
+    "days_since_launch": 1199
+  },
+  "2024-09-08": {
+    "id": 1678,
+    "solution": "drawn",
+    "days_since_launch": 1177
+  },
+  "2024-09-19": {
+    "id": 2210,
+    "solution": "press",
+    "days_since_launch": 1188
+  },
+  "2024-08-24": {
+    "id": 970,
+    "solution": "filet",
+    "days_since_launch": 1162
+  },
+  "2024-08-26": {
+    "id": 1223,
+    "solution": "stake",
+    "days_since_launch": 1164
+  },
+  "2024-09-10": {
+    "id": 1251,
+    "solution": "rebel",
+    "days_since_launch": 1179
+  },
+  "2024-09-15": {
+    "id": 1357,
+    "solution": "recur",
+    "days_since_launch": 1184
+  },
+  "2024-08-22": {
+    "id": 1933,
+    "solution": "brute",
+    "days_since_launch": 1160
+  },
+  "2024-08-27": {
+    "id": 1034,
+    "solution": "crown",
+    "days_since_launch": 1165
+  },
+  "2024-09-18": {
+    "id": 2079,
+    "solution": "fully",
+    "days_since_launch": 1187
+  },
+  "2024-09-13": {
+    "id": 1689,
+    "solution": "harsh",
+    "days_since_launch": 1182
+  },
+  "2024-09-01": {
+    "id": 1750,
+    "solution": "mushy",
+    "days_since_launch": 1170
+  },
+  "2024-08-23": {
+    "id": 2054,
+    "solution": "leech",
+    "days_since_launch": 1161
+  },
+  "2024-08-29": {
+    "id": 1721,
+    "solution": "flunk",
+    "days_since_launch": 1167
+  },
+  "2024-09-23": {
+    "id": 1916,
+    "solution": "steam",
+    "days_since_launch": 1192
+  },
+  "2024-09-06": {
+    "id": 1673,
+    "solution": "rerun",
+    "days_since_launch": 1175
+  },
+  "2024-09-04": {
+    "id": 1272,
+    "solution": "stern",
+    "days_since_launch": 1173
+  },
+  "2024-09-20": {
+    "id": 557,
+    "solution": "smoke",
+    "days_since_launch": 1189
+  },
+  "2024-09-11": {
+    "id": 1633,
+    "solution": "aisle",
+    "days_since_launch": 1180
+  },
+  "2024-09-26": {
+    "id": 749,
+    "solution": "thank",
+    "days_since_launch": 1195
+  },
+  "2024-09-03": {
+    "id": 1369,
+    "solution": "faint",
+    "days_since_launch": 1172
+  },
+  "2024-08-30": {
+    "id": 1225,
+    "solution": "knave",
+    "days_since_launch": 1168
+  },
+  "2024-09-07": {
+    "id": 1350,
+    "solution": "owner",
+    "days_since_launch": 1176
+  },
+  "2024-09-21": {
+    "id": 1123,
+    "solution": "seven",
+    "days_since_launch": 1190
+  },
+  "2024-09-05": {
+    "id": 1600,
+    "solution": "widen",
+    "days_since_launch": 1174
+  },
+  "2024-09-16": {
+    "id": 592,
+    "solution": "honey",
+    "days_since_launch": 1185
+  },
+  "2024-08-25": {
+    "id": 1244,
+    "solution": "skate",
+    "days_since_launch": 1163
+  },
+  "2024-09-27": {
+    "id": 2264,
+    "solution": "faith",
+    "days_since_launch": 1196
+  },
+  "2024-09-29": {
+    "id": 2172,
+    "solution": "rider",
+    "days_since_launch": 1198
+  },
+  "2024-08-31": {
+    "id": 791,
+    "solution": "spout",
+    "days_since_launch": 1169
+  },
+  "2024-09-09": {
+    "id": 1242,
+    "solution": "debit",
+    "days_since_launch": 1178
+  },
+  "2024-09-02": {
+    "id": 1816,
+    "solution": "camel",
+    "days_since_launch": 1171
+  },
+  "2024-09-12": {
+    "id": 930,
+    "solution": "brass",
+    "days_since_launch": 1181
+  },
+  "2024-09-14": {
+    "id": 1684,
+    "solution": "broad",
+    "days_since_launch": 1183
+  },
+  "2024-09-25": {
+    "id": 1478,
+    "solution": "torch",
+    "days_since_launch": 1194
+  },
+  "2024-10-21": {
+    "id": 1590,
+    "solution": "spoon",
+    "days_since_launch": 1220
+  },
+  "2024-11-02": {
+    "id": 1090,
+    "solution": "snoop",
+    "days_since_launch": 1232
+  },
+  "2024-10-20": {
+    "id": 1769,
+    "solution": "dicey",
+    "days_since_launch": 1219
+  },
+  "2024-10-30": {
+    "id": 1395,
+    "solution": "easel",
+    "days_since_launch": 1229
+  },
+  "2024-10-19": {
+    "id": 752,
+    "solution": "fiber",
+    "days_since_launch": 1218
+  },
+  "2024-10-03": {
+    "id": 945,
+    "solution": "wagon",
+    "days_since_launch": 1202
+  },
+  "2024-10-14": {
+    "id": 1465,
+    "solution": "gamut",
+    "days_since_launch": 1213
+  },
+  "2024-10-11": {
+    "id": 564,
+    "solution": "gusty",
+    "days_since_launch": 1210
+  },
+  "2024-10-27": {
+    "id": 2036,
+    "solution": "sandy",
+    "days_since_launch": 1226
+  },
+  "2024-10-31": {
+    "id": 1758,
+    "solution": "weird",
+    "days_since_launch": 1230
+  },
+  "2024-10-08": {
+    "id": 1510,
+    "solution": "joint",
+    "days_since_launch": 1207
+  },
+  "2024-11-04": {
+    "id": 1070,
+    "solution": "vinyl",
+    "days_since_launch": 1234
+  },
+  "2024-10-24": {
+    "id": 1708,
+    "solution": "bossy",
+    "days_since_launch": 1223
+  },
+  "2024-10-04": {
+    "id": 813,
+    "solution": "title",
+    "days_since_launch": 1203
+  },
+  "2024-11-09": {
+    "id": 1408,
+    "solution": "swell",
+    "days_since_launch": 1239
+  },
+  "2024-10-02": {
+    "id": 1020,
+    "solution": "shell",
+    "days_since_launch": 1201
+  },
+  "2024-11-03": {
+    "id": 1325,
+    "solution": "blaze",
+    "days_since_launch": 1233
+  },
+  "2024-10-18": {
+    "id": 1165,
+    "solution": "stint",
+    "days_since_launch": 1217
+  },
+  "2024-10-26": {
+    "id": 1866,
+    "solution": "wreak",
+    "days_since_launch": 1225
+  },
+  "2024-10-05": {
+    "id": 1697,
+    "solution": "miner",
+    "days_since_launch": 1204
+  },
+  "2024-10-12": {
+    "id": 808,
+    "solution": "stain",
+    "days_since_launch": 1211
+  },
+  "2024-10-13": {
+    "id": 629,
+    "solution": "prone",
+    "days_since_launch": 1212
+  },
+  "2024-10-22": {
+    "id": 1827,
+    "solution": "shout",
+    "days_since_launch": 1221
+  },
+  "2024-11-06": {
+    "id": 1281,
+    "solution": "truly",
+    "days_since_launch": 1236
+  },
+  "2024-11-01": {
+    "id": 1495,
+    "solution": "sixth",
+    "days_since_launch": 1231
+  },
+  "2024-11-05": {
+    "id": 581,
+    "solution": "octet",
+    "days_since_launch": 1235
+  },
+  "2024-10-25": {
+    "id": 654,
+    "solution": "frown",
+    "days_since_launch": 1224
+  },
+  "2024-10-07": {
+    "id": 1371,
+    "solution": "flour",
+    "days_since_launch": 1206
+  },
+  "2024-10-16": {
+    "id": 1898,
+    "solution": "grant",
+    "days_since_launch": 1215
+  },
+  "2024-10-29": {
+    "id": 706,
+    "solution": "tunic",
+    "days_since_launch": 1228
+  },
+  "2024-10-01": {
+    "id": 1943,
+    "solution": "modem",
+    "days_since_launch": 1200
+  },
+  "2024-10-10": {
+    "id": 586,
+    "solution": "carve",
+    "days_since_launch": 1209
+  },
+  "2024-10-23": {
+    "id": 2167,
+    "solution": "goofy",
+    "days_since_launch": 1222
+  },
+  "2024-10-17": {
+    "id": 1068,
+    "solution": "halve",
+    "days_since_launch": 1216
+  },
+  "2024-11-08": {
+    "id": 1115,
+    "solution": "ready",
+    "days_since_launch": 1238
+  },
+  "2024-10-15": {
+    "id": 2011,
+    "solution": "corer",
+    "days_since_launch": 1214
+  },
+  "2024-10-09": {
+    "id": 2322,
+    "solution": "mommy",
+    "days_since_launch": 1208
+  },
+  "2024-11-07": {
+    "id": 877,
+    "solution": "event",
+    "days_since_launch": 1237
+  },
+  "2024-10-06": {
+    "id": 1407,
+    "solution": "lager",
+    "days_since_launch": 1205
+  },
+  "2024-10-28": {
+    "id": 1402,
+    "solution": "bawdy",
+    "days_since_launch": 1227
+  },
+  "2024-11-19": {
+    "id": 2230,
+    "solution": "going",
+    "days_since_launch": 1249
+  },
+  "2024-12-13": {
+    "id": 1203,
+    "solution": "boxer",
+    "days_since_launch": 1273
+  },
+  "2024-12-07": {
+    "id": 1664,
+    "solution": "hilly",
+    "days_since_launch": 1267
+  },
+  "2024-11-23": {
+    "id": 1098,
+    "solution": "jelly",
+    "days_since_launch": 1253
+  },
+  "2024-12-14": {
+    "id": 1301,
+    "solution": "drool",
+    "days_since_launch": 1274
+  },
+  "2024-11-24": {
+    "id": 1891,
+    "solution": "twist",
+    "days_since_launch": 1254
+  },
+  "2024-11-26": {
+    "id": 2143,
+    "solution": "witch",
+    "days_since_launch": 1256
+  },
+  "2024-12-15": {
+    "id": 1793,
+    "solution": "funky",
+    "days_since_launch": 1275
+  },
+  "2024-11-20": {
+    "id": 1921,
+    "solution": "niche",
+    "days_since_launch": 1250
+  },
+  "2024-11-13": {
+    "id": 2326,
+    "solution": "primp",
+    "days_since_launch": 1243
+  },
+  "2024-11-16": {
+    "id": 2205,
+    "solution": "visor",
+    "days_since_launch": 1246
+  },
+  "2024-11-25": {
+    "id": 2198,
+    "solution": "brown",
+    "days_since_launch": 1255
+  },
+  "2024-12-18": {
+    "id": 1503,
+    "solution": "hefty",
+    "days_since_launch": 1278
+  },
+  "2024-11-27": {
+    "id": 1169,
+    "solution": "slang",
+    "days_since_launch": 1257
+  },
+  "2024-12-09": {
+    "id": 2021,
+    "solution": "flung",
+    "days_since_launch": 1269
+  },
+  "2024-11-15": {
+    "id": 1618,
+    "solution": "tacky",
+    "days_since_launch": 1245
+  },
+  "2024-12-10": {
+    "id": 655,
+    "solution": "patio",
+    "days_since_launch": 1270
+  },
+  "2024-11-10": {
+    "id": 983,
+    "solution": "inner",
+    "days_since_launch": 1240
+  },
+  "2024-12-11": {
+    "id": 1797,
+    "solution": "plumb",
+    "days_since_launch": 1271
+  },
+  "2024-11-21": {
+    "id": 1826,
+    "solution": "spine",
+    "days_since_launch": 1251
+  },
+  "2024-12-03": {
+    "id": 1364,
+    "solution": "shaky",
+    "days_since_launch": 1263
+  },
+  "2024-11-28": {
+    "id": 1882,
+    "solution": "chock",
+    "days_since_launch": 1258
+  },
+  "2024-11-17": {
+    "id": 1659,
+    "solution": "tally",
+    "days_since_launch": 1247
+  },
+  "2024-12-19": {
+    "id": 574,
+    "solution": "stray",
+    "days_since_launch": 1279
+  },
+  "2024-12-12": {
+    "id": 1428,
+    "solution": "vying",
+    "days_since_launch": 1272
+  },
+  "2024-11-11": {
+    "id": 1381,
+    "solution": "stoic",
+    "days_since_launch": 1241
+  },
+  "2024-11-12": {
+    "id": 746,
+    "solution": "flown",
+    "days_since_launch": 1242
+  },
+  "2024-12-04": {
+    "id": 1303,
+    "solution": "crypt",
+    "days_since_launch": 1264
+  },
+  "2024-11-14": {
+    "id": 2352,
+    "solution": "uvula",
+    "days_since_launch": 1244
+  },
+  "2024-12-05": {
+    "id": 2044,
+    "solution": "endow",
+    "days_since_launch": 1265
+  },
+  "2024-11-29": {
+    "id": 1431,
+    "solution": "hippo",
+    "days_since_launch": 1259
+  },
+  "2024-11-30": {
+    "id": 1422,
+    "solution": "dogma",
+    "days_since_launch": 1260
+  },
+  "2024-12-16": {
+    "id": 1909,
+    "solution": "boast",
+    "days_since_launch": 1276
+  },
+  "2024-12-01": {
+    "id": 2020,
+    "solution": "mauve",
+    "days_since_launch": 1261
+  },
+  "2024-11-18": {
+    "id": 1860,
+    "solution": "frail",
+    "days_since_launch": 1248
+  },
+  "2024-12-17": {
+    "id": 1859,
+    "solution": "scowl",
+    "days_since_launch": 1277
+  },
+  "2024-12-02": {
+    "id": 563,
+    "solution": "guile",
+    "days_since_launch": 1262
+  },
+  "2024-11-22": {
+    "id": 995,
+    "solution": "pearl",
+    "days_since_launch": 1252
+  },
+  "2024-12-08": {
+    "id": 1807,
+    "solution": "hyena",
+    "days_since_launch": 1268
+  },
+  "2024-12-06": {
+    "id": 1232,
+    "solution": "shove",
+    "days_since_launch": 1266
+  },
+  "2025-01-23": {
+    "id": 1413,
+    "solution": "upper",
+    "days_since_launch": 1314
+  },
+  "2025-01-01": {
+    "id": 732,
+    "solution": "nerve",
+    "days_since_launch": 1292
+  },
+  "2025-01-20": {
+    "id": 2353,
+    "solution": "squid",
+    "days_since_launch": 1311
+  },
+  "2024-12-25": {
+    "id": 979,
+    "solution": "share",
+    "days_since_launch": 1285
+  },
+  "2025-01-12": {
+    "id": 548,
+    "solution": "total",
+    "days_since_launch": 1303
+  },
+  "2025-01-13": {
+    "id": 1567,
+    "solution": "cloak",
+    "days_since_launch": 1304
+  },
+  "2024-12-24": {
+    "id": 645,
+    "solution": "eagle",
+    "days_since_launch": 1284
+  },
+  "2024-12-26": {
+    "id": 2014,
+    "solution": "affix",
+    "days_since_launch": 1286
+  },
+  "2025-01-03": {
+    "id": 1317,
+    "solution": "cheap",
+    "days_since_launch": 1294
+  },
+  "2025-01-11": {
+    "id": 1798,
+    "solution": "dingy",
+    "days_since_launch": 1302
+  },
+  "2024-12-29": {
+    "id": 2000,
+    "solution": "mambo",
+    "days_since_launch": 1289
+  },
+  "2025-01-17": {
+    "id": 748,
+    "solution": "prose",
+    "days_since_launch": 1308
+  },
+  "2025-01-18": {
+    "id": 996,
+    "solution": "silly",
+    "days_since_launch": 1309
+  },
+  "2025-01-05": {
+    "id": 1105,
+    "solution": "cyber",
+    "days_since_launch": 1296
+  },
+  "2024-12-20": {
+    "id": 1572,
+    "solution": "flash",
+    "days_since_launch": 1280
+  },
+  "2025-01-24": {
+    "id": 1592,
+    "solution": "crepe",
+    "days_since_launch": 1315
+  },
+  "2025-01-27": {
+    "id": 879,
+    "solution": "shunt",
+    "days_since_launch": 1318
+  },
+  "2025-01-14": {
+    "id": 993,
+    "solution": "fancy",
+    "days_since_launch": 1305
+  },
+  "2025-01-28": {
+    "id": 1844,
+    "solution": "fever",
+    "days_since_launch": 1319
+  },
+  "2025-01-15": {
+    "id": 1593,
+    "solution": "knack",
+    "days_since_launch": 1306
+  },
+  "2024-12-23": {
+    "id": 1055,
+    "solution": "sauna",
+    "days_since_launch": 1283
+  },
+  "2024-12-27": {
+    "id": 1982,
+    "solution": "grain",
+    "days_since_launch": 1287
+  },
+  "2025-01-25": {
+    "id": 1675,
+    "solution": "crisp",
+    "days_since_launch": 1316
+  },
+  "2024-12-28": {
+    "id": 2202,
+    "solution": "decry",
+    "days_since_launch": 1288
+  },
+  "2025-01-08": {
+    "id": 1290,
+    "solution": "draft",
+    "days_since_launch": 1299
+  },
+  "2024-12-22": {
+    "id": 685,
+    "solution": "brawn",
+    "days_since_launch": 1282
+  },
+  "2025-01-19": {
+    "id": 2284,
+    "solution": "rower",
+    "days_since_launch": 1310
+  },
+  "2025-01-06": {
+    "id": 1825,
+    "solution": "sprig",
+    "days_since_launch": 1297
+  },
+  "2025-01-21": {
+    "id": 742,
+    "solution": "icing",
+    "days_since_launch": 1312
+  },
+  "2025-01-16": {
+    "id": 861,
+    "solution": "flint",
+    "days_since_launch": 1307
+  },
+  "2025-01-07": {
+    "id": 2362,
+    "solution": "atlas",
+    "days_since_launch": 1298
+  },
+  "2024-12-31": {
+    "id": 1289,
+    "solution": "lemur",
+    "days_since_launch": 1291
+  },
+  "2025-01-09": {
+    "id": 1854,
+    "solution": "wafer",
+    "days_since_launch": 1300
+  },
+  "2025-01-10": {
+    "id": 1639,
+    "solution": "crawl",
+    "days_since_launch": 1301
+  },
+  "2025-01-02": {
+    "id": 610,
+    "solution": "chose",
+    "days_since_launch": 1293
+  },
+  "2025-01-26": {
+    "id": 669,
+    "solution": "sunny",
+    "days_since_launch": 1317
+  },
+  "2025-01-22": {
+    "id": 1352,
+    "solution": "reach",
+    "days_since_launch": 1313
+  },
+  "2025-01-04": {
+    "id": 865,
+    "solution": "relax",
+    "days_since_launch": 1295
+  },
+  "2024-12-21": {
+    "id": 2047,
+    "solution": "blade",
+    "days_since_launch": 1281
+  },
+  "2024-12-30": {
+    "id": 890,
+    "solution": "stare",
+    "days_since_launch": 1290
+  },
+  "2025-02-01": {
+    "id": 555,
+    "solution": "rivet",
+    "days_since_launch": 1323
+  },
+  "2025-02-09": {
+    "id": 1134,
+    "solution": "bonus",
+    "days_since_launch": 1331
+  },
+  "2025-03-03": {
+    "id": 2131,
+    "solution": "spear",
+    "days_since_launch": 1353
+  },
+  "2025-02-02": {
+    "id": 1195,
+    "solution": "chore",
+    "days_since_launch": 1324
+  },
+  "2025-02-27": {
+    "id": 1142,
+    "solution": "lodge",
+    "days_since_launch": 1349
+  },
+  "2025-03-06": {
+    "id": 1538,
+    "solution": "alert",
+    "days_since_launch": 1356
+  },
+  "2025-02-04": {
+    "id": 1160,
+    "solution": "tooth",
+    "days_since_launch": 1326
+  },
+  "2025-02-12": {
+    "id": 2163,
+    "solution": "rapid",
+    "days_since_launch": 1334
+  },
+  "2025-02-22": {
+    "id": 620,
+    "solution": "cream",
+    "days_since_launch": 1344
+  },
+  "2025-02-16": {
+    "id": 1464,
+    "solution": "suave",
+    "days_since_launch": 1338
+  },
+  "2025-03-01": {
+    "id": 1365,
+    "solution": "hover",
+    "days_since_launch": 1351
+  },
+  "2025-03-08": {
+    "id": 1568,
+    "solution": "navel",
+    "days_since_launch": 1358
+  },
+  "2025-02-26": {
+    "id": 650,
+    "solution": "award",
+    "days_since_launch": 1348
+  },
+  "2025-03-04": {
+    "id": 928,
+    "solution": "check",
+    "days_since_launch": 1354
+  },
+  "2025-03-02": {
+    "id": 1283,
+    "solution": "deity",
+    "days_since_launch": 1352
+  },
+  "2025-02-23": {
+    "id": 984,
+    "solution": "otter",
+    "days_since_launch": 1345
+  },
+  "2025-02-18": {
+    "id": 2366,
+    "solution": "indie",
+    "days_since_launch": 1340
+  },
+  "2025-02-21": {
+    "id": 1082,
+    "solution": "clove",
+    "days_since_launch": 1343
+  },
+  "2025-02-15": {
+    "id": 735,
+    "solution": "crook",
+    "days_since_launch": 1337
+  },
+  "2025-02-03": {
+    "id": 1650,
+    "solution": "revue",
+    "days_since_launch": 1325
+  },
+  "2025-01-31": {
+    "id": 1394,
+    "solution": "toast",
+    "days_since_launch": 1322
+  },
+  "2025-02-19": {
+    "id": 2150,
+    "solution": "madly",
+    "days_since_launch": 1341
+  },
+  "2025-02-28": {
+    "id": 1624,
+    "solution": "fuzzy",
+    "days_since_launch": 1350
+  },
+  "2025-02-20": {
+    "id": 1111,
+    "solution": "roach",
+    "days_since_launch": 1342
+  },
+  "2025-02-17": {
+    "id": 1920,
+    "solution": "trail",
+    "days_since_launch": 1339
+  },
+  "2025-02-24": {
+    "id": 1965,
+    "solution": "gland",
+    "days_since_launch": 1346
+  },
+  "2025-01-29": {
+    "id": 571,
+    "solution": "udder",
+    "days_since_launch": 1320
+  },
+  "2025-02-11": {
+    "id": 821,
+    "solution": "score",
+    "days_since_launch": 1333
+  },
+  "2025-03-09": {
+    "id": 1946,
+    "solution": "greed",
+    "days_since_launch": 1359
+  },
+  "2025-02-06": {
+    "id": 951,
+    "solution": "pupil",
+    "days_since_launch": 1328
+  },
+  "2025-02-13": {
+    "id": 1550,
+    "solution": "rumba",
+    "days_since_launch": 1335
+  },
+  "2025-02-08": {
+    "id": 1221,
+    "solution": "steep",
+    "days_since_launch": 1330
+  },
+  "2025-02-14": {
+    "id": 1295,
+    "solution": "ditty",
+    "days_since_launch": 1336
+  },
+  "2025-02-25": {
+    "id": 1124,
+    "solution": "dryer",
+    "days_since_launch": 1347
+  },
+  "2025-02-05": {
+    "id": 1440,
+    "solution": "pedal",
+    "days_since_launch": 1327
+  },
+  "2025-02-07": {
+    "id": 1164,
+    "solution": "swath",
+    "days_since_launch": 1329
+  },
+  "2025-03-07": {
+    "id": 1612,
+    "solution": "troop",
+    "days_since_launch": 1357
+  },
+  "2025-03-05": {
+    "id": 1812,
+    "solution": "scrum",
+    "days_since_launch": 1355
+  },
+  "2025-01-30": {
+    "id": 1320,
+    "solution": "false",
+    "days_since_launch": 1321
+  },
+  "2025-02-10": {
+    "id": 653,
+    "solution": "goody",
+    "days_since_launch": 1332
+  },
+  "2025-03-15": {
+    "id": 1765,
+    "solution": "ladle",
+    "days_since_launch": 1365
+  },
+  "2025-03-28": {
+    "id": 782,
+    "solution": "verse",
+    "days_since_launch": 1378
+  },
+  "2025-04-16": {
+    "id": 1732,
+    "solution": "moral",
+    "days_since_launch": 1397
+  },
+  "2025-03-27": {
+    "id": 991,
+    "solution": "sheet",
+    "days_since_launch": 1377
+  },
+  "2025-04-01": {
+    "id": 1452,
+    "solution": "jewel",
+    "days_since_launch": 1382
+  },
+  "2025-03-19": {
+    "id": 1846,
+    "solution": "spark",
+    "days_since_launch": 1369
+  },
+  "2025-04-11": {
+    "id": 1749,
+    "solution": "arrow",
+    "days_since_launch": 1392
+  },
+  "2025-03-16": {
+    "id": 675,
+    "solution": "stamp",
+    "days_since_launch": 1366
+  },
+  "2025-04-12": {
+    "id": 697,
+    "solution": "nurse",
+    "days_since_launch": 1393
+  },
+  "2025-04-08": {
+    "id": 1613,
+    "solution": "spare",
+    "days_since_launch": 1389
+  },
+  "2025-04-09": {
+    "id": 1929,
+    "solution": "wheat",
+    "days_since_launch": 1390
+  },
+  "2025-04-14": {
+    "id": 1103,
+    "solution": "crest",
+    "days_since_launch": 1395
+  },
+  "2025-04-17": {
+    "id": 894,
+    "solution": "stood",
+    "days_since_launch": 1398
+  },
+  "2025-04-04": {
+    "id": 1804,
+    "solution": "krill",
+    "days_since_launch": 1385
+  },
+  "2025-04-18": {
+    "id": 1298,
+    "solution": "dirge",
+    "days_since_launch": 1399
+  },
+  "2025-03-26": {
+    "id": 1458,
+    "solution": "elbow",
+    "days_since_launch": 1376
+  },
+  "2025-04-02": {
+    "id": 1690,
+    "solution": "curse",
+    "days_since_launch": 1383
+  },
+  "2025-04-03": {
+    "id": 1010,
+    "solution": "shear",
+    "days_since_launch": 1384
+  },
+  "2025-03-14": {
+    "id": 2238,
+    "solution": "piece",
+    "days_since_launch": 1364
+  },
+  "2025-04-07": {
+    "id": 857,
+    "solution": "hazel",
+    "days_since_launch": 1388
+  },
+  "2025-03-18": {
+    "id": 1176,
+    "solution": "timer",
+    "days_since_launch": 1368
+  },
+  "2025-04-15": {
+    "id": 1079,
+    "solution": "ashen",
+    "days_since_launch": 1396
+  },
+  "2025-04-06": {
+    "id": 1013,
+    "solution": "villa",
+    "days_since_launch": 1387
+  },
+  "2025-03-31": {
+    "id": 1890,
+    "solution": "booty",
+    "days_since_launch": 1381
+  },
+  "2025-03-12": {
+    "id": 1549,
+    "solution": "mango",
+    "days_since_launch": 1362
+  },
+  "2025-03-11": {
+    "id": 756,
+    "solution": "track",
+    "days_since_launch": 1361
+  },
+  "2025-03-23": {
+    "id": 2130,
+    "solution": "dopey",
+    "days_since_launch": 1373
+  },
+  "2025-03-13": {
+    "id": 627,
+    "solution": "chase",
+    "days_since_launch": 1363
+  },
+  "2025-04-05": {
+    "id": 1794,
+    "solution": "foamy",
+    "days_since_launch": 1386
+  },
+  "2025-04-13": {
+    "id": 903,
+    "solution": "laugh",
+    "days_since_launch": 1394
+  },
+  "2025-03-17": {
+    "id": 1516,
+    "solution": "lasso",
+    "days_since_launch": 1367
+  },
+  "2025-03-10": {
+    "id": 526,
+    "solution": "spite",
+    "days_since_launch": 1360
+  },
+  "2025-03-25": {
+    "id": 1141,
+    "solution": "shelf",
+    "days_since_launch": 1375
+  },
+  "2025-03-29": {
+    "id": 676,
+    "solution": "sorry",
+    "days_since_launch": 1379
+  },
+  "2025-03-24": {
+    "id": 624,
+    "solution": "angle",
+    "days_since_launch": 1374
+  },
+  "2025-04-10": {
+    "id": 2212,
+    "solution": "turbo",
+    "days_since_launch": 1391
+  },
+  "2025-03-20": {
+    "id": 2037,
+    "solution": "baste",
+    "days_since_launch": 1370
+  },
+  "2025-03-30": {
+    "id": 938,
+    "solution": "quota",
+    "days_since_launch": 1380
+  },
+  "2025-03-22": {
+    "id": 1000,
+    "solution": "amble",
+    "days_since_launch": 1372
+  },
+  "2025-03-21": {
+    "id": 947,
+    "solution": "nudge",
+    "days_since_launch": 1371
+  },
+  "2025-05-17": {
+    "id": 1299,
+    "solution": "grown",
+    "days_since_launch": 1428
+  },
+  "2025-05-09": {
+    "id": 1801,
+    "solution": "tripe",
+    "days_since_launch": 1420
+  },
+  "2025-05-18": {
+    "id": 1951,
+    "solution": "livid",
+    "days_since_launch": 1429
+  },
+  "2025-05-19": {
+    "id": 949,
+    "solution": "pitch",
+    "days_since_launch": 1430
+  },
+  "2025-05-06": {
+    "id": 1679,
+    "solution": "suite",
+    "days_since_launch": 1417
+  },
+  "2025-05-27": {
+    "id": 778,
+    "solution": "sport",
+    "days_since_launch": 1438
+  },
+  "2025-05-12": {
+    "id": 1802,
+    "solution": "bicep",
+    "days_since_launch": 1423
+  },
+  "2025-05-08": {
+    "id": 1571,
+    "solution": "balmy",
+    "days_since_launch": 1419
+  },
+  "2025-04-19": {
+    "id": 1980,
+    "solution": "inbox",
+    "days_since_launch": 1400
+  },
+  "2025-05-11": {
+    "id": 637,
+    "solution": "dowel",
+    "days_since_launch": 1422
+  },
+  "2025-04-27": {
+    "id": 1576,
+    "solution": "weedy",
+    "days_since_launch": 1408
+  },
+  "2025-05-22": {
+    "id": 2174,
+    "solution": "folio",
+    "days_since_launch": 1433
+  },
+  "2025-04-28": {
+    "id": 1475,
+    "solution": "dummy",
+    "days_since_launch": 1409
+  },
+  "2025-05-28": {
+    "id": 1545,
+    "solution": "polar",
+    "days_since_launch": 1439
+  },
+  "2025-05-13": {
+    "id": 1173,
+    "solution": "aware",
+    "days_since_launch": 1424
+  },
+  "2025-05-14": {
+    "id": 833,
+    "solution": "bongo",
+    "days_since_launch": 1425
+  },
+  "2025-05-26": {
+    "id": 1906,
+    "solution": "drone",
+    "days_since_launch": 1437
+  },
+  "2025-04-29": {
+    "id": 870,
+    "solution": "bliss",
+    "days_since_launch": 1410
+  },
+  "2025-05-16": {
+    "id": 2070,
+    "solution": "fifth",
+    "days_since_launch": 1427
+  },
+  "2025-05-25": {
+    "id": 2344,
+    "solution": "grift",
+    "days_since_launch": 1436
+  },
+  "2025-05-20": {
+    "id": 2005,
+    "solution": "borne",
+    "days_since_launch": 1431
+  },
+  "2025-05-21": {
+    "id": 1496,
+    "solution": "alarm",
+    "days_since_launch": 1432
+  },
+  "2025-04-22": {
+    "id": 2285,
+    "solution": "artsy",
+    "days_since_launch": 1403
+  },
+  "2025-04-23": {
+    "id": 769,
+    "solution": "ozone",
+    "days_since_launch": 1404
+  },
+  "2025-05-15": {
+    "id": 1753,
+    "solution": "eager",
+    "days_since_launch": 1426
+  },
+  "2025-04-26": {
+    "id": 1604,
+    "solution": "clash",
+    "days_since_launch": 1407
+  },
+  "2025-05-03": {
+    "id": 1280,
+    "solution": "patsy",
+    "days_since_launch": 1414
+  },
+  "2025-05-23": {
+    "id": 1302,
+    "solution": "shuck",
+    "days_since_launch": 1434
+  },
+  "2025-04-21": {
+    "id": 2328,
+    "solution": "spate",
+    "days_since_launch": 1402
+  },
+  "2025-04-20": {
+    "id": 1625,
+    "solution": "patch",
+    "days_since_launch": 1401
+  },
+  "2025-05-04": {
+    "id": 957,
+    "solution": "trout",
+    "days_since_launch": 1415
+  },
+  "2025-04-24": {
+    "id": 837,
+    "solution": "genie",
+    "days_since_launch": 1405
+  },
+  "2025-04-25": {
+    "id": 2153,
+    "solution": "known",
+    "days_since_launch": 1406
+  },
+  "2025-05-07": {
+    "id": 1632,
+    "solution": "macho",
+    "days_since_launch": 1418
+  },
+  "2025-05-10": {
+    "id": 1337,
+    "solution": "yeast",
+    "days_since_launch": 1421
+  },
+  "2025-04-30": {
+    "id": 1163,
+    "solution": "idler",
+    "days_since_launch": 1411
+  },
+  "2025-05-01": {
+    "id": 1191,
+    "solution": "adept",
+    "days_since_launch": 1412
+  },
+  "2025-05-05": {
+    "id": 1533,
+    "solution": "shush",
+    "days_since_launch": 1416
+  },
+  "2025-05-24": {
+    "id": 2351,
+    "solution": "suede",
+    "days_since_launch": 1435
+  },
+  "2025-05-02": {
+    "id": 2211,
+    "solution": "whose",
+    "days_since_launch": 1413
+  },
+  "2025-06-15": {
+    "id": 2024,
+    "solution": "quail",
+    "days_since_launch": 1457
+  },
+  "2025-06-28": {
+    "id": 1577,
+    "solution": "stump",
+    "days_since_launch": 1470
+  },
+  "2025-07-04": {
+    "id": 2141,
+    "solution": "curve",
+    "days_since_launch": 1476
+  },
+  "2025-06-01": {
+    "id": 1762,
+    "solution": "rough",
+    "days_since_launch": 1443
+  },
+  "2025-06-04": {
+    "id": 1752,
+    "solution": "cease",
+    "days_since_launch": 1446
+  },
+  "2025-06-29": {
+    "id": 1579,
+    "solution": "witty",
+    "days_since_launch": 1471
+  },
+  "2025-06-11": {
+    "id": 1474,
+    "solution": "plaid",
+    "days_since_launch": 1453
+  },
+  "2025-06-09": {
+    "id": 1897,
+    "solution": "board",
+    "days_since_launch": 1451
+  },
+  "2025-06-18": {
+    "id": 2099,
+    "solution": "munch",
+    "days_since_launch": 1460
+  },
+  "2025-06-21": {
+    "id": 1524,
+    "solution": "glade",
+    "days_since_launch": 1463
+  },
+  "2025-06-13": {
+    "id": 898,
+    "solution": "bilge",
+    "days_since_launch": 1455
+  },
+  "2025-06-23": {
+    "id": 1472,
+    "solution": "oddly",
+    "days_since_launch": 1465
+  },
+  "2025-05-30": {
+    "id": 1492,
+    "solution": "idiom",
+    "days_since_launch": 1441
+  },
+  "2025-07-03": {
+    "id": 750,
+    "solution": "poppy",
+    "days_since_launch": 1475
+  },
+  "2025-06-07": {
+    "id": 1955,
+    "solution": "reuse",
+    "days_since_launch": 1449
+  },
+  "2025-06-27": {
+    "id": 1669,
+    "solution": "plain",
+    "days_since_launch": 1469
+  },
+  "2025-05-31": {
+    "id": 1707,
+    "solution": "habit",
+    "days_since_launch": 1442
+  },
+  "2025-06-10": {
+    "id": 1777,
+    "solution": "taffy",
+    "days_since_launch": 1452
+  },
+  "2025-06-14": {
+    "id": 692,
+    "solution": "ghost",
+    "days_since_launch": 1456
+  },
+  "2025-06-05": {
+    "id": 1138,
+    "solution": "datum",
+    "days_since_launch": 1447
+  },
+  "2025-06-16": {
+    "id": 2192,
+    "solution": "petty",
+    "days_since_launch": 1458
+  },
+  "2025-07-05": {
+    "id": 1851,
+    "solution": "baler",
+    "days_since_launch": 1477
+  },
+  "2025-06-17": {
+    "id": 1158,
+    "solution": "prank",
+    "days_since_launch": 1459
+  },
+  "2025-06-06": {
+    "id": 660,
+    "solution": "edify",
+    "days_since_launch": 1448
+  },
+  "2025-06-26": {
+    "id": 1122,
+    "solution": "offer",
+    "days_since_launch": 1468
+  },
+  "2025-06-25": {
+    "id": 1256,
+    "solution": "comfy",
+    "days_since_launch": 1467
+  },
+  "2025-06-24": {
+    "id": 658,
+    "solution": "elite",
+    "days_since_launch": 1466
+  },
+  "2025-07-02": {
+    "id": 547,
+    "solution": "incur",
+    "days_since_launch": 1474
+  },
+  "2025-05-29": {
+    "id": 2177,
+    "solution": "quash",
+    "days_since_launch": 1440
+  },
+  "2025-07-07": {
+    "id": 989,
+    "solution": "stilt",
+    "days_since_launch": 1479
+  },
+  "2025-07-01": {
+    "id": 753,
+    "solution": "moldy",
+    "days_since_launch": 1473
+  },
+  "2025-07-06": {
+    "id": 2386,
+    "solution": "atria",
+    "days_since_launch": 1478
+  },
+  "2025-06-22": {
+    "id": 2199,
+    "solution": "thrum",
+    "days_since_launch": 1464
+  },
+  "2025-06-12": {
+    "id": 919,
+    "solution": "vixen",
+    "days_since_launch": 1454
+  },
+  "2025-06-08": {
+    "id": 1578,
+    "solution": "lease",
+    "days_since_launch": 1450
+  },
+  "2025-06-02": {
+    "id": 1287,
+    "solution": "preen",
+    "days_since_launch": 1444
+  },
+  "2025-06-20": {
+    "id": 2329,
+    "solution": "taupe",
+    "days_since_launch": 1462
+  },
+  "2025-06-03": {
+    "id": 1628,
+    "solution": "admin",
+    "days_since_launch": 1445
+  },
+  "2025-06-19": {
+    "id": 1562,
+    "solution": "curio",
+    "days_since_launch": 1461
+  },
+  "2025-06-30": {
+    "id": 724,
+    "solution": "blink",
+    "days_since_launch": 1472
+  },
+  "2025-07-10": {
+    "id": 1939,
+    "solution": "jumpy",
+    "days_since_launch": 1482
+  },
+  "2025-07-17": {
+    "id": 1080,
+    "solution": "modal",
+    "days_since_launch": 1489
+  },
+  "2025-07-16": {
+    "id": 2324,
+    "solution": "nervy",
+    "days_since_launch": 1488
+  },
+  "2025-08-15": {
+    "id": 986,
+    "solution": "level",
+    "days_since_launch": 1518
+  },
+  "2025-07-14": {
+    "id": 2242,
+    "solution": "undid",
+    "days_since_launch": 1486
+  },
+  "2025-07-20": {
+    "id": 1012,
+    "solution": "blank",
+    "days_since_launch": 1492
+  },
+  "2025-08-16": {
+    "id": 2348,
+    "solution": "matte",
+    "days_since_launch": 1519
+  },
+  "2025-07-21": {
+    "id": 2331,
+    "solution": "tizzy",
+    "days_since_launch": 1493
+  },
+  "2025-07-22": {
+    "id": 915,
+    "solution": "burnt",
+    "days_since_launch": 1494
+  },
+  "2025-07-29": {
+    "id": 1629,
+    "solution": "omega",
+    "days_since_launch": 1501
+  },
+  "2025-07-23": {
+    "id": 1626,
+    "solution": "water",
+    "days_since_launch": 1495
+  },
+  "2025-07-31": {
+    "id": 1856,
+    "solution": "frill",
+    "days_since_launch": 1503
+  },
+  "2025-07-15": {
+    "id": 1646,
+    "solution": "foist",
+    "days_since_launch": 1487
+  },
+  "2025-08-12": {
+    "id": 1429,
+    "solution": "nomad",
+    "days_since_launch": 1515
+  },
+  "2025-07-19": {
+    "id": 1547,
+    "solution": "sword",
+    "days_since_launch": 1491
+  },
+  "2025-07-24": {
+    "id": 1509,
+    "solution": "quake",
+    "days_since_launch": 1496
+  },
+  "2025-07-08": {
+    "id": 1359,
+    "solution": "dread",
+    "days_since_launch": 1480
+  },
+  "2025-08-03": {
+    "id": 1627,
+    "solution": "lumpy",
+    "days_since_launch": 1506
+  },
+  "2025-07-26": {
+    "id": 1370,
+    "solution": "haunt",
+    "days_since_launch": 1498
+  },
+  "2025-08-08": {
+    "id": 1878,
+    "solution": "imbue",
+    "days_since_launch": 1511
+  },
+  "2025-07-27": {
+    "id": 1542,
+    "solution": "whole",
+    "days_since_launch": 1499
+  },
+  "2025-08-02": {
+    "id": 2206,
+    "solution": "daunt",
+    "days_since_launch": 1505
+  },
+  "2025-08-11": {
+    "id": 1096,
+    "solution": "south",
+    "days_since_launch": 1514
+  },
+  "2025-08-04": {
+    "id": 1319,
+    "solution": "rigid",
+    "days_since_launch": 1507
+  },
+  "2025-08-14": {
+    "id": 2346,
+    "solution": "knell",
+    "days_since_launch": 1517
+  },
+  "2025-08-01": {
+    "id": 2084,
+    "solution": "banjo",
+    "days_since_launch": 1504
+  },
+  "2025-08-10": {
+    "id": 596,
+    "solution": "minty",
+    "days_since_launch": 1513
+  },
+  "2025-08-07": {
+    "id": 1145,
+    "solution": "coral",
+    "days_since_launch": 1510
+  },
+  "2025-08-09": {
+    "id": 2089,
+    "solution": "nasal",
+    "days_since_launch": 1512
+  },
+  "2025-07-30": {
+    "id": 844,
+    "solution": "assay",
+    "days_since_launch": 1502
+  },
+  "2025-07-13": {
+    "id": 740,
+    "solution": "gnome",
+    "days_since_launch": 1485
+  },
+  "2025-07-18": {
+    "id": 2365,
+    "solution": "loris",
+    "days_since_launch": 1490
+  },
+  "2025-07-12": {
+    "id": 687,
+    "solution": "exile",
+    "days_since_launch": 1484
+  },
+  "2025-07-09": {
+    "id": 1379,
+    "solution": "novel",
+    "days_since_launch": 1481
+  },
+  "2025-07-28": {
+    "id": 704,
+    "solution": "savvy",
+    "days_since_launch": 1500
+  },
+  "2025-08-13": {
+    "id": 2378,
+    "solution": "kefir",
+    "days_since_launch": 1516
+  },
+  "2025-07-25": {
+    "id": 2387,
+    "solution": "gofer",
+    "days_since_launch": 1497
+  },
+  "2025-07-11": {
+    "id": 1796,
+    "solution": "brand",
+    "days_since_launch": 1483
+  },
+  "2025-08-06": {
+    "id": 583,
+    "solution": "groan",
+    "days_since_launch": 1509
+  },
+  "2025-08-05": {
+    "id": 925,
+    "solution": "stork",
+    "days_since_launch": 1508
+  },
+  "2025-08-22": {
+    "id": 2185,
+    "solution": "ratty",
+    "days_since_launch": 1525
+  },
+  "2025-08-20": {
+    "id": 783,
+    "solution": "llama",
+    "days_since_launch": 1523
+  },
+  "2025-09-22": {
+    "id": 1006,
+    "solution": "quill",
+    "days_since_launch": 1556
+  },
+  "2025-09-15": {
+    "id": 1236,
+    "solution": "along",
+    "days_since_launch": 1549
+  },
+  "2025-09-05": {
+    "id": 1861,
+    "solution": "drift",
+    "days_since_launch": 1539
+  },
+  "2025-09-21": {
+    "id": 1911,
+    "solution": "coven",
+    "days_since_launch": 1555
+  },
+  "2025-09-17": {
+    "id": 1598,
+    "solution": "teeth",
+    "days_since_launch": 1551
+  },
+  "2025-09-04": {
+    "id": 1583,
+    "solution": "blend",
+    "days_since_launch": 1538
+  },
+  "2025-09-25": {
+    "id": 2069,
+    "solution": "drape",
+    "days_since_launch": 1559
+  },
+  "2025-08-30": {
+    "id": 1540,
+    "solution": "elate",
+    "days_since_launch": 1533
+  },
+  "2025-09-19": {
+    "id": 848,
+    "solution": "later",
+    "days_since_launch": 1553
+  },
+  "2025-09-06": {
+    "id": 1790,
+    "solution": "bulge",
+    "days_since_launch": 1540
+  },
+  "2025-08-24": {
+    "id": 980,
+    "solution": "spore",
+    "days_since_launch": 1527
+  },
+  "2025-08-21": {
+    "id": 1488,
+    "solution": "extol",
+    "days_since_launch": 1524
+  },
+  "2025-09-20": {
+    "id": 1424,
+    "solution": "defer",
+    "days_since_launch": 1554
+  },
+  "2025-09-23": {
+    "id": 2232,
+    "solution": "mouth",
+    "days_since_launch": 1557
+  },
+  "2025-09-02": {
+    "id": 661,
+    "solution": "might",
+    "days_since_launch": 1536
+  },
+  "2025-09-10": {
+    "id": 1821,
+    "solution": "pouty",
+    "days_since_launch": 1544
+  },
+  "2025-09-01": {
+    "id": 1260,
+    "solution": "least",
+    "days_since_launch": 1535
+  },
+  "2025-09-03": {
+    "id": 1262,
+    "solution": "fetch",
+    "days_since_launch": 1537
+  },
+  "2025-09-08": {
+    "id": 2188,
+    "solution": "chirp",
+    "days_since_launch": 1542
+  },
+  "2025-08-25": {
+    "id": 2051,
+    "solution": "mirth",
+    "days_since_launch": 1528
+  },
+  "2025-08-18": {
+    "id": 1406,
+    "solution": "issue",
+    "days_since_launch": 1521
+  },
+  "2025-08-17": {
+    "id": 1640,
+    "solution": "lousy",
+    "days_since_launch": 1520
+  },
+  "2025-09-16": {
+    "id": 577,
+    "solution": "lefty",
+    "days_since_launch": 1550
+  },
+  "2025-08-19": {
+    "id": 1323,
+    "solution": "rowdy",
+    "days_since_launch": 1522
+  },
+  "2025-08-23": {
+    "id": 2122,
+    "solution": "union",
+    "days_since_launch": 1526
+  },
+  "2025-09-13": {
+    "id": 1254,
+    "solution": "nadir",
+    "days_since_launch": 1547
+  },
+  "2025-09-18": {
+    "id": 1030,
+    "solution": "knife",
+    "days_since_launch": 1552
+  },
+  "2025-09-14": {
+    "id": 1537,
+    "solution": "noisy",
+    "days_since_launch": 1548
+  },
+  "2025-08-26": {
+    "id": 1622,
+    "solution": "annex",
+    "days_since_launch": 1529
+  },
+  "2025-09-07": {
+    "id": 1803,
+    "solution": "tenor",
+    "days_since_launch": 1541
+  },
+  "2025-09-12": {
+    "id": 1822,
+    "solution": "throb",
+    "days_since_launch": 1546
+  },
+  "2025-09-09": {
+    "id": 1046,
+    "solution": "trick",
+    "days_since_launch": 1543
+  },
+  "2025-08-31": {
+    "id": 1820,
+    "solution": "petal",
+    "days_since_launch": 1534
+  },
+  "2025-08-27": {
+    "id": 1842,
+    "solution": "tower",
+    "days_since_launch": 1530
+  },
+  "2025-08-29": {
+    "id": 2035,
+    "solution": "graft",
+    "days_since_launch": 1532
+  },
+  "2025-08-28": {
+    "id": 1838,
+    "solution": "split",
+    "days_since_launch": 1531
+  },
+  "2025-09-24": {
+    "id": 1183,
+    "solution": "blunt",
+    "days_since_launch": 1558
+  },
+  "2025-09-11": {
+    "id": 1372,
+    "solution": "chair",
+    "days_since_launch": 1545
+  },
+  "2025-11-03": {
+    "id": 684,
+    "solution": "awoke",
+    "days_since_launch": 1598
+  },
+  "2025-10-26": {
+    "id": 1925,
+    "solution": "plump",
+    "days_since_launch": 1590
+  },
+  "2025-10-20": {
+    "id": 1862,
+    "solution": "limbo",
+    "days_since_launch": 1584
+  },
+  "2025-11-01": {
+    "id": 1864,
+    "solution": "motel",
+    "days_since_launch": 1596
+  },
+  "2025-10-28": {
+    "id": 1418,
+    "solution": "holly",
+    "days_since_launch": 1592
+  },
+  "2025-10-29": {
+    "id": 1231,
+    "solution": "glare",
+    "days_since_launch": 1593
+  },
+  "2025-11-02": {
+    "id": 747,
+    "solution": "rabid",
+    "days_since_launch": 1597
+  },
+  "2025-10-31": {
+    "id": 2045,
+    "solution": "abhor",
+    "days_since_launch": 1595
+  },
+  "2025-10-16": {
+    "id": 2274,
+    "solution": "catty",
+    "days_since_launch": 1580
+  },
+  "2025-10-27": {
+    "id": 795,
+    "solution": "fetid",
+    "days_since_launch": 1591
+  },
+  "2025-10-25": {
+    "id": 2138,
+    "solution": "gauge",
+    "days_since_launch": 1589
+  },
+  "2025-10-06": {
+    "id": 1026,
+    "solution": "amuse",
+    "days_since_launch": 1570
+  },
+  "2025-09-28": {
+    "id": 2090,
+    "solution": "gooey",
+    "days_since_launch": 1562
+  },
+  "2025-10-09": {
+    "id": 909,
+    "solution": "hardy",
+    "days_since_launch": 1573
+  },
+  "2025-10-10": {
+    "id": 2123,
+    "solution": "lever",
+    "days_since_launch": 1574
+  },
+  "2025-09-30": {
+    "id": 2049,
+    "solution": "geese",
+    "days_since_launch": 1564
+  },
+  "2025-09-26": {
+    "id": 809,
+    "solution": "dally",
+    "days_since_launch": 1560
+  },
+  "2025-10-13": {
+    "id": 1226,
+    "solution": "beard",
+    "days_since_launch": 1577
+  },
+  "2025-10-18": {
+    "id": 939,
+    "solution": "haven",
+    "days_since_launch": 1582
+  },
+  "2025-10-19": {
+    "id": 899,
+    "solution": "ideal",
+    "days_since_launch": 1583
+  },
+  "2025-10-21": {
+    "id": 1373,
+    "solution": "detox",
+    "days_since_launch": 1585
+  },
+  "2025-10-02": {
+    "id": 1840,
+    "solution": "width",
+    "days_since_launch": 1566
+  },
+  "2025-10-03": {
+    "id": 1998,
+    "solution": "spasm",
+    "days_since_launch": 1567
+  },
+  "2025-10-12": {
+    "id": 1973,
+    "solution": "wound",
+    "days_since_launch": 1576
+  },
+  "2025-10-24": {
+    "id": 1009,
+    "solution": "tuber",
+    "days_since_launch": 1588
+  },
+  "2025-10-17": {
+    "id": 1944,
+    "solution": "gross",
+    "days_since_launch": 1581
+  },
+  "2025-10-01": {
+    "id": 630,
+    "solution": "spoil",
+    "days_since_launch": 1565
+  },
+  "2025-10-15": {
+    "id": 1581,
+    "solution": "spoof",
+    "days_since_launch": 1579
+  },
+  "2025-10-23": {
+    "id": 1800,
+    "solution": "drill",
+    "days_since_launch": 1587
+  },
+  "2025-10-08": {
+    "id": 1292,
+    "solution": "annoy",
+    "days_since_launch": 1572
+  },
+  "2025-10-14": {
+    "id": 1905,
+    "solution": "forum",
+    "days_since_launch": 1578
+  },
+  "2025-09-29": {
+    "id": 863,
+    "solution": "civil",
+    "days_since_launch": 1563
+  },
+  "2025-09-27": {
+    "id": 779,
+    "solution": "fritz",
+    "days_since_launch": 1561
+  },
+  "2025-10-05": {
+    "id": 1033,
+    "solution": "plane",
+    "days_since_launch": 1569
+  },
+  "2025-10-07": {
+    "id": 1924,
+    "solution": "nylon",
+    "days_since_launch": 1571
+  },
+  "2025-10-22": {
+    "id": 1192,
+    "solution": "stunt",
+    "days_since_launch": 1586
+  },
+  "2025-11-04": {
+    "id": 1120,
+    "solution": "venue",
+    "days_since_launch": 1599
+  },
+  "2025-10-11": {
+    "id": 609,
+    "solution": "stack",
+    "days_since_launch": 1575
+  },
+  "2025-10-04": {
+    "id": 1037,
+    "solution": "relay",
+    "days_since_launch": 1568
+  },
+  "2025-10-30": {
+    "id": 2009,
+    "solution": "lathe",
+    "days_since_launch": 1594
+  },
+  "2025-11-25": {
+    "id": 2096,
+    "solution": "plead",
+    "days_since_launch": 1620
+  },
+  "2025-11-23": {
+    "id": 1187,
+    "solution": "bunny",
+    "days_since_launch": 1618
+  },
+  "2025-11-29": {
+    "id": 1258,
+    "solution": "gruff",
+    "days_since_launch": 1624
+  },
+  "2025-12-01": {
+    "id": 2231,
+    "solution": "leach",
+    "days_since_launch": 1626
+  },
+  "2025-11-27": {
+    "id": 1257,
+    "solution": "remit",
+    "days_since_launch": 1622
+  },
+  "2025-11-10": {
+    "id": 1631,
+    "solution": "tabby",
+    "days_since_launch": 1605
+  },
+  "2025-12-13": {
+    "id": 2050,
+    "solution": "miser",
+    "days_since_launch": 1638
+  },
+  "2025-11-16": {
+    "id": 1514,
+    "solution": "wield",
+    "days_since_launch": 1611
+  },
+  "2025-12-14": {
+    "id": 1692,
+    "solution": "swing",
+    "days_since_launch": 1639
+  },
+  "2025-12-06": {
+    "id": 1276,
+    "solution": "waist",
+    "days_since_launch": 1631
+  },
+  "2025-11-20": {
+    "id": 522,
+    "solution": "grave",
+    "days_since_launch": 1615
+  },
+  "2025-12-02": {
+    "id": 1617,
+    "solution": "cacti",
+    "days_since_launch": 1627
+  },
+  "2025-12-10": {
+    "id": 1497,
+    "solution": "erase",
+    "days_since_launch": 1635
+  },
+  "2025-11-12": {
+    "id": 2030,
+    "solution": "deuce",
+    "days_since_launch": 1607
+  },
+  "2025-11-28": {
+    "id": 2390,
+    "solution": "colic",
+    "days_since_launch": 1623
+  },
+  "2025-12-03": {
+    "id": 1597,
+    "solution": "haste",
+    "days_since_launch": 1628
+  },
+  "2025-11-14": {
+    "id": 1066,
+    "solution": "lurid",
+    "days_since_launch": 1609
+  },
+  "2025-11-21": {
+    "id": 739,
+    "solution": "vowel",
+    "days_since_launch": 1616
+  },
+  "2025-11-24": {
+    "id": 943,
+    "solution": "dough",
+    "days_since_launch": 1619
+  },
+  "2025-12-05": {
+    "id": 1018,
+    "solution": "among",
+    "days_since_launch": 1630
+  },
+  "2025-11-19": {
+    "id": 1709,
+    "solution": "maker",
+    "days_since_launch": 1614
+  },
+  "2025-11-08": {
+    "id": 535,
+    "solution": "arise",
+    "days_since_launch": 1603
+  },
+  "2025-11-26": {
+    "id": 787,
+    "solution": "hovel",
+    "days_since_launch": 1621
+  },
+  "2025-11-15": {
+    "id": 725,
+    "solution": "clung",
+    "days_since_launch": 1610
+  },
+  "2025-12-04": {
+    "id": 916,
+    "solution": "tulip",
+    "days_since_launch": 1629
+  },
+  "2025-12-12": {
+    "id": 2074,
+    "solution": "truck",
+    "days_since_launch": 1637
+  },
+  "2025-11-05": {
+    "id": 1208,
+    "solution": "short",
+    "days_since_launch": 1600
+  },
+  "2025-12-09": {
+    "id": 1036,
+    "solution": "snide",
+    "days_since_launch": 1634
+  },
+  "2025-11-17": {
+    "id": 1792,
+    "solution": "clamp",
+    "days_since_launch": 1612
+  },
+  "2025-11-22": {
+    "id": 1585,
+    "solution": "thick",
+    "days_since_launch": 1617
+  },
+  "2025-12-08": {
+    "id": 1306,
+    "solution": "gravy",
+    "days_since_launch": 1633
+  },
+  "2025-11-09": {
+    "id": 1457,
+    "solution": "fugue",
+    "days_since_launch": 1604
+  },
+  "2025-11-18": {
+    "id": 1693,
+    "solution": "opine",
+    "days_since_launch": 1613
+  },
+  "2025-12-11": {
+    "id": 1683,
+    "solution": "guess",
+    "days_since_launch": 1636
+  },
+  "2025-11-06": {
+    "id": 2061,
+    "solution": "guise",
+    "days_since_launch": 1601
+  },
+  "2025-11-13": {
+    "id": 2330,
+    "solution": "tinge",
+    "days_since_launch": 1608
+  },
+  "2025-11-11": {
+    "id": 2343,
+    "solution": "gizmo",
+    "days_since_launch": 1606
+  },
+  "2025-12-07": {
+    "id": 1430,
+    "solution": "flute",
+    "days_since_launch": 1632
+  },
+  "2025-11-30": {
+    "id": 2323,
+    "solution": "muggy",
+    "days_since_launch": 1625
+  },
+  "2025-11-07": {
+    "id": 2237,
+    "solution": "peril",
+    "days_since_launch": 1602
+  },
+  "2026-01-11": {
+    "id": 1377,
+    "solution": "quark",
+    "days_since_launch": 1667
+  },
+  "2026-01-08": {
+    "id": 573,
+    "solution": "blast",
+    "days_since_launch": 1664
+  },
+  "2026-01-06": {
+    "id": 2397,
+    "solution": "oomph",
+    "days_since_launch": 1662
+  },
+  "2026-01-12": {
+    "id": 1411,
+    "solution": "trial",
+    "days_since_launch": 1668
+  },
+  "2026-01-13": {
+    "id": 1696,
+    "solution": "gumbo",
+    "days_since_launch": 1669
+  },
+  "2026-01-09": {
+    "id": 874,
+    "solution": "eight",
+    "days_since_launch": 1665
+  },
+  "2026-01-07": {
+    "id": 2057,
+    "solution": "pecan",
+    "days_since_launch": 1663
+  },
+  "2026-01-10": {
+    "id": 1587,
+    "solution": "manic",
+    "days_since_launch": 1666
+  },
+  "2026-01-19": {
+    "id": 1380,
+    "solution": "waxen",
+    "days_since_launch": 1675
+  },
+  "2025-12-18": {
+    "id": 1237,
+    "solution": "rugby",
+    "days_since_launch": 1643
+  },
+  "2026-01-18": {
+    "id": 987,
+    "solution": "sumac",
+    "days_since_launch": 1674
+  },
+  "2026-01-21": {
+    "id": 1642,
+    "solution": "cubic",
+    "days_since_launch": 1677
+  },
+  "2026-01-22": {
+    "id": 728,
+    "solution": "clink",
+    "days_since_launch": 1678
+  },
+  "2026-01-23": {
+    "id": 1843,
+    "solution": "baron",
+    "days_since_launch": 1679
+  },
+  "2025-12-23": {
+    "id": 972,
+    "solution": "glint",
+    "days_since_launch": 1648
+  },
+  "2025-12-30": {
+    "id": 1489,
+    "solution": "decor",
+    "days_since_launch": 1655
+  },
+  "2025-12-22": {
+    "id": 1213,
+    "solution": "conch",
+    "days_since_launch": 1647
+  },
+  "2025-12-28": {
+    "id": 1672,
+    "solution": "abbot",
+    "days_since_launch": 1653
+  },
+  "2025-12-15": {
+    "id": 1830,
+    "solution": "dodgy",
+    "days_since_launch": 1640
+  },
+  "2026-01-01": {
+    "id": 1566,
+    "solution": "fable",
+    "days_since_launch": 1657
+  },
+  "2025-12-20": {
+    "id": 1974,
+    "solution": "white",
+    "days_since_launch": 1645
+  },
+  "2025-12-24": {
+    "id": 1619,
+    "solution": "spool",
+    "days_since_launch": 1649
+  },
+  "2026-01-03": {
+    "id": 2388,
+    "solution": "sitar",
+    "days_since_launch": 1659
+  },
+  "2025-12-29": {
+    "id": 1989,
+    "solution": "fruit",
+    "days_since_launch": 1654
+  },
+  "2026-01-17": {
+    "id": 1334,
+    "solution": "fiery",
+    "days_since_launch": 1673
+  },
+  "2026-01-14": {
+    "id": 1957,
+    "solution": "avoid",
+    "days_since_launch": 1670
+  },
+  "2025-12-25": {
+    "id": 1526,
+    "solution": "prism",
+    "days_since_launch": 1650
+  },
+  "2026-01-15": {
+    "id": 1699,
+    "solution": "chasm",
+    "days_since_launch": 1671
+  },
+  "2026-01-20": {
+    "id": 2225,
+    "solution": "sully",
+    "days_since_launch": 1676
+  },
+  "2025-12-17": {
+    "id": 1420,
+    "solution": "grass",
+    "days_since_launch": 1642
+  },
+  "2025-12-31": {
+    "id": 647,
+    "solution": "siren",
+    "days_since_launch": 1656
+  },
+  "2025-12-16": {
+    "id": 1345,
+    "solution": "segue",
+    "days_since_launch": 1641
+  },
+  "2026-01-04": {
+    "id": 1327,
+    "solution": "posse",
+    "days_since_launch": 1660
+  },
+  "2025-12-27": {
+    "id": 2137,
+    "solution": "batch",
+    "days_since_launch": 1652
+  },
+  "2025-12-26": {
+    "id": 1355,
+    "solution": "speed",
+    "days_since_launch": 1651
+  },
+  "2026-01-02": {
+    "id": 1817,
+    "solution": "proof",
+    "days_since_launch": 1658
+  },
+  "2025-12-19": {
+    "id": 1839,
+    "solution": "myrrh",
+    "days_since_launch": 1644
+  },
+  "2026-01-16": {
+    "id": 1269,
+    "solution": "racer",
+    "days_since_launch": 1672
+  },
+  "2025-12-21": {
+    "id": 1388,
+    "solution": "quilt",
+    "days_since_launch": 1646
+  },
+  "2026-01-05": {
+    "id": 1552,
+    "solution": "filly",
+    "days_since_launch": 1661
+  },
+  "2026-02-17": {
+    "id": 4216,
+    "solution": "squad",
+    "days_since_launch": 1704
+  },
+  "2026-02-22": {
+    "id": 2184,
+    "solution": "guava",
+    "days_since_launch": 1709
+  },
+  "2026-02-25": {
+    "id": 2327,
+    "solution": "shred",
+    "days_since_launch": 1712
+  },
+  "2026-02-14": {
+    "id": 846,
+    "solution": "bloom",
+    "days_since_launch": 1701
+  },
+  "2026-02-20": {
+    "id": 619,
+    "solution": "stank",
+    "days_since_launch": 1707
+  },
+  "2026-02-10": {
+    "id": 2152,
+    "solution": "scene",
+    "days_since_launch": 1697
+  },
+  "2026-02-23": {
+    "id": 2229,
+    "solution": "attic",
+    "days_since_launch": 1710
+  },
+  "2026-01-26": {
+    "id": 1016,
+    "solution": "freak",
+    "days_since_launch": 1682
+  },
+  "2026-02-19": {
+    "id": 981,
+    "solution": "hoist",
+    "days_since_launch": 1706
+  },
+  "2026-01-25": {
+    "id": 914,
+    "solution": "strut",
+    "days_since_launch": 1681
+  },
+  "2026-01-29": {
+    "id": 2098,
+    "solution": "flaky",
+    "days_since_launch": 1685
+  },
+  "2026-02-11": {
+    "id": 2119,
+    "solution": "vegan",
+    "days_since_launch": 1698
+  },
+  "2026-02-08": {
+    "id": 3035,
+    "solution": "embed",
+    "days_since_launch": 1695
+  },
+  "2026-02-07": {
+    "id": 1443,
+    "solution": "bleat",
+    "days_since_launch": 1694
+  },
+  "2026-02-12": {
+    "id": 1984,
+    "solution": "surge",
+    "days_since_launch": 1699
+  },
+  "2026-02-16": {
+    "id": 2155,
+    "solution": "roost",
+    "days_since_launch": 1703
+  },
+  "2026-02-09": {
+    "id": 1871,
+    "solution": "cello",
+    "days_since_launch": 1696
+  },
+  "2026-02-15": {
+    "id": 1404,
+    "solution": "skull",
+    "days_since_launch": 1702
+  },
+  "2026-03-02": {
+    "id": 971,
+    "solution": "slime",
+    "days_since_launch": 1717
+  },
+  "2026-01-27": {
+    "id": 1710,
+    "solution": "dusky",
+    "days_since_launch": 1683
+  },
+  "2026-01-24": {
+    "id": 775,
+    "solution": "cliff",
+    "days_since_launch": 1680
+  },
+  "2026-02-27": {
+    "id": 1711,
+    "solution": "dizzy",
+    "days_since_launch": 1714
+  },
+  "2026-02-03": {
+    "id": 1763,
+    "solution": "weigh",
+    "days_since_launch": 1690
+  },
+  "2026-02-28": {
+    "id": 2359,
+    "solution": "hydra",
+    "days_since_launch": 1715
+  },
+  "2026-02-18": {
+    "id": 1261,
+    "solution": "mogul",
+    "days_since_launch": 1705
+  },
+  "2026-02-24": {
+    "id": 1069,
+    "solution": "buyer",
+    "days_since_launch": 1711
+  },
+  "2026-01-31": {
+    "id": 2073,
+    "solution": "allot",
+    "days_since_launch": 1687
+  },
+  "2026-02-05": {
+    "id": 1779,
+    "solution": "swoop",
+    "days_since_launch": 1692
+  },
+  "2026-02-21": {
+    "id": 2531,
+    "solution": "awake",
+    "days_since_launch": 1708
+  },
+  "2026-02-26": {
+    "id": 644,
+    "solution": "lance",
+    "days_since_launch": 1713
+  },
+  "2026-02-01": {
+    "id": 743,
+    "solution": "spiny",
+    "days_since_launch": 1688
+  },
+  "2026-03-03": {
+    "id": 3493,
+    "solution": "linen",
+    "days_since_launch": 1718
+  },
+  "2026-02-04": {
+    "id": 1739,
+    "solution": "chide",
+    "days_since_launch": 1691
+  },
+  "2026-02-13": {
+    "id": 2396,
+    "solution": "mooch",
+    "days_since_launch": 1700
+  },
+  "2026-01-30": {
+    "id": 1204,
+    "solution": "jumbo",
+    "days_since_launch": 1686
+  },
+  "2026-03-01": {
+    "id": 1196,
+    "solution": "fluke",
+    "days_since_launch": 1716
+  },
+  "2026-02-02": {
+    "id": 2398,
+    "solution": "cigar",
+    "days_since_launch": 1689
+  },
+  "2026-01-28": {
+    "id": 1442,
+    "solution": "cruel",
+    "days_since_launch": 1684
+  },
+  "2026-03-04": {
+    "id": 2105,
+    "solution": "theft",
+    "days_since_launch": 1719
+  },
+  "2026-02-06": {
+    "id": 944,
+    "solution": "gavel",
+    "days_since_launch": 1693
+  },
+  "2026-04-10": {
+    "id": 2728,
+    "solution": "carom",
+    "days_since_launch": 1756
+  },
+  "2026-04-08": {
+    "id": 2217,
+    "solution": "inlet",
+    "days_since_launch": 1754
+  },
+  "2026-04-09": {
+    "id": 656,
+    "solution": "laden",
+    "days_since_launch": 1755
+  },
+  "2026-03-24": {
+    "id": 1008,
+    "solution": "brood",
+    "days_since_launch": 1739
+  },
+  "2026-03-30": {
+    "id": 2824,
+    "solution": "comet",
+    "days_since_launch": 1745
+  },
+  "2026-03-25": {
+    "id": 2203,
+    "solution": "wiser",
+    "days_since_launch": 1740
+  },
+  "2026-03-29": {
+    "id": 709,
+    "solution": "chump",
+    "days_since_launch": 1744
+  },
+  "2026-04-04": {
+    "id": 3978,
+    "solution": "sandy",
+    "days_since_launch": 1750
+  },
+  "2026-04-06": {
+    "id": 950,
+    "solution": "sworn",
+    "days_since_launch": 1752
+  },
+  "2026-04-07": {
+    "id": 1200,
+    "solution": "dense",
+    "days_since_launch": 1753
+  },
+  "2026-03-19": {
+    "id": 788,
+    "solution": "rehab",
+    "days_since_launch": 1734
+  },
+  "2026-03-11": {
+    "id": 2224,
+    "solution": "teddy",
+    "days_since_launch": 1726
+  },
+  "2026-03-21": {
+    "id": 597,
+    "solution": "slick",
+    "days_since_launch": 1736
+  },
+  "2026-03-28": {
+    "id": 1197,
+    "solution": "afoot",
+    "days_since_launch": 1743
+  },
+  "2026-03-22": {
+    "id": 1811,
+    "solution": "basil",
+    "days_since_launch": 1737
+  },
+  "2026-04-12": {
+    "id": 884,
+    "solution": "alley",
+    "days_since_launch": 1758
+  },
+  "2026-03-06": {
+    "id": 4616,
+    "solution": "gunky",
+    "days_since_launch": 1721
+  },
+  "2026-03-16": {
+    "id": 1806,
+    "solution": "drama",
+    "days_since_launch": 1731
+  },
+  "2026-03-20": {
+    "id": 2377,
+    "solution": "oasis",
+    "days_since_launch": 1735
+  },
+  "2026-04-03": {
+    "id": 603,
+    "solution": "singe",
+    "days_since_launch": 1749
+  },
+  "2026-03-07": {
+    "id": 1733,
+    "solution": "vogue",
+    "days_since_launch": 1722
+  },
+  "2026-03-14": {
+    "id": 1748,
+    "solution": "ankle",
+    "days_since_launch": 1729
+  },
+  "2026-03-13": {
+    "id": 784,
+    "solution": "eaten",
+    "days_since_launch": 1728
+  },
+  "2026-03-05": {
+    "id": 2017,
+    "solution": "sheep",
+    "days_since_launch": 1720
+  },
+  "2026-03-10": {
+    "id": 924,
+    "solution": "shoal",
+    "days_since_launch": 1725
+  },
+  "2026-04-11": {
+    "id": 1512,
+    "solution": "prude",
+    "days_since_launch": 1757
+  },
+  "2026-03-08": {
+    "id": 720,
+    "solution": "lobby",
+    "days_since_launch": 1723
+  },
+  "2026-03-27": {
+    "id": 3406,
+    "solution": "ivory",
+    "days_since_launch": 1742
+  },
+  "2026-04-05": {
+    "id": 1326,
+    "solution": "envoy",
+    "days_since_launch": 1751
+  },
+  "2026-03-12": {
+    "id": 1072,
+    "solution": "smell",
+    "days_since_launch": 1727
+  },
+  "2026-03-26": {
+    "id": 2570,
+    "solution": "befit",
+    "days_since_launch": 1741
+  },
+  "2026-04-02": {
+    "id": 1425,
+    "solution": "sober",
+    "days_since_launch": 1748
+  },
+  "2026-03-15": {
+    "id": 3257,
+    "solution": "grade",
+    "days_since_launch": 1730
+  },
+  "2026-03-17": {
+    "id": 900,
+    "solution": "clasp",
+    "days_since_launch": 1732
+  },
+  "2026-03-18": {
+    "id": 770,
+    "solution": "amply",
+    "days_since_launch": 1733
+  },
+  "2026-03-09": {
+    "id": 2293,
+    "solution": "hasty",
+    "days_since_launch": 1724
+  },
+  "2026-04-01": {
+    "id": 1981,
+    "solution": "fizzy",
+    "days_since_launch": 1747
+  },
+  "2026-03-31": {
+    "id": 1235,
+    "solution": "swamp",
+    "days_since_launch": 1746
+  },
+  "2026-04-13": {
+    "id": 1740,
+    "solution": "elfin",
+    "days_since_launch": 1759
+  },
+  "2026-03-23": {
+    "id": 2068,
+    "solution": "serif",
+    "days_since_launch": 1738
+  },
+  "2026-04-29": {
+    "id": 2286,
+    "solution": "rural",
+    "days_since_launch": 1775
+  },
+  "2026-05-23": {
+    "id": 1157,
+    "solution": "chuck",
+    "days_since_launch": 1799
+  },
+  "2026-05-08": {
+    "id": 1941,
+    "solution": "umbra",
+    "days_since_launch": 1784
+  },
+  "2026-04-17": {
+    "id": 1986,
+    "solution": "belle",
+    "days_since_launch": 1763
+  },
+  "2026-05-17": {
+    "id": 1177,
+    "solution": "bylaw",
+    "days_since_launch": 1793
+  },
+  "2026-05-05": {
+    "id": 1414,
+    "solution": "latch",
+    "days_since_launch": 1781
+  },
+  "2026-05-19": {
+    "id": 1448,
+    "solution": "dusty",
+    "days_since_launch": 1795
+  },
+  "2026-04-21": {
+    "id": 2234,
+    "solution": "clump",
+    "days_since_launch": 1767
+  },
+  "2026-05-20": {
+    "id": 851,
+    "solution": "wreck",
+    "days_since_launch": 1796
+  },
+  "2026-05-06": {
+    "id": 1960,
+    "solution": "liken",
+    "days_since_launch": 1782
+  },
+  "2026-04-22": {
+    "id": 2226,
+    "solution": "snore",
+    "days_since_launch": 1768
+  },
+  "2026-04-24": {
+    "id": 1064,
+    "solution": "drunk",
+    "days_since_launch": 1770
+  },
+  "2026-05-02": {
+    "id": 2672,
+    "solution": "bring",
+    "days_since_launch": 1778
+  },
+  "2026-05-13": {
+    "id": 754,
+    "solution": "dowdy",
+    "days_since_launch": 1789
+  },
+  "2026-05-15": {
+    "id": 885,
+    "solution": "creed",
+    "days_since_launch": 1791
+  },
+  "2026-05-18": {
+    "id": 670,
+    "solution": "loath",
+    "days_since_launch": 1794
+  },
+  "2026-05-07": {
+    "id": 751,
+    "solution": "budge",
+    "days_since_launch": 1783
+  },
+  "2026-05-12": {
+    "id": 2805,
+    "solution": "clock",
+    "days_since_launch": 1788
+  },
+  "2026-05-01": {
+    "id": 544,
+    "solution": "plume",
+    "days_since_launch": 1777
+  },
+  "2026-04-27": {
+    "id": 595,
+    "solution": "eerie",
+    "days_since_launch": 1773
+  },
+  "2026-04-16": {
+    "id": 2363,
+    "solution": "cubit",
+    "days_since_launch": 1762
+  },
+  "2026-04-28": {
+    "id": 1239,
+    "solution": "quack",
+    "days_since_launch": 1774
+  },
+  "2026-04-14": {
+    "id": 714,
+    "solution": "cycle",
+    "days_since_launch": 1760
+  },
+  "2026-04-20": {
+    "id": 4545,
+    "solution": "weave",
+    "days_since_launch": 1766
+  },
+  "2026-05-10": {
+    "id": 1949,
+    "solution": "parka",
+    "days_since_launch": 1786
+  },
+  "2026-05-14": {
+    "id": 1845,
+    "solution": "waver",
+    "days_since_launch": 1790
+  },
+  "2026-05-11": {
+    "id": 2181,
+    "solution": "newly",
+    "days_since_launch": 1787
+  },
+  "2026-04-23": {
+    "id": 1275,
+    "solution": "tweet",
+    "days_since_launch": 1769
+  },
+  "2026-04-26": {
+    "id": 1961,
+    "solution": "gloss",
+    "days_since_launch": 1772
+  },
+  "2026-04-19": {
+    "id": 4230,
+    "solution": "stand",
+    "days_since_launch": 1765
+  },
+  "2026-04-15": {
+    "id": 834,
+    "solution": "begun",
+    "days_since_launch": 1761
+  },
+  "2026-04-18": {
+    "id": 2385,
+    "solution": "toady",
+    "days_since_launch": 1764
+  },
+  "2026-04-30": {
+    "id": 667,
+    "solution": "crock",
+    "days_since_launch": 1776
+  },
+  "2026-04-25": {
+    "id": 1907,
+    "solution": "women",
+    "days_since_launch": 1771
+  },
+  "2026-05-16": {
+    "id": 1423,
+    "solution": "mover",
+    "days_since_launch": 1792
+  },
+  "2026-05-03": {
+    "id": 1551,
+    "solution": "puffy",
+    "days_since_launch": 1779
+  },
+  "2026-05-22": {
+    "id": 871,
+    "solution": "vocal",
+    "days_since_launch": 1798
+  },
+  "2026-05-21": {
+    "id": 2441,
+    "solution": "agree",
+    "days_since_launch": 1797
+  },
+  "2026-05-09": {
+    "id": 1947,
+    "solution": "satin",
+    "days_since_launch": 1785
+  },
+  "2026-05-04": {
+    "id": 2270,
+    "solution": "riser",
+    "days_since_launch": 1780
+  },
+  "2026-06-21": {
+    "id": 2190,
+    "solution": "alibi",
+    "days_since_launch": 1828
+  },
+  "2026-06-10": {
+    "id": 1114,
+    "solution": "align",
+    "days_since_launch": 1817
+  },
+  "2026-06-16": {
+    "id": 856,
+    "solution": "amaze",
+    "days_since_launch": 1823
+  },
+  "2026-06-22": {
+    "id": 1557,
+    "solution": "ovate",
+    "days_since_launch": 1829
+  },
+  "2026-06-20": {
+    "id": 1467,
+    "solution": "drake",
+    "days_since_launch": 1827
+  },
+  "2026-06-24": {
+    "id": 673,
+    "solution": "queer",
+    "days_since_launch": 1831
+  },
+  "2026-06-23": {
+    "id": 2082,
+    "solution": "curry",
+    "days_since_launch": 1830
+  },
+  "2026-06-08": {
+    "id": 1093,
+    "solution": "mafia",
+    "days_since_launch": 1815
+  },
+  "2026-06-17": {
+    "id": 1735,
+    "solution": "token",
+    "days_since_launch": 1824
+  },
+  "2026-06-14": {
+    "id": 999,
+    "solution": "sepia",
+    "days_since_launch": 1821
+  },
+  "2026-07-01": {
+    "id": 937,
+    "solution": "demur",
+    "days_since_launch": 1838
+  },
+  "2026-06-27": {
+    "id": 1653,
+    "solution": "scoop",
+    "days_since_launch": 1834
+  },
+  "2026-06-01": {
+    "id": 1559,
+    "solution": "chili",
+    "days_since_launch": 1808
+  },
+  "2026-05-25": {
+    "id": 663,
+    "solution": "visit",
+    "days_since_launch": 1801
+  },
+  "2026-06-25": {
+    "id": 1609,
+    "solution": "unity",
+    "days_since_launch": 1832
+  },
+  "2026-06-07": {
+    "id": 4375,
+    "solution": "thumb",
+    "days_since_launch": 1814
+  },
+  "2026-06-19": {
+    "id": 2354,
+    "solution": "emoji",
+    "days_since_launch": 1826
+  },
+  "2026-06-02": {
+    "id": 1635,
+    "solution": "basis",
+    "days_since_launch": 1809
+  },
+  "2026-07-02": {
+    "id": 2395,
+    "solution": "maven",
+    "days_since_launch": 1839
+  },
+  "2026-05-31": {
+    "id": 1976,
+    "solution": "etude",
+    "days_since_launch": 1807
+  },
+  "2026-06-18": {
+    "id": 1736,
+    "solution": "entry",
+    "days_since_launch": 1825
+  },
+  "2026-06-29": {
+    "id": 1665,
+    "solution": "crude",
+    "days_since_launch": 1836
+  },
+  "2026-06-30": {
+    "id": 1184,
+    "solution": "puppy",
+    "days_since_launch": 1837
+  },
+  "2026-05-24": {
+    "id": 614,
+    "solution": "niece",
+    "days_since_launch": 1800
+  },
+  "2026-06-15": {
+    "id": 1230,
+    "solution": "broil",
+    "days_since_launch": 1822
+  },
+  "2026-06-05": {
+    "id": 1353,
+    "solution": "nobly",
+    "days_since_launch": 1812
+  },
+  "2026-05-27": {
+    "id": 2170,
+    "solution": "stuff",
+    "days_since_launch": 1803
+  },
+  "2026-06-03": {
+    "id": 1109,
+    "solution": "notch",
+    "days_since_launch": 1810
+  },
+  "2026-05-30": {
+    "id": 4134,
+    "solution": "smile",
+    "days_since_launch": 1806
+  },
+  "2026-05-28": {
+    "id": 2389,
+    "solution": "divot",
+    "days_since_launch": 1804
+  },
+  "2026-06-12": {
+    "id": 2664,
+    "solution": "break",
+    "days_since_launch": 1819
+  },
+  "2026-06-09": {
+    "id": 4552,
+    "solution": "wharf",
+    "days_since_launch": 1816
+  },
+  "2026-06-06": {
+    "id": 1616,
+    "solution": "morph",
+    "days_since_launch": 1813
+  },
+  "2026-06-28": {
+    "id": 1094,
+    "solution": "emcee",
+    "days_since_launch": 1835
+  },
+  "2026-05-29": {
+    "id": 2164,
+    "solution": "clang",
+    "days_since_launch": 1805
+  },
+  "2026-06-04": {
+    "id": 2015,
+    "solution": "alloy",
+    "days_since_launch": 1811
+  },
+  "2026-06-26": {
+    "id": 2416,
+    "solution": "acute",
+    "days_since_launch": 1833
+  },
+  "2026-06-13": {
+    "id": 758,
+    "solution": "quell",
+    "days_since_launch": 1820
+  },
+  "2026-05-26": {
+    "id": 638,
+    "solution": "couch",
+    "days_since_launch": 1802
+  },
+  "2026-06-11": {
+    "id": 2077,
+    "solution": "testy",
+    "days_since_launch": 1818
+  },
+  "2026-08-11": {
+    "id": 1863,
+    "solution": "fence",
+    "days_since_launch": 1879
+  },
+  "2026-08-04": {
+    "id": 1228,
+    "solution": "motif",
+    "days_since_launch": 1872
+  },
+  "2026-08-09": {
+    "id": 2371,
+    "solution": "clunk",
+    "days_since_launch": 1877
+  },
+  "2026-08-03": {
+    "id": 628,
+    "solution": "reply",
+    "days_since_launch": 1871
+  },
+  "2026-07-06": {
+    "id": 1910,
+    "solution": "toddy",
+    "days_since_launch": 1843
+  },
+  "2026-07-21": {
+    "id": 2350,
+    "solution": "shill",
+    "days_since_launch": 1858
+  },
+  "2026-08-02": {
+    "id": 1185,
+    "solution": "penal",
+    "days_since_launch": 1870
+  },
+  "2026-07-28": {
+    "id": 1841,
+    "solution": "sonar",
+    "days_since_launch": 1865
+  },
+  "2026-07-20": {
+    "id": 880,
+    "solution": "diver",
+    "days_since_launch": 1857
+  },
+  "2026-08-01": {
+    "id": 1445,
+    "solution": "slush",
+    "days_since_launch": 1869
+  },
+  "2026-07-07": {
+    "id": 1967,
+    "solution": "sling",
+    "days_since_launch": 1844
+  },
+  "2026-07-22": {
+    "id": 2124,
+    "solution": "lorry",
+    "days_since_launch": 1859
+  },
+  "2026-08-10": {
+    "id": 4898,
+    "solution": "snipe",
+    "days_since_launch": 1878
+  },
+  "2026-07-03": {
+    "id": 2559,
+    "solution": "baton",
+    "days_since_launch": 1840
+  },
+  "2026-08-08": {
+    "id": 830,
+    "solution": "privy",
+    "days_since_launch": 1876
+  },
+  "2026-07-24": {
+    "id": 913,
+    "solution": "putty",
+    "days_since_launch": 1861
+  },
+  "2026-07-25": {
+    "id": 2357,
+    "solution": "aloha",
+    "days_since_launch": 1862
+  },
+  "2026-08-07": {
+    "id": 3091,
+    "solution": "feign",
+    "days_since_launch": 1875
+  },
+  "2026-07-23": {
+    "id": 1529,
+    "solution": "orbit",
+    "days_since_launch": 1860
+  },
+  "2026-07-16": {
+    "id": 1799,
+    "solution": "butte",
+    "days_since_launch": 1853
+  },
+  "2026-07-10": {
+    "id": 1506,
+    "solution": "canal",
+    "days_since_launch": 1847
+  },
+  "2026-07-05": {
+    "id": 1108,
+    "solution": "swami",
+    "days_since_launch": 1842
+  },
+  "2026-07-15": {
+    "id": 2372,
+    "solution": "pshaw",
+    "days_since_launch": 1852
+  },
+  "2026-07-18": {
+    "id": 1737,
+    "solution": "booth",
+    "days_since_launch": 1855
+  },
+  "2026-07-13": {
+    "id": 4269,
+    "solution": "stout",
+    "days_since_launch": 1850
+  },
+  "2026-08-05": {
+    "id": 1011,
+    "solution": "posit",
+    "days_since_launch": 1873
+  },
+  "2026-07-29": {
+    "id": 527,
+    "solution": "valve",
+    "days_since_launch": 1866
+  },
+  "2026-07-08": {
+    "id": 1620,
+    "solution": "demon",
+    "days_since_launch": 1845
+  },
+  "2026-07-17": {
+    "id": 1719,
+    "solution": "legal",
+    "days_since_launch": 1854
+  },
+  "2026-07-12": {
+    "id": 1760,
+    "solution": "clack",
+    "days_since_launch": 1849
+  },
+  "2026-07-11": {
+    "id": 1945,
+    "solution": "avian",
+    "days_since_launch": 1848
+  },
+  "2026-07-27": {
+    "id": 881,
+    "solution": "poser",
+    "days_since_launch": 1864
+  },
+  "2026-07-14": {
+    "id": 1180,
+    "solution": "steak",
+    "days_since_launch": 1851
+  },
+  "2026-07-26": {
+    "id": 907,
+    "solution": "grape",
+    "days_since_launch": 1863
+  },
+  "2026-07-19": {
+    "id": 1575,
+    "solution": "churn",
+    "days_since_launch": 1856
+  },
+  "2026-07-31": {
+    "id": 665,
+    "solution": "purse",
+    "days_since_launch": 1868
+  },
+  "2026-07-04": {
+    "id": 1212,
+    "solution": "pizza",
+    "days_since_launch": 1841
+  },
+  "2026-07-30": {
+    "id": 3148,
+    "solution": "flume",
+    "days_since_launch": 1867
+  },
+  "2026-07-09": {
+    "id": 1137,
+    "solution": "amend",
+    "days_since_launch": 1846
+  },
+  "2026-08-06": {
+    "id": 3281,
+    "solution": "gripe",
+    "days_since_launch": 1874
+  },
+  "2026-08-21": {
+    "id": 4413,
+    "solution": "trace",
+    "days_since_launch": 1889
+  },
+  "2026-08-13": {
+    "id": 1043,
+    "solution": "crash",
+    "days_since_launch": 1881
+  },
+  "2026-08-17": {
+    "id": 1751,
+    "solution": "tribe",
+    "days_since_launch": 1885
+  },
+  "2026-08-20": {
+    "id": 978,
+    "solution": "murky",
+    "days_since_launch": 1888
+  },
+  "2026-08-14": {
+    "id": 5159,
+    "solution": "geode",
+    "days_since_launch": 1882
+  },
+  "2026-08-18": {
+    "id": 1766,
+    "solution": "strip",
+    "days_since_launch": 1886
+  },
+  "2026-08-19": {
+    "id": 1348,
+    "solution": "grill",
+    "days_since_launch": 1887
+  },
+  "2026-08-15": {
+    "id": 587,
+    "solution": "loose",
+    "days_since_launch": 1883
+  },
+  "2026-08-16": {
+    "id": 4958,
+    "solution": "aspic",
+    "days_since_launch": 1884
+  },
+  "2026-08-12": {
+    "id": 1580,
+    "solution": "wimpy",
+    "days_since_launch": 1880
+  }
+}

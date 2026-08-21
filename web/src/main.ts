@@ -46,15 +46,41 @@ export function showToast(message: string, type: 'info' | 'success' | 'warning' 
   }, duration);
 }
 
+let nytHistoryCache: Record<string, { id: number; solution: string; days_since_launch?: number }> = {};
+let selectedNYTDate = new Date().toISOString().split('T')[0];
+
+function cacheNYTEntry(dateStr: string, solution: string, id?: number) {
+  if (!nytHistoryCache) nytHistoryCache = {};
+  nytHistoryCache[dateStr] = { id: id || 0, solution: solution.toLowerCase() };
+  try {
+    localStorage.setItem('nyt_history_custom', JSON.stringify(nytHistoryCache));
+  } catch (e) {
+    // ignore
+  }
+}
+
 export async function fetchNYTWordle(dateStr?: string): Promise<{ solution: string; print_date: string; id: number } | null> {
   const targetDate = dateStr || new Date().toISOString().split('T')[0];
+
+  // 0. Check local historical archive cache (0ms instant lookup)
+  if (nytHistoryCache && nytHistoryCache[targetDate]) {
+    const entry = nytHistoryCache[targetDate];
+    return {
+      solution: entry.solution,
+      print_date: targetDate,
+      id: entry.id,
+    };
+  }
 
   // 1. Try local/edge API proxy route (/api/nyt)
   try {
     const res = await fetch(`/api/nyt?date=${targetDate}`);
     if (res.ok) {
       const data = await res.json();
-      if (data && data.solution) return data;
+      if (data && data.solution) {
+        cacheNYTEntry(targetDate, data.solution, data.id);
+        return data;
+      }
     }
   } catch (err) {
     // continue to fallback
@@ -66,7 +92,10 @@ export async function fetchNYTWordle(dateStr?: string): Promise<{ solution: stri
     const res = await fetch(proxyUrl);
     if (res.ok) {
       const data = await res.json();
-      if (data && data.solution) return data;
+      if (data && data.solution) {
+        cacheNYTEntry(targetDate, data.solution, data.id);
+        return data;
+      }
     }
   } catch (err) {
     // continue to fallback
@@ -78,13 +107,37 @@ export async function fetchNYTWordle(dateStr?: string): Promise<{ solution: stri
     const res = await fetch(proxyUrl);
     if (res.ok) {
       const data = await res.json();
-      if (data && data.solution) return data;
+      if (data && data.solution) {
+        cacheNYTEntry(targetDate, data.solution, data.id);
+        return data;
+      }
     }
   } catch (err) {
     // fallback failed
   }
 
   return null;
+}
+
+function stepDate(currentDateStr: string, deltaDays: number): string {
+  const d = new Date(currentDateStr + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + deltaDays);
+  return d.toISOString().split('T')[0];
+}
+
+async function loadNYTDate(dateStr: string) {
+  selectedNYTDate = dateStr;
+  const nytData = await fetchNYTWordle(dateStr);
+  if (nytData && nytData.solution) {
+    currentTypingWord = '';
+    engine.setSecretSolution(nytData.solution, true);
+    engine.hideSecret = true;
+    const numLabel = nytData.id ? `#${nytData.id} ` : '';
+    showToast(`📅 Loaded Official NYT Wordle ${numLabel}(${dateStr}) • Target is masked`, 'success');
+    render();
+  } else {
+    showToast(`⚠️ Could not find Wordle for ${dateStr}.`, 'warning');
+  }
 }
 
 async function init() {
@@ -103,6 +156,27 @@ async function init() {
     const treeStrategy = await loadDecisionTree(wordList.target);
     engine = new GameEngine(wordList, treeStrategy);
 
+    // Load full historical NYT archive into memory cache
+    try {
+      const historyRes = await fetch('/data/nyt_history.json');
+      if (historyRes.ok) {
+        const historyData = await historyRes.json();
+        nytHistoryCache = { ...historyData, ...nytHistoryCache };
+      }
+    } catch (e) {
+      console.warn('Could not load /data/nyt_history.json archive:', e);
+    }
+
+    try {
+      const local = localStorage.getItem('nyt_history_custom');
+      if (local) {
+        const parsed = JSON.parse(local);
+        nytHistoryCache = { ...nytHistoryCache, ...parsed };
+      }
+    } catch (e) {
+      // ignore
+    }
+
     // Subscribe to engine state updates for reactive re-render
     engine.subscribe(() => {
       render();
@@ -111,11 +185,17 @@ async function init() {
     // Check URL parameters for initial game state
     const params = new URLSearchParams(window.location.search);
     const targetParam = params.get('target');
+    const dateParam = params.get('date');
     const stateParam = params.get('state') || params.get('moves');
-    if (targetParam && targetParam.length === 5) {
+
+    if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
+      await loadNYTDate(dateParam);
+      engine.setMode('known');
+    } else if (targetParam && targetParam.length === 5) {
       engine.setSecretSolution(targetParam);
       engine.setMode('known');
     }
+
     if (stateParam) {
       try {
         engine.loadStateString(stateParam);
@@ -317,9 +397,25 @@ function render() {
           <button id="btn-random-secret" class="btn-action" style="padding: 6px 12px; font-size: 12px;" title="Pick random target">
             🎲 Random
           </button>
-          <button id="btn-today-wordle" class="btn-action" style="padding: 6px 12px; font-size: 12px;" title="Load Today's NYT Wordle word">
-            📅 Today's Wordle
-          </button>
+
+          <!-- NYT ARCHIVE CALENDAR PICKER -->
+          <div class="calendar-picker-group">
+            <span class="bar-label" style="margin-left: 4px;">ARCHIVE:</span>
+            <button id="btn-prev-day" class="btn-icon-sm" title="Previous Day Wordle" ${selectedNYTDate <= '2021-06-19' ? 'disabled' : ''}>◀</button>
+            <input
+              type="date"
+              id="nyt-date-picker"
+              class="date-input-styled"
+              min="2021-06-19"
+              max="${new Date().toISOString().split('T')[0]}"
+              value="${selectedNYTDate}"
+              title="Pick any Wordle game from 2021-06-19 to today"
+            />
+            <button id="btn-next-day" class="btn-icon-sm" title="Next Day Wordle" ${selectedNYTDate >= new Date().toISOString().split('T')[0] ? 'disabled' : ''}>▶</button>
+            <button id="btn-today-wordle" class="btn-action" style="padding: 4px 10px; font-size: 11px;" title="Load Today's NYT Wordle">
+              📅 Today
+            </button>
+          </div>
         </div>
       ` : `
         <div class="unknown-word-bar">
@@ -1100,22 +1196,45 @@ function attachEventListeners() {
     });
   }
 
+  const datePicker = document.getElementById('nyt-date-picker') as HTMLInputElement;
+  if (datePicker) {
+    datePicker.addEventListener('change', () => {
+      const val = datePicker.value;
+      if (val) loadNYTDate(val);
+    });
+    datePicker.addEventListener('click', () => {
+      try {
+        if (typeof datePicker.showPicker === 'function') {
+          datePicker.showPicker();
+        }
+      } catch (err) {
+        // fallback
+      }
+    });
+  }
+
+  const btnPrevDay = document.getElementById('btn-prev-day');
+  if (btnPrevDay) {
+    btnPrevDay.addEventListener('click', () => {
+      const prev = stepDate(selectedNYTDate, -1);
+      if (prev >= '2021-06-19') loadNYTDate(prev);
+    });
+  }
+
+  const btnNextDay = document.getElementById('btn-next-day');
+  if (btnNextDay) {
+    btnNextDay.addEventListener('click', () => {
+      const today = new Date().toISOString().split('T')[0];
+      const next = stepDate(selectedNYTDate, 1);
+      if (next <= today) loadNYTDate(next);
+    });
+  }
+
   const btnTodayWordle = document.getElementById('btn-today-wordle');
   if (btnTodayWordle) {
-    btnTodayWordle.addEventListener('click', async () => {
+    btnTodayWordle.addEventListener('click', () => {
       const today = new Date().toISOString().split('T')[0];
-      showToast("⏳ Fetching official NYT Wordle...", "info", 1500);
-
-      const nytData = await fetchNYTWordle(today);
-      if (nytData && nytData.solution) {
-        currentTypingWord = '';
-        engine.setSecretSolution(nytData.solution, true);
-        engine.hideSecret = true;
-        showToast(`📅 Loaded Official NYT Wordle #${nytData.id || ''} (${nytData.print_date || today}) • Target is masked`, 'success');
-        render();
-      } else {
-        showToast('⚠️ Could not fetch from NYT API. Please check connection.', 'warning');
-      }
+      loadNYTDate(today);
     });
   }
 

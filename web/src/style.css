@@ -299,6 +299,82 @@ body {
   border: 1px solid var(--accent-red);
 }
 
+/* CALENDAR PICKER GROUP */
+.calendar-picker-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 3px 8px;
+}
+
+.date-input-styled {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+}
+
+.date-input-styled:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+}
+
+.date-input-styled::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.9;
+  filter: invert(0.85);
+  margin-left: 6px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  background-color: var(--bg-surface-hover);
+  border: 1px solid var(--border-subtle);
+  transition: all 0.15s ease;
+}
+
+.date-input-styled::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  border-color: var(--accent-blue);
+  background-color: var(--accent-blue-subtle);
+  transform: scale(1.1);
+}
+
+[data-theme="light"] .date-input-styled::-webkit-calendar-picker-indicator {
+  filter: none;
+  background-color: var(--bg-surface-raised);
+}
+
+.btn-icon-sm {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 3px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  color: var(--text-primary);
+  transition: all 0.12s ease;
+  user-select: none;
+}
+
+.btn-icon-sm:hover:not(:disabled) {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-strong);
+}
+
+.btn-icon-sm:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 /* STUDIO LAYOUT (TWO-COLUMN) */
 .studio-layout {
   display: grid;
