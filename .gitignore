@@ -15,3 +15,8 @@ libwordle_solver.dylib
 libwordle_solver.so
 wordle_solver*.dSYM/
 bench_wordlists/
+
+# Web App
+web/node_modules/
+web/dist/
+web/dist-ssr/
