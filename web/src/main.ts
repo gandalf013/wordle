@@ -7,6 +7,7 @@ import { formatScoreEmoji, Score } from './engine/scoring';
 import { analyze, analyzeAll } from './engine/analysis';
 import type { GuessAnalysis } from './engine/analysis';
 import { TOP_OPENERS } from './engine/top_openers';
+import { getLocalDateString, stepDate } from './engine/dates';
 import { APP_CONFIG } from './config';
 
 let wordList: WordList;
@@ -48,7 +49,7 @@ export function showToast(message: string, type: 'info' | 'success' | 'warning' 
 }
 
 let nytHistoryCache: Record<string, { id: number; solution: string; days_since_launch?: number }> = {};
-let selectedNYTDate = new Date().toISOString().split('T')[0];
+let selectedNYTDate = getLocalDateString();
 
 function cacheNYTEntry(dateStr: string, solution: string, id?: number) {
   if (!nytHistoryCache) nytHistoryCache = {};
@@ -61,7 +62,7 @@ function cacheNYTEntry(dateStr: string, solution: string, id?: number) {
 }
 
 export async function fetchNYTWordle(dateStr?: string): Promise<{ solution: string; print_date: string; id: number } | null> {
-  const targetDate = dateStr || new Date().toISOString().split('T')[0];
+  const targetDate = dateStr || getLocalDateString();
 
   // 0. Check local historical archive cache (0ms instant lookup)
   if (nytHistoryCache && nytHistoryCache[targetDate]) {
@@ -118,12 +119,6 @@ export async function fetchNYTWordle(dateStr?: string): Promise<{ solution: stri
   }
 
   return null;
-}
-
-function stepDate(currentDateStr: string, deltaDays: number): string {
-  const d = new Date(currentDateStr + 'T00:00:00Z');
-  d.setUTCDate(d.getUTCDate() + deltaDays);
-  return d.toISOString().split('T')[0];
 }
 
 async function loadNYTDate(dateStr: string) {
@@ -408,11 +403,11 @@ function render() {
               id="nyt-date-picker"
               class="date-input-styled"
               min="2021-06-19"
-              max="${new Date().toISOString().split('T')[0]}"
+              max="${getLocalDateString()}"
               value="${selectedNYTDate}"
               title="Pick any Wordle game from 2021-06-19 to today"
             />
-            <button id="btn-next-day" class="btn-icon-sm" title="Next Day Wordle" ${selectedNYTDate >= new Date().toISOString().split('T')[0] ? 'disabled' : ''}>▶</button>
+            <button id="btn-next-day" class="btn-icon-sm" title="Next Day Wordle" ${selectedNYTDate >= getLocalDateString() ? 'disabled' : ''}>▶</button>
             <button id="btn-today-wordle" class="btn-action" style="padding: 4px 10px; font-size: 11px;" title="Load Today's NYT Wordle">
               📅 Today
             </button>
@@ -1246,7 +1241,7 @@ function attachEventListeners() {
   const btnNextDay = document.getElementById('btn-next-day');
   if (btnNextDay) {
     btnNextDay.addEventListener('click', () => {
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString();
       const next = stepDate(selectedNYTDate, 1);
       if (next <= today) loadNYTDate(next);
     });
@@ -1255,7 +1250,7 @@ function attachEventListeners() {
   const btnTodayWordle = document.getElementById('btn-today-wordle');
   if (btnTodayWordle) {
     btnTodayWordle.addEventListener('click', () => {
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString();
       loadNYTDate(today);
     });
   }
